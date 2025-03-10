@@ -1,0 +1,9 @@
+<div *ngIf="alert$ | async as alert"
+     class="alert-container"
+     [class.show]="!isHiding"
+     [class.hide]="isHiding">
+  <div class="alert alert-{{ alert.type }} alert-dismissible" role="alert">
+    <strong>{{ alert.message }}</strong>
+    <button type="button" class="btn-close" (click)="closeAlert()"></button>
+  </div>
+</div>

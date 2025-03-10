@@ -1,0 +1,33 @@
+<div class="row cart-item mb-3">
+  <div class="col-md-3">
+    <img src="{{ productCartItem().product.images[0] }}" alt="Product 1" class="img-fluid rounded">
+  </div>
+  <div class="col-md-5">
+    <h5 class="card-title">{{productCartItem().product.name}} </h5>
+    @if (productCartItem().model?.length) {
+    <p class="text-muted">Model:
+      @for (m of productCartItem().model; track productCartItem().product.product_id;
+      let i = $index) {
+      {{ m }}{{ i < productCartItem().model.length - 1 ? ', ' : '' }} } </p>
+        }
+
+        <p class="text-muted">{{productCartItem().product.description}}</p>
+  </div>
+  <div class="col-md-2">
+    <div class="input-group">
+      <button class="btn btn-outline-secondary btn-sm" type="button"
+        (click)="onDecrease.emit(productCartItem())">-</button>
+      <input style="max-width:100px" type="text" class="form-control form-control-sm text-center quantity-input"
+        [value]="productCartItem().quantity" (input)="onQuantityChange($event)">
+      <button class=" btn btn-outline-secondary btn-sm" type="button"
+        (click)="onIncrease.emit(productCartItem())">+</button>
+    </div>
+  </div>
+  <div class="col-md-2 text-end">
+    <p class="fw-bold">{{ totalPrice() }} €</p>
+    <button class="btn btn-sm btn-outline-danger"
+      (click)="onRemove.emit({ id: productCartItem().product.product_id, model: productCartItem().model })">
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+</div>

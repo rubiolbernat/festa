@@ -1,0 +1,67 @@
+<!-- Cos amb els formularis -->
+<div class="modal-body tab-content py-4">
+  <!-- Formulari de registre -->
+  <form [formGroup]="registerform" (ngSubmit)="onSubmit()">
+    <!-- Nom complet -->
+    <div class="mb-3">
+      <label class="form-label" for="r-name">Nom complet</label>
+      <input type="text" class="form-control" id="r-name" formControlName="name" placeholder="Helena Garcia" required>
+      @if (registerform.get('name')?.errors?.['required'] && registerform.get('name')?.touched) {
+      <div class="space"></div>
+      <div class="alert alert-danger">El nom és obligatori.</div>
+      }
+    </div>
+
+    <!-- Adreça electrònica -->
+    <div class="mb-3">
+      <label class="form-label" for="r-email">Adreça electrònica</label>
+      <input type="text" class="form-control" formControlName="email" id="r-email"
+        placeholder="helenamelero@example.com" required>
+      @if (registerform.get('email')?.errors?.['required'] && registerform.get('email')?.touched) {
+      <div class="space"></div>
+      <div class="alert alert-danger">El correu electrònic és obligatori.</div>
+      }
+      @if (registerform.get('email')?.errors?.['email'] && registerform.get('email')?.touched) {
+      <div class="space"></div>
+      <div class="alert alert-danger">El correu no és vàlid.</div>
+      }
+    </div>
+
+    <!-- Contrasenya -->
+    <div class="mb-3">
+      <label class="form-label" for="r-password">Contrasenya</label>
+      <input type="password" class="form-control" formControlName="password" id="r-password" required>
+      @if (registerform.get('password')?.errors?.['required'] && registerform.get('password')?.touched) {
+      <div class="space"></div>
+      <div class="alert alert-danger">La contrasenya és obligatòria.</div>
+      }
+      @if (registerform.get('password')?.errors?.['minlength'] && registerform.get('password')?.touched) {
+      <div class="space"></div>
+      <div class="alert alert-danger">La contrasenya ha de tenir almenys 8 caràcters.</div>
+      }
+    </div>
+
+    <!-- Confirmació de contrasenya -->
+    <div class="mb-3">
+      <label class="form-label" for="r-password_1">Confirma la contrasenya</label>
+      <input type="password" class="form-control" formControlName="repeatpassword" id="r-password_1" required>
+      @if (registerform.get('repeatpassword')?.errors?.['required'] && registerform.get('repeatpassword')?.touched) {
+      <div class="space"></div>
+      <div class="alert alert-danger">Has de confirmar la contrasenya.</div>
+      }
+    </div>
+
+    <!-- Error de contrasenyes no coincidents -->
+    @if (registerform.errors?.['mismatch'] && registerform.touched) {
+    <div class="space"></div>
+    <div class="mt-3 alert alert-warning">Les contrasenyes no coincideixen.</div>
+    }
+
+
+    <!-- Botó de registre -->
+    <button class="btn metallic-button text-dark btn-shadow d-block w-100" type="submit"
+      [disabled]="registerform.invalid">
+      Registra't ara! 💖
+    </button>
+  </form>
+</div>

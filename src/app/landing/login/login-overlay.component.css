@@ -1,0 +1,20 @@
+/*login-overlay.component.css*/
+.overlay {
+  position: fixed; /* O absolute, depenent de les teves necessitats */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Fons semi-transparent */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Assegura't que estigui per sobre de la resta del contingut */
+}
+
+.overlay-content {
+  background-color: darkblue;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}

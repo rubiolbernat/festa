@@ -1,0 +1,28 @@
+.alert-container {
+  position: fixed;
+  top: 50px;
+  right: -500px; /* Inicialment fora de la pantalla */
+  z-index: 1050;
+  min-width: 300px;
+  max-width: 400px;
+  padding: 10px;
+  opacity: 0; /* Inicialment invisible */
+  transition: right 1.9s ease-out, opacity 1.5s ease-out; /* Fade out més lent */
+}
+
+.alert-container.show {
+  right: 20px; /* Es mou cap a dins */
+  opacity: 1;
+}
+
+.alert-container.hide {
+  right: -500px; /* Es mou cap a la dreta quan desapareix */
+  opacity: 0;
+}
+
+.alert-fades {
+  --bs-alert-color: #1d1919; /* Text en rosa clar */
+  --bs-alert-bg: #e88affd2; /* Fons rosa clar */
+  --bs-alert-border-color: #570e4d; /* Vora rosa clar */
+  --bs-alert-link-color: #721c24; /* Enllaç amb color rosa fosc */
+}

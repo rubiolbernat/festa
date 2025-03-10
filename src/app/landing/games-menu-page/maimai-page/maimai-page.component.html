@@ -1,0 +1,22 @@
+<div class="container">
+  <h1>Jo Maimai</h1>
+
+  <div class="mb-3">
+    <h3>Selecciona Categories:</h3>
+    <div class="form-check" *ngFor="let category of categories">
+      <input class="form-check-input" type="checkbox" [value]="category" id="category-{{category}}" (change)="toggleCategory(category)">
+      <label class="form-check-label" for="category-{{category}}">
+        {{ category }}
+      </label>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" (click)="cargarPreguntas()">Carregar Preguntes</button>
+
+  <div *ngIf="preguntaActual" class="mt-3">
+    <h3>Pregunta: {{indicePreguntaActual+1}} de {{totalpreguntes}}</h3>
+    <p><b>{{ preguntaActual?.id }} - </b>
+    {{ preguntaActual?.question }}</p>
+    <button class="btn btn-secondary" (click)="preguntaSeguent()">Pregunta Següent</button>
+  </div>
+</div>

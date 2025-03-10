@@ -1,0 +1,103 @@
+<div class="card h-20">
+  @if (product().stock <=10) {
+  <span class="position-absolute top-0 start-0 translate-middle badge rounded-pill text-white bg-danger z-3"
+    style="top: -5px !important; transform: translateX(-10%) !important;">
+    Últimes unitats
+  </span>
+  }
+
+  @if (isNewProduct(product().created_at)) {
+  <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill text-white bg-warning z-3"
+    style="top: -5px !important; transform: translateX(15%) !important;">
+    Novetat
+  </span>
+  }
+
+  @defer (on viewport; prefetch on idle){
+  @if (product().images.length > 1) {
+  <div id="carouselExample{{product().product_id}}" class="carousel slide" style="height: 100%;">
+    <div class="carousel-inner" style="width: 100%;">
+      @for (image of product().images; track $index) {
+      <div class="carousel-item" [class.active]="$index === 0" style="height: 100%;">
+        <img [src]="image" class="d-block w-100 h-100" [alt]="product().name"
+          style="object-fit: contain; width: 100%;">
+      </div>
+      }
+    </div>
+    <button class="carousel-control-prev" type="button"
+      [attr.data-bs-target]="'#carouselExample' + product().product_id" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button"
+      [attr.data-bs-target]="'#carouselExample' + product().product_id" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+  } @else{
+  <img class="card-img-top" [src]="product().images[0]" [alt]="product().name"
+    style="object-fit: contain; width: 100%;">
+  }
+  } @loading{
+  <div class="center">
+    <p>Carregant...</p>
+    <img class="card-img-top" alt="loading..." src="loading.gif" />
+  </div>
+  } @placeholder (minimum 10ms) {
+  <div class="center">
+    <p>Carregant...</p>
+    <img class="card-img-top" alt="loading..." src="loading.gif" />
+  </div>
+  }
+
+  <div class="card-body">
+    <h5>{{ product().name }}</h5>
+    <p class="card-text">{{ product().description }}</p>
+  </div>
+  <div class="card-footer">
+    <form id="add-to-cart-form-{{product().product_id}}" action="logic-cart-add.php" method="POST"
+      class="d-flex flex-row flex-wrap gap-2 align-items-center">
+      <input type="hidden" name="product_id" [value]="product().product_id">
+      <input type="hidden" name="product_name" [value]="product().name">
+      <input type="hidden" name="product_description" [value]="product().description">
+
+      @if (product().variations && product().variations.length > 0) {
+      <select required id="variation_id-{{product().product_id}}" name="variation_id" class="form-select me-2"
+        (change)="updateVariationDetails($event.target, product().product_id)">
+        <option value="" disabled selected style="display: none;">Model</option>
+        <!-- Placeholder que no es veu a la llista -->
+        @for (variation of product().variations; track $index) {
+        <option [value]="variation.variation_id" [attr.data-property]="variation.property_value"
+          [attr.data-stock]="variation.stock">
+          {{ variation.property_value }}
+        </option>
+        }
+      </select>
+      }
+
+      @if (outOfStock) {
+      <span class="text-danger">Esgotat</span>
+      } @else {
+      <input id="quantity-{{product().product_id}}" type="number" name="quantity" class="form-control me-2"
+        placeholder="Quantitat" min="1" [max]="maxQuantity" [value]="quantity" style="width: 100px;"
+        (input)="onQuantityChange($event)">
+      }
+
+      <button type="button" class="btn btn-sm metallic-button text-black me-2 add-to-cart"
+        [attr.data-product-id]="product().product_id" (click)="addToCart(product().product_id)" [disabled]="outOfStock">
+        Afegir al carro
+      </button>
+
+      <!-- Mostrar l'alerta només si la variable showError és true -->
+      @if (showError && product().variations && product().variations.length > 0) {
+      <div class="alert alert-warning" role="alert">
+        <h5 class="alert-heading">Model?</h5>
+        <hr>
+        <small>Selecciona un model abans d'afegir-lo al carro.</small>
+      </div>
+      }
+      <small id="price-{{product().product_id}}" class="text-muted">{{ totalPrice }} €</small>
+    </form>
+  </div>
+</div>

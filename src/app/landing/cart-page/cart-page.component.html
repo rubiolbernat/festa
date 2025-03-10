@@ -1,0 +1,77 @@
+<div class="container py-5">
+  <h1 class="mb-5">La teva totebag de la compra</h1>
+  <div class="row">
+    <div class="col-lg-8">
+      <!-- Cart Items -->
+      <div class="card mb-4">
+        @if(state.products().length >=1 ){
+        <div class="card-body">
+          @for (cartItem of state.products(); track cartItem.product.product_id; let i = $index) {
+          <app-cart-item [productCartItem]="cartItem"
+            (onRemove)="onRemove(cartItem.product.product_id, cartItem.model, cartItem.product.name)"
+            (onDecrease)="onDecrease(cartItem)" (onIncrease)="onIncrease(cartItem)"
+            (onManualQuantity)="handleQuantityChange(cartItem)"></app-cart-item>
+          @if (i < state.products().length - 1) { <hr>
+            }
+            }
+        </div>
+        } @else{
+        <div class="card-body">
+          <h3>No tens cap producte encara</h3>
+        </div>
+        }
+      </div>
+      <!-- Continue Shopping Button -->
+      <div class="text-start mb-4">
+        <a routerLink="/" class="btn btn-outline-primary">
+          <i class="bi bi-arrow-left me-2"></i>Continuar comprant
+        </a>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <!-- Cart Summary -->
+      <div class="card cart-summary">
+        <div class="card-body">
+          <h5 class="card-title mb-4">Resum</h5>
+          <div class="d-flex justify-content-between mb-3">
+            <span>Subtotal</span>
+            <span>{{state.price()}}€</span>
+          </div>
+          <div class="d-flex justify-content-between mb-3">
+            <span>Transport</span>
+            <span>5.00 €</span>
+          </div>
+          <div class="d-flex justify-content-between mb-3">
+            <span>IVA 21%</span>
+            <span>{{ (state.price() * 0.21).toFixed(2) }}</span>
+
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between mb-4">
+            <strong>Total</strong>
+            @if (((state.price()*1.21 )+5).toFixed(2) === '5.00') {
+            <strong>0.00 €</strong>
+            }@else {
+            <strong>{{((state.price()*1.21 )+5).toFixed(2)}}€</strong>
+            }
+          </div>
+          @if (((state.price()*1.21 )+5).toFixed(2) === '5.00') {
+          <button class="btn btn-primary w-100" disabled>Continuar</button>
+          } @else {
+          <button class="btn btn-primary w-100">Continuar</button>
+          }
+        </div>
+      </div>
+      <!-- Promo Code -->
+      <div class="card mt-4">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Apply Promo Code</h5>
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Enter promo code">
+            <button class="btn btn-outline-secondary" type="button">Apply</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

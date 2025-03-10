@@ -1,0 +1,24 @@
+.title-fades {
+  font-family: "Nosifer", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.nav-link {
+  transition: font-weight 0.2s ease, color 0.3s ease-in-out,
+    background-color 1.3s ease-in-out, width 1.5s ease-in-out;
+}
+
+.nav-link:hover {
+  color: #2f579b !important;
+}
+
+.nav-link.text-active {
+  color: #6d7f9e !important;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.nav-link.text-active:hover {
+  color: #2f579b !important;
+}

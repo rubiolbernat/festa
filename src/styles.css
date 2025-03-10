@@ -1,0 +1,76 @@
+/* You can add global styles to this file, and also import other style files */
+.bg-metallic {
+  color: #000;
+  background: linear-gradient(
+    45deg,
+    #999 5%,
+    #fff 10%,
+    #ccc 30%,
+    #ddd 50%,
+    #ccc 70%,
+    #fff 80%,
+    #999 95%
+  );
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease-in-out;
+}
+
+.metallic-button {
+  font-size: 14px;
+  padding: 6px 16px;
+  font-weight: 400;
+  border: none;
+  outline: none;
+  color: #000;
+  background: linear-gradient(
+    45deg,
+    #999 5%,
+    #fff 10%,
+    #ccc 30%,
+    #ddd 50%,
+    #ccc 70%,
+    #fff 80%,
+    #999 95%
+  );
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.metallic-button:hover {
+  transform: translateY(-2px);
+}
+
+/* PORTADA */
+/* Assegurem que el carroussel ocupa tota la pantalla */
+.carousel, .carousel-item, .hero-section {
+  height: 100vh; /* Ocupa tota l'altura de la finestra */
+}
+
+.carousel-item img {
+  object-fit: cover; /* Asegura que la imatge cobreixi tota la pantalla sense deformar-se */
+  height: 100%;
+  width: 100%;
+}
+
+/* Estils per al text */
+.hero-content {
+  position: absolute; /* Perquè el text estigui sobre la imatge */
+  top: 50%; /* Centrat verticalment */
+  left: 50%; /* Centrat horitzontalment */
+  transform: translate(-50%, -50%); /* Centrat perfecte */
+  color: white; /* Color del text per fer-lo visible */
+  text-align: center;
+}
+
+.hero-content h1 {
+  font-size: 3rem; /* Mida gran per al títol */
+  font-weight: bold;
+}
+
+.hero-content p {
+  font-size: 1.5rem; /* Mida mitjana per a la descripció */
+}

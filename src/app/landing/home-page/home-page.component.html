@@ -1,0 +1,12 @@
+<app-carroussel></app-carroussel>
+<app-next-concert></app-next-concert>
+@defer (on viewport; prefetch on idle){
+  <app-shop></app-shop>
+} @loading {
+  <img alt="loading..." src="loading.gif" />
+} @placeholder (minimum 100ms) {
+  <div class="center">
+    <p>Carregant...</p>
+    <img style="height: 50px;" alt="loading..." src="loading.gif" />
+  </div>
+}

@@ -1,0 +1,19 @@
+<!-- SHOP -->
+<section id="shop" class="py-5">
+  <div class="container px-4 px-lg-5">
+    <div class="row justify-content-between align-items-center mb-4">
+      <div class="col-12">
+        <h2 class="text-left mt-0" style="font-size: 1.5em;">MERCH (Pròximament venda online)</h2>
+      </div>
+    </div>
+    <div class="album py-5">
+      <div class="container">
+        <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+          @for (product of products; track $index) {
+          <app-product-card [product]="product" (OutputCart)="addToCart(product, $event)"></app-product-card>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
