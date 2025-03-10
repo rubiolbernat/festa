@@ -1,20 +1,31 @@
-
-// drinking-data.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { DrinkData } from '../../models/drink-data.model';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class DrinkingService {
-  private apiUrl = `${environment.apiUrl}/drinking_api.php`;
+export class DrinkService {
+  private baseUrl = `${environment.apiUrl}/drink-data.php`;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  addDrinkData(drinkData: DrinkData): Observable<any> {
-    return this.http.post(this.apiUrl, drinkData);
+  // Obtenir les últimes ubicacions
+  getLastLocations(userId: number): Observable<string[]> {
+    const params = new HttpParams().set('user_id', userId).set('action', 'getLastLocations');
+    return this.http.get<string[]>(`${this.baseUrl}`, { params });
+  }
+
+  // Obtenir les últimes begudes
+  getLastDrinks(userId: number): Observable<string[]> {
+    const params = new HttpParams().set('user_id', userId).set('action', 'getLastDrinks');
+    return this.http.get<string[]>(`${this.baseUrl}`, { params });
+  }
+
+  // Enviar dades de begudes
+  submitDrinkData(drinkData: any): Observable<any> {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    return this.http.post(`${this.baseUrl}`, drinkData, { headers });
   }
 }

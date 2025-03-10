@@ -1,6 +1,6 @@
 // drinking-page.component.ts
 import { Component } from '@angular/core';
-import { DrinkingService } from '../../core/services/drinking-data/drinking-data.service';
+import { DrinkService } from '../../core/services/drinking-data/drinking-data.service';
 import { DrinkData } from './../../core/models/drink-data.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -17,7 +17,7 @@ import { CommonModule } from '@angular/common';
 export class DrinkingPageComponent {
   drinkForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private drinkingService: DrinkingService) {
+  constructor(private fb: FormBuilder, private drinkingService: DrinkService) {
     this.drinkForm = this.fb.group({
       user_id: ['', Validators.required],
       date: ['', Validators.required],
