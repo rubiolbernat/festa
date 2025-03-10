@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { DrinkingDataService } from '../../../core/services/drinking-data/drinking-data.service';
-import { AuthService } from '../../../core/services/auth/auth.service';
+import { DrinkingDataService } from '../../core/services/drinking-data/drinking-data.service';
+import { AuthService } from '../../core/services/auth/auth.service';
 import { Subscription } from 'rxjs';
 
 interface DrinkData {

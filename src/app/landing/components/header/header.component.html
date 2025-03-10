@@ -2,25 +2,11 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-metallic">
     <div class="container">
       <!-- Marca -->
-      <a class="navbar-brand fw-bold text-dark title-fades" routerLink="/">FADES</a>
+      <a class="navbar-brand fw-bold text-dark title-fades" routerLink="/">XERINOLA</a>
 
       <!-- Botó toggler per offcanvas i icona de carro per a mòbils -->
       <div class="d-flex align-items-center">
         <!-- Carro per a mòbils (només visible en pantalles petites) -->
-        <a routerLink="/cart" class="d-flex align-items-center text-dark ms-3 d-block d-lg-none" style="width: 60px;">
-          <!-- Canviar la icona segons el nombre d'articles -->
-          @if (cartState.count()>0) {
-          <i class="bi bi-bag-heart-fill " style="font-size: 1.5rem;"></i>
-          } @else {
-          <i class="bi bi-bag-heart" style="font-size: 1.5rem;"></i>
-          }
-          <!-- Badge amb el nombre d'articles -->
-          @if (cartState.count()>0) {
-          <span id="cart-count" class="badge bg-danger position-relative start-0 translate-middle"
-            style="font-size: 0.8rem; text-decoration: underline overline #FF3028;">{{cartState.count()}}
-          </span>
-          }
-        </a>
         <!-- Botó toggler per offcanvas -->
         <button class="navbar-toggler text-dark btn-primary metallic-button" type="button" data-bs-toggle="offcanvas"
           data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
@@ -36,18 +22,6 @@
             <a class="nav-link text-dark" routerLink="/" routerLinkActive="text-active"
               [routerLinkActiveOptions]="{ exact: true }">Inici</a>
           </li>
-          <li class="nav-item">
-            <a routerLink="/concerts" routerLinkActive="text-active" class="nav-link text-dark">
-              Concerts
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="['/']" fragment="shop">Botiga</a>
-          </li>
-          <li class=" nav-item">
-            <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/contact">Contacte</a>
-          </li>
-
           <!-- Botó "Espai Personal" (només visible si estàs loguejat) -->
           @if (isLoggedIn) {
           <li class="nav-item">
@@ -64,38 +38,10 @@
               Dashboard
             </a>
           </li>
-
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-dark" href="admin-dashboard.php" id="adminDropdown" role="button"
-              data-bs-toggle="dropdown" aria-expanded="false">
-              Admin
-            </a>
-            <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-              <li><a class="dropdown-item" href="admin-concerts.php">Afegir concerts</a></li>
-              <li><a class="dropdown-item" href="admin-orders.php">Comandes</a></li>
-              <li><a class="dropdown-item" href="admin-dashboard.php">Portada</a></li>
-              <li><a class="dropdown-item" href="admin-products.php">Productes</a></li>
-            </ul>
-          </li>
           }
         </div>
 
         <div class="d-flex align-items-center ms-3">
-          <!-- Carro per a Web -->
-          <a routerLink="/cart" class="d-flex align-items-center text-dark ms-3 d-none d-lg-flex" style="width: 40px;">
-            <!-- Canviar la classe de la icona segons el nombre d'articles -->
-            @if (cartState.count()>0) {
-            <i class="bi bi-bag-heart-fill " style="font-size: 1.5rem;"></i>
-            } @else {
-            <i class="bi bi-bag-heart" style="font-size: 1.5rem;"></i>
-            }
-            <!-- Badge amb el nombre d'articles -->
-            @if (cartState.count()>0) {
-            <span id="cart-count" class="badge bg-danger position-relative start-0 translate-middle"
-              style="font-size: 0.8rem; text-decoration: underline overline #FF3028;">{{cartState.count()}}
-            </span>
-            }
-          </a>
           @if (isLoggedIn) {
           <button (click)="logout()" class="btn btn-primary text-dark metallic-button">Sortir</button>
           } @else {
@@ -118,15 +64,6 @@
               <a class="nav-link text-dark" routerLink="/" routerLinkActive="text-active"
                 [routerLinkActiveOptions]="{ exact: true }">Inici</a>
             </li>
-            <li class="nav-item">
-              <a routerLinkActive="text-active" class="nav-link text-dark" routerLink="/concerts">Concerts</a>
-            </li>
-            <li class="nav-item">
-              <a routerLinkActive="text-active" class="nav-link text-dark" routerLink="['/']" fragment="shop">Botiga</a>
-            </li>
-            <li class="nav-item">
-              <a routerLinkActive="text-active" class="nav-link text-dark" routerLink="/contact">Contacte</a>
-            </li>
 
             <!-- Botó "Espai Personal" (només visible si estàs loguejat) - Offcanvas -->
             @if (isLoggedIn) {
@@ -143,19 +80,6 @@
               <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/dashboard">
                 Dashboard
               </a>
-            </li>
-
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle text-dark" href="admin-dashboard.php" id="adminDropdown" role="button"
-                data-bs-toggle="dropdown" aria-expanded="false">
-                Admin
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                <li><a class="dropdown-item" href="admin-concerts.php">Afegir concerts</a></li>
-                <li><a class="dropdown-item" href="admin-orders.php">Comandes</a></li>
-                <li><a class="dropdown-item" href="admin-dashboard.php">Portada</a></li>
-                <li><a class="dropdown-item" href="admin-products.php">Productes</a></li>
-              </ul>
             </li>
             }
           </ul>

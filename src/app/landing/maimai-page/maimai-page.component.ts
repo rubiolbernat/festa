@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common'; // <-- IMPORTA CommonModule
-import { MaimaiDataService } from '../../../core/services/maimai-data/maimai-data.service';
-import { Pregunta } from '../../../core/models/Pregunta';
+import { MaimaiDataService } from '../../core/services/maimai-data/maimai-data.service';
+import { Pregunta } from '../../core/models/Pregunta';
 
 @Component({
   selector: 'app-maimai-page',

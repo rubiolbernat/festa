@@ -12,41 +12,25 @@ export const LANDING_ROUTES: Routes = [
     component: LandingLayoutComponent,
     children: [
       {
-        path: '',
+        path: 'home',
         component: HomePageComponent
-      },
-      {
-        path: 'concerts',
-        loadComponent: () => import('./concerts-page/concerts-page.component').then(m => m.ConcertsPageComponent)
-      },
-      {
-        path: 'contact',
-        component: ContactPageComponent
-      },
-      {
-        path: 'cart',
-        loadComponent: () => import('./cart-page/cart-page.component').then(m => m.CartPageComponent)
       },
       {
         path: 'legal',
         loadComponent: () => import('./legal-page/legal-page.component').then(m => m.LegalPageComponent)
       },
-      {
-        path: 'personal-space', // RUTA PROTEGIDA
-        component: CartPageComponent, // <-- CANVIA AIXÒ: Importa i utilitza el component correcte
-        canActivate: [AuthGuard] // Aquí protegim la ruta
-      },
       //JOCS
       {
-        path: 'jocs',
-        loadComponent: () => import('./games-menu-page/games-menu-page.component').then(m => m.GamesMenuPageComponent)
+        path: '',
+        loadComponent: () => import('./games-menu-page/games-menu-page.component').then(m => m.GamesMenuPageComponent),
+        canActivate: [AuthGuard],
       },
       {
         path: 'jo_maimai',
-        loadComponent: () => import('./games-menu-page/maimai-page/maimai-page.component').then(m => m.MaimaiPageComponent)
+        loadComponent: () => import('./maimai-page/maimai-page.component').then(m => m.MaimaiPageComponent)
       },{
         path: 'la_gran_aventura',
-        loadComponent: () => import('./games-menu-page/drinking-page/drinking-page.component').then(m => m.DrinkingPageComponent),
+        loadComponent: () => import('./drinking-page/drinking-page.component').then(m => m.DrinkingPageComponent),
         canActivate: [AuthGuard], //Només accessible si estàs loguejat
       }
     ]
