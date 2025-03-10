@@ -1,56 +1,38 @@
-<div class="container">
-  <h1>Afegir consum <i class="bi bi-cup-straw"></i></h1>
+<form [formGroup]="drinkForm" (ngSubmit)="onSubmit()" class="p-4">
+  <div class="mb-3">
+    <label for="user_id" class="form-label">User ID</label>
+    <input type="number" class="form-control" id="user_id" formControlName="user_id" required>
+  </div>
 
-  <form (ngSubmit)="onSubmit()">
-    <div class="mb-3">
-      <label for="date" class="form-label">Data:</label>
-      <input type="date" class="form-control" id="date" name="date" [(ngModel)]="drinkData.date" (change)="updateDayOfWeek()" required>  <!-- AFEGIT (change)="updateDayOfWeek()" -->
-    </div>
+  <div class="mb-3">
+    <label for="date" class="form-label">Date</label>
+    <input type="date" class="form-control" id="date" formControlName="date" required>
+  </div>
 
-    <div class="mb-3">
-      <label for="location" class="form-label">Lloc:</label>
-      <input type="text" class="form-control" id="location" name="location" [(ngModel)]="drinkData.location" (input)="filterLocations()" required>
-      <ul class="list-group" *ngIf="locationSuggestions.length > 0">
-        <li class="list-group-item" *ngFor="let suggestion of locationSuggestions" (click)="drinkData.location = suggestion; locationSuggestions = []">{{ suggestion }}</li>
-      </ul>
-    </div>
+  <div class="mb-3">
+    <label for="day_of_week" class="form-label">Day of Week</label>
+    <input type="number" class="form-control" id="day_of_week" formControlName="day_of_week" required>
+  </div>
 
-    <div class="mb-3 row">
-      <div class="col-md-6">
-        <label for="latitude" class="form-label">Latitud:</label>
-        <input type="text" class="form-control" id="latitude" name="latitude" [(ngModel)]="drinkData.latitude" readonly>
-      </div>
-      <div class="col-md-6">
-        <label for="longitude" class="form-label">Longitud:</label>
-        <input type="text" class="form-control" id="longitude" name="longitude" [(ngModel)]="drinkData.longitude" readonly>
-      </div>
-    </div>
+  <div class="mb-3">
+    <label for="location" class="form-label">Location</label>
+    <input type="text" class="form-control" id="location" formControlName="location" required>
+  </div>
 
-    <div class="mb-3">
-      <label for="drink" class="form-label">Beguda:</label>
-      <input type="text" class="form-control" id="drink" name="drink" [(ngModel)]="drinkData.drink" (input)="filterDrinks()" required>
-      <ul class="list-group" *ngIf="drinkSuggestions.length > 0">
-        <li class="list-group-item" *ngFor="let suggestion of drinkSuggestions" (click)="drinkData.drink = suggestion; drinkSuggestions = []">{{ suggestion }}</li>
-      </ul>
-    </div>
+  <div class="mb-3">
+    <label for="drink" class="form-label">Drink</label>
+    <input type="text" class="form-control" id="drink" formControlName="drink" required>
+  </div>
 
+  <div class="mb-3">
+    <label for="quantity" class="form-label">Quantity</label>
+    <input type="number" class="form-control" id="quantity" formControlName="quantity" required>
+  </div>
 
-    <div class="mb-3 row">
-      <div class="col-md-6">
-        <label for="quantity" class="form-label">Quantitat:</label>
-      <input type="number" class="form-control" id="quantity" name="quantity" [(ngModel)]="drinkData.quantity" required>
-      </div>
-      <div class="col-md-6">
-        <label for="price" class="form-label">Preu:<i class="bi bi-currency-euro"></i></label>
-      <input type="number" class="form-control" id="price" name="price" [(ngModel)]="drinkData.price" required>
-      </div>
-    </div>
+  <div class="mb-3">
+    <label for="price" class="form-label">Price</label>
+    <input type="number" class="form-control" id="price" formControlName="price" required>
+  </div>
 
-    <div class="mb-3">
-      <label for="others" class="form-label">Altres:</label>
-      <textarea class="form-control" id="others" name="others" [(ngModel)]="drinkData.others"></textarea>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Afegir</button>
-  </form>
-</div>
+  <button type="submit" class="btn btn-primary" [disabled]="!drinkForm.valid">Submit</button>
+</form>

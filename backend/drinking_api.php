@@ -1,7 +1,12 @@
 <?php
 require_once('dbconnect.php');
-//require_once('restrictions.php');
-//header('Content-Type: application/json');
+require_once('restrictions.php');
+
+// OPTIONS request handler (Preflight)
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
 // Funció per netejar les dades
 function sanitize($data) {
@@ -137,7 +142,79 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $others = isset($data->others) ? sanitize($data->others) : null;
     $price = isset($data->price) ? sanitize($data->price) : null;
 
-    // Valida les dades
+     // Valida les dades i els tipus
+    if (!is_numeric($user_id)) {
+        http_response_code(400);
+        echo json_encode(array("message" => "user_id ha de ser un número."));
+        error_log("Error: user_id ha de ser un número.");
+        exit;
+    }
+
+    if (!is_string($date)) {
+        http_response_code(400);
+        echo json_encode(array("message" => "date ha de ser una cadena."));
+        error_log("Error: date ha de ser una cadena.");
+        exit;
+    }
+
+    if (!is_numeric($day_of_week)) {
+        http_response_code(400);
+        echo json_encode(array("message" => "day_of_week ha de ser un número."));
+        error_log("Error: day_of_week ha de ser un número.");
+        exit;
+    }
+
+    if (!is_string($location)) {
+        http_response_code(400);
+        echo json_encode(array("message" => "location ha de ser una cadena."));
+        error_log("Error: location ha de ser una cadena.");
+        exit;
+    }
+
+     if ($latitude !== null && !is_numeric($latitude)) {
+        http_response_code(400);
+        echo json_encode(array("message" => "latitude ha de ser un número o null."));
+        error_log("Error: latitude ha de ser un número o null.");
+        exit;
+    }
+
+    if ($longitude !== null && !is_numeric($longitude)) {
+        http_response_code(400);
+        echo json_encode(array("message" => "longitude ha de ser un número o null."));
+        error_log("Error: longitude ha de ser un número o null.");
+        exit;
+    }
+
+    if (!is_string($drink)) {
+        http_response_code(400);
+        echo json_encode(array("message" => "drink ha de ser una cadena."));
+        error_log("Error: drink ha de ser una cadena.");
+        exit;
+    }
+
+    if (!is_numeric($quantity)) {
+        http_response_code(400);
+        echo json_encode(array("message" => "quantity ha de ser un número."));
+        error_log("Error: quantity ha de ser un número.");
+        exit;
+    }
+
+    if (!is_string($others)) {
+        http_response_code(400);
+        echo json_encode(array("message" => "others ha de ser una cadena."));
+        error_log("Error: others ha de ser una cadena.");
+        exit;
+    }
+
+    if (!is_numeric($price)) {
+        http_response_code(400);
+        echo json_encode(array("message" => "price ha de ser un número."));
+        error_log("Error: price ha de ser un número.");
+        exit;
+    }
+
+
+    // Valida que els camps obligatoris estiguin presents
     if ($user_id === null || $date === null || $day_of_week === null || $location === null || $drink === null || $quantity === null || $price === null) {
         http_response_code(400);
         echo json_encode(array("message" => "Tots els camps obligatoris han d'estar presents."));
@@ -147,15 +224,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Prepara la consulta
-        $stmt = $conn->prepare("INSERT INTO drink_data (user_id, date, day_of_week, location, latitude, longitude, drink, quantity, others, price) VALUES (:user_id, :date, :day_of_week, :location, :latitude, :longitude, :drink, :quantity, others, :price)");
+        $stmt = $conn->prepare("INSERT INTO drink_data (user_id, date, day_of_week, location, latitude, longitude, drink, quantity, others, price) VALUES (:user_id, :date, :day_of_week, :location, :latitude, :longitude, :drink, :quantity, :others, :price)");
 
         // Lliga els paràmetres
         $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmt->bindParam(':date', $date, PDO::PARAM_STR);
         $stmt->bindParam(':day_of_week', $day_of_week, PDO::PARAM_INT);
         $stmt->bindParam(':location', $location, PDO::PARAM_STR);
-        $stmt->bindParam(':latitude', $latitude, PDO::PARAM_STR); // Permet valors NULL
-        $stmt->bindParam(':longitude', $longitude, PDO::PARAM_STR); // Permet valors NULL
+         $stmt->bindParam(':latitude', $latitude, $latitude === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $stmt->bindParam(':longitude', $longitude, $longitude === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
         $stmt->bindParam(':drink', $drink, PDO::PARAM_STR);
         $stmt->bindParam(':quantity', $quantity, PDO::PARAM_STR);
         $stmt->bindParam(':others', $others, PDO::PARAM_STR);
@@ -169,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             http_response_code(500);
             echo json_encode(array("message" => "Error al afegir les dades."));
-            error_log("Error al afegir les dades.");
+             error_log("Error al afegir les dades: " . print_r($stmt->errorInfo(), true)); // Registra l'error de la declaració
         }
     } catch (PDOException $e) {
         http_response_code(500);
@@ -184,5 +261,4 @@ http_response_code(400);
 echo json_encode(array("message" => "Petició invàlida."));
 error_log("Petició invàlida.");
 exit;
-
 ?>
