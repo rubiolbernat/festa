@@ -1,9 +1,7 @@
 import { Routes } from "@angular/router";
 import { LandingLayoutComponent } from '../layout/landing-layout/landing-layout.component';
 import { HomePageComponent } from './home-page/home-page.component';
-import { ContactPageComponent } from './contact-page/contact-page.component';
 import { AuthGuard } from '../core/guards/auth.guard'; // Importem el guard
-import { CartPageComponent } from "./cart-page/cart-page.component";
 //import { PersonalSpaceComponent } from './personal-space/personal-space.component'; // Importa el component correcte
 
 export const LANDING_ROUTES: Routes = [
@@ -35,5 +33,5 @@ export const LANDING_ROUTES: Routes = [
       }
     ]
   },
-  { path: '**', redirectTo: '' }
+  { path: '**', redirectTo: 'beure' }
 ];

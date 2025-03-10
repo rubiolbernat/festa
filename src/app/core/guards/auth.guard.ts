@@ -22,7 +22,7 @@ export class AuthGuard implements CanActivate {
       console.log("AuthGuard: Usuari no loguejat, redirigint a /login");
       this.alertService.showAlert('Usuari no logejat', 'warning', 3000);
       this.overlayService.open('login-overlay');
-      this.router.navigate([''], { queryParams: { returnUrl: state.url } });
+      this.router.navigate(['/home'], { queryParams: { returnUrl: state.url } });
       return false;
     }
 
@@ -33,7 +33,7 @@ export class AuthGuard implements CanActivate {
     if (requiredRoles && !user.roles.some(role => requiredRoles.includes(role))) {
       console.log("AuthGuard: Usuari no té els rols necessaris, redirigint a /forbidden");
       this.alertService.showAlert('Usuari no té els rols necessaris"', 'warning', 3000);
-      this.router.navigate(['/forbidden']);
+      this.router.navigate(['/home']);
       return false;
     }
 
