@@ -6,3 +6,10 @@ export interface User {
   created_at?: string;
   roles?: string[]; // Llista de noms de rols associats a l'usuari
 }
+
+export interface UserSimplified {
+  userId: number;
+  id: number;
+  name: string;
+  roles: string[];
+}

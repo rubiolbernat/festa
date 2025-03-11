@@ -1,38 +1,118 @@
-<form [formGroup]="drinkForm" (ngSubmit)="onSubmit()" class="p-4">
-  <div class="mb-3">
-    <label for="user_id" class="form-label">User ID</label>
-    <input type="number" class="form-control" id="user_id" formControlName="user_id" required>
-  </div>
+<div class="container">
+  <br>
+  <h1>Afegir consum <i class="bi bi-cup-straw"></i></h1>
+  <br>
 
-  <div class="mb-3">
-    <label for="date" class="form-label">Date</label>
-    <input type="date" class="form-control" id="date" formControlName="date" required>
-  </div>
+  <form (ngSubmit)="onSubmit()">
+    <div class="mb-3">
+      <label for="date" class="form-label">Data:</label>
+      <input type="date" class="form-control" id="date" name="date" [(ngModel)]="drinkData.date"
+        (change)="updateDayOfWeek()" required>
+      <!-- AFEGIT (change)="updateDayOfWeek()" -->
+    </div>
 
-  <div class="mb-3">
-    <label for="day_of_week" class="form-label">Day of Week</label>
-    <input type="number" class="form-control" id="day_of_week" formControlName="day_of_week" required>
-  </div>
+    <div class="mb-3">
+      <label for="location" class="form-label">Lloc:</label>
+      <input type="text" class="form-control" id="location" name="location" [(ngModel)]="drinkData.location"
+        (input)="filterLocations()" required>
+      <ul class="list-group" *ngIf="locationSuggestions.length > 0">
+        <li class="list-group-item" *ngFor="let suggestion of locationSuggestions"
+          (click)="drinkData.location = suggestion; locationSuggestions = []">{{ suggestion }}</li>
+      </ul>
+    </div>
 
-  <div class="mb-3">
-    <label for="location" class="form-label">Location</label>
-    <input type="text" class="form-control" id="location" formControlName="location" required>
-  </div>
+    <!-- Latitud i Longitud -->
+    <div class="mb-3 row">
+      <div class="col-6">
+        <label for="latitude" class="form-label">Latitud:</label>
+        <div class="input-group">
+          <input type="text" class="form-control" id="latitude" name="latitude" [value]="drinkData.latitude" readonly
+            [ngClass]="{'bg-danger': !hasGpsData}" style="color: white;">
+          <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+        </div>
+      </div>
+      <div class="col-6">
+        <label for="longitude" class="form-label">Longitud:</label>
+        <div class="input-group">
+          <input type="text" class="form-control" id="longitude" name="longitude" [value]="drinkData.longitude" readonly
+            [ngClass]="{'bg-danger': !hasGpsData}" style="color: white;">
+          <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+        </div>
+      </div>
+      <div *ngIf="!hasGpsData" class="form-text text-danger">No s'ha pogut accedir a la ubicació.</div>
+      <button type="button" class="btn btn-outline-secondary mt-2" (click)="getCurrentLocation()">
+        <i class="bi bi-geo-fill"></i> Obtenir Ubicació
+      </button>
+    </div>
 
-  <div class="mb-3">
-    <label for="drink" class="form-label">Drink</label>
-    <input type="text" class="form-control" id="drink" formControlName="drink" required>
-  </div>
+    <div class="mb-3">
+      <label for="drink" class="form-label">Beguda:</label>
+      <input type="text" class="form-control" id="drink" name="drink" [(ngModel)]="drinkData.drink"
+        (input)="filterDrinks()" required>
+      <ul class="list-group" *ngIf="drinkSuggestions.length > 0">
+        <li class="list-group-item" *ngFor="let suggestion of drinkSuggestions"
+          (click)="drinkData.drink = suggestion; drinkSuggestions = []">{{ suggestion }}</li>
+      </ul>
+    </div>
 
-  <div class="mb-3">
-    <label for="quantity" class="form-label">Quantity</label>
-    <input type="number" class="form-control" id="quantity" formControlName="quantity" required>
-  </div>
 
-  <div class="mb-3">
-    <label for="price" class="form-label">Price</label>
-    <input type="number" class="form-control" id="price" formControlName="price" required>
-  </div>
+    <div class="mb-3 row">
+      <div class="col-md-6">
+        <label for="quantity" class="form-label">Quantitat (en litres):</label>
+        <input type="number" class="form-control" id="quantity" name="quantity" [(ngModel)]="drinkData.quantity"
+          required step="0.01" min="0.1" (ngModelChange)="onQuantityChange($event)">
+        <div *ngIf="drinkData.quantity > 1.5" class="form-text text-warning">
+          <i class="bi bi-info-circle"></i>
+          La quantitat introduïda és superior a 1.5 litres. Si us plau, assegura't que la quantitat està en
+          litres.
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label for="price" class="form-label">Preu:<i class="bi bi-currency-euro"></i></label>
+        <input type="number" class="form-control" id="price" name="price" [(ngModel)]="drinkData.price" required
+          min="0">
+      </div>
+    </div>
 
-  <button type="submit" class="btn btn-primary" [disabled]="!drinkForm.valid">Submit</button>
-</form>
+    <div class="mb-3">
+      <label for="others" class="form-label">Altres:</label>
+      <textarea class="form-control" id="others" name="others" [(ngModel)]="drinkData.others"></textarea>
+    </div>
+
+    <div class="d-flex justify-content-center gap-2">
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmationModal"
+        [disabled]="drinkData.price < 0 || !drinkData.quantity">
+        Afegir
+      </button>
+      <a routerLink="/la_gran_aventura-edit" class="btn btn-warning">Editar dades</a>
+    </div>
+  </form>
+  <!-- Modal de confirmació -->
+  <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmationModalLabel">Confirmació de dades</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Si us plau, confirma que les dades són correctes:</p>
+          <p><b>Data:</b> {{drinkData.date}}</p>
+          <p><b>Lloc:</b> {{drinkData.location}}</p>
+          <p><b>Latitud:</b> {{drinkData.latitude}}</p>
+          <p><b>Longitud:</b> {{drinkData.longitude}}</p>
+          <p><b>Beguda:</b> {{drinkData.drink}}</p>
+          <p><b>Quantitat:</b> {{drinkData.quantity}}</p>
+          <p><b>Preu:</b> {{drinkData.price}}</p>
+          <p><b>Altres:</b> {{drinkData.others}}</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel·lar</button>
+          <button type="button" class="btn btn-primary" (click)="submitData()" data-bs-dismiss="modal">Confirmar i
+            Afegir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

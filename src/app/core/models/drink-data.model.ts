@@ -13,3 +13,8 @@ export interface DrinkData {
   others?: string; // Opcional
   price: number;
 }
+
+export interface CombinedDrinkUserData extends DrinkData {
+  user_name: string;
+  user_email: string;
+}

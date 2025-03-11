@@ -1,12 +1,13 @@
 <div class="container mt-5">
   <div class="jumbotron text-center">
-    <h1 class="display-4">Benvingut al Dashboard</h1>
+    <h1 class="display-4">Benvingut als Jocs</h1>
     <p class="lead">Escull una opció:</p>
     <hr class="my-4">
 
     <div class="row">
-      <div class="col-md-4">
-        <div class="card">
+      <!-- Jo Maimai -->
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
           <img src="jomaimai.PNG" class="card-img-top" alt="Jo Maimai">
           <div class="card-body">
             <h5 class="card-title">Jo Maimai</h5>
@@ -15,20 +16,22 @@
           </div>
         </div>
       </div>
-
-      <div class="col-md-4">
-        <div class="card">
-          <img src="assets/afegir_dades.png" class="card-img-top" alt="Afegir Dades">
-          <div class="card-body">
-            <h5 class="card-title">Afegir Dades</h5>
-            <p class="card-text">Afegeix informació sobre el teu consum de begudes.</p>
-            <a routerLink="/la_gran_aventura" class="btn btn-success">Afegir Dades</a>
+      <!-- Afegir Dades -->
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <img src="enterdata.PNG" class="card-img-top" alt="Afegir Dades">
+          <div class="card-body d-flex flex-column align-items-center">
+            <h5 class="card-title text-center">Afegir Dades</h5>
+            <p class="card-text text-center">Afegeix informació sobre el teu consum de begudes.</p>
+            <div class="d-grid gap-2 d-md-block">
+              <a routerLink="/la_gran_aventura" class="btn btn-success me-md-1">Afegir Dades</a>
+            </div>
           </div>
         </div>
       </div>
-
-      <div class="col-md-4">
-        <div class="card">
+      <!-- Estadístiques -->
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
           <img src="assets/estadistiques.png" class="card-img-top" alt="Estadístiques">
           <div class="card-body">
             <h5 class="card-title">Estadístiques</h5>
@@ -37,13 +40,15 @@
           </div>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="card">
-          <img src="assets/estadistiques.png" class="card-img-top" alt="Estadístiques">
+
+      <!-- Ruleta -->
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <img src="assets/ruleta.png" class="card-img-top" alt="Ruleta">
           <div class="card-body">
-            <h5 class="card-title">Estadístiques</h5>
-            <p class="card-text">Visualitza les teves estadístiques de consum.</p>
-            <a routerLink="/la_gran_aventura" class="btn btn-danger">RULETAAA</a>
+            <h5 class="card-title">Ruleta</h5>
+            <p class="card-text">Deixa que la sort decideixi la teva propera opció!</p>
+            <a routerLink="/la_gran_aventura" class="btn btn-danger">Girar Ruleta</a>
           </div>
         </div>
       </div>

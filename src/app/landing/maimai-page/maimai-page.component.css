@@ -1,4 +1,28 @@
-/* jo-maimai.component.css */
-.container {
-  margin-top: 20px;
+.typewriter {
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+  letter-spacing: .1em;
+  font-size: 20px;
+}
+
+.cursor {
+  font-size: 20px;
+  color: rgb(255, 153, 69);
+  display: inline-block;
+  margin: 0px;
+}
+
+.cursor.blinking {
+    animation: blink-cursor 0.7s steps(5, start) infinite;
+}
+
+@keyframes blink-cursor {
+  from {
+    visibility: visible;
+  }
+
+  to {
+    visibility: hidden;
+  }
 }

@@ -1,12 +1,12 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common'; // <-- IMPORTA CommonModule
+import { CommonModule } from '@angular/common';
 import { MaimaiDataService } from '../../core/services/maimai-data/maimai-data.service';
 import { Pregunta } from '../../core/models/Pregunta';
 
 @Component({
   selector: 'app-maimai-page',
   standalone: true,
-  imports: [CommonModule], // <-- AFEGEIX CommonModule A Imports
+  imports: [CommonModule],
   templateUrl: './maimai-page.component.html',
   styleUrls: ['./maimai-page.component.css']
 })
@@ -14,10 +14,16 @@ export class MaimaiPageComponent implements OnInit {
 
   categories: string[] = [];
   selectedCategories: string[] = [];
-  preguntas: Pregunta[] = []; // Array amb totes les preguntes
-  preguntaActual: Pregunta | null = null; // La pregunta que es mostra actualment
-  indicePreguntaActual: number = 0; // L'índex de la pregunta actual
-  totalpreguntes: number = 0; // El total de preguntes
+  preguntas: Pregunta[] = [];
+  preguntaActual: Pregunta | null = null;
+  indicePreguntaActual: number = 0;
+  totalpreguntes: number = 0;
+  allCategoriesSelected: boolean = false;
+
+  displayedQuestion: string = '';
+  private typingInterval: any;
+  private blinkInterval: any;
+  showCursor: boolean = false; // No mostrem el cursor fins que hagi acabat d'escriure
 
   constructor(private maimaiDataService: MaimaiDataService, private cdRef: ChangeDetectorRef) { }
 
@@ -44,7 +50,16 @@ export class MaimaiPageComponent implements OnInit {
     }
   }
 
-  cargarPreguntas() {
+  toggleAllCategories() {
+    if (this.allCategoriesSelected) {
+      this.selectedCategories = [];
+    } else {
+      this.selectedCategories = [...this.categories];
+    }
+    this.allCategoriesSelected = !this.allCategoriesSelected;
+  }
+
+  carregarPreguntes() {
     if (this.selectedCategories.length === 0) {
       alert('Selecciona al menys una categoria');
       return;
@@ -53,14 +68,14 @@ export class MaimaiPageComponent implements OnInit {
     this.maimaiDataService.getPreguntas(this.selectedCategories).subscribe(
       data => {
         this.preguntas = data;
-        this.shufflePreguntas(); // Baralla les preguntes quan es carreguen
-        this.indicePreguntaActual = 0; // Reinicia l'índex
-        this.mostrarPregunta(); // Mostra la primera pregunta
-        this.totalpreguntes = this.preguntas.length; // Guarda el total de preguntes
+        this.shufflePreguntas();
+        this.indicePreguntaActual = 0;
+        this.mostrarPregunta();
+        this.totalpreguntes = this.preguntas.length;
       },
       error => {
         console.error('Error al obtenir les preguntes:', error);
-        this.preguntas = []; // Limpia les preguntes en cas d'error
+        this.preguntas = [];
         this.preguntaActual = null;
       }
     );
@@ -69,7 +84,12 @@ export class MaimaiPageComponent implements OnInit {
   mostrarPregunta() {
     if (this.preguntas.length > 0 && this.indicePreguntaActual < this.preguntas.length) {
       this.preguntaActual = this.preguntas[this.indicePreguntaActual];
-      this.cdRef.detectChanges(); // <-- Força la detecció de canvis
+      this.displayedQuestion = '';
+      this.showCursor = false; // Inicialment amaguem el cursor
+      clearInterval(this.typingInterval);
+      clearInterval(this.blinkInterval);
+      this.typeWriterEffect(this.preguntaActual.question);
+      this.cdRef.detectChanges();
       console.log("Pregunta actual:", this.preguntaActual);
     } else {
       this.preguntaActual = null;
@@ -78,18 +98,18 @@ export class MaimaiPageComponent implements OnInit {
 
   preguntaSeguent() {
     if (this.preguntas.length === 0) {
-      return; // No hi ha preguntes
+      return;
     }
 
-    this.indicePreguntaActual++; // Incrementa l'índex
+    this.indicePreguntaActual++;
 
     if (this.indicePreguntaActual >= this.preguntas.length) {
-      this.indicePreguntaActual = 0; // Torna al principi si arriba al final
+      this.indicePreguntaActual = 0;
       alert('Has acabat totes les preguntes! Reiniciant...');
-      this.shufflePreguntas(); // Torna a barrejar les preguntes
+      this.shufflePreguntas();
     }
 
-    this.mostrarPregunta(); // Mostra la següent pregunta
+    this.mostrarPregunta();
   }
 
   shufflePreguntas() {
@@ -98,5 +118,31 @@ export class MaimaiPageComponent implements OnInit {
       const j = Math.floor(Math.random() * (i + 1));
       [this.preguntas[i], this.preguntas[j]] = [this.preguntas[j], this.preguntas[i]];
     }
+  }
+
+  typeWriterEffect(text: string) {
+    let i = 0;
+    this.typingInterval = setInterval(() => {
+      if (i < text.length) {
+        this.displayedQuestion += text.charAt(i);
+        i++;
+        this.cdRef.detectChanges();
+      } else {
+        clearInterval(this.typingInterval);
+        this.startBlinking(); // Comença a parpellejar quan acaba d'escriure
+      }
+    }, 15);
+  }
+
+  startBlinking() {
+      this.showCursor = true;
+      this.cdRef.detectChanges(); // Forçar la actualització de la vista
+      this.blinkInterval = setInterval(() => {
+          // No es necesario modificar showCursor, solo gestionamos la clase "blinking"
+          const cursor = document.querySelector('.cursor');
+          if (cursor) {
+              cursor.classList.add('blinking');
+          }
+      }, 10);
   }
 }

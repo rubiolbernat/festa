@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom, Subject, BehaviorSubject } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { Observable } from 'rxjs';
 
 interface User {
   userId: number;
@@ -97,5 +98,9 @@ export class AuthService {
 
   getUser(): User | null {
     return this.userSubject.value; // Retorna el valor actual del BehaviorSubject
+  }
+
+  getUserObser(): Observable<User | null> {
+    return this.user$;
   }
 }
