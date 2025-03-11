@@ -53,7 +53,7 @@ if (!$conn) {
 }
 
 // Check if the email already exists
-$stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
+$stmt = $conn->prepare("SELECT user_id FROM festa_users WHERE email = ?");
 $stmt->execute([$email]);
 
 if ($stmt->fetch()) {
@@ -68,7 +68,7 @@ $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 try {
   $conn->beginTransaction(); // Inicia la transacción
 
-  $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
+  $stmt = $conn->prepare("INSERT INTO festa_users (name, email, password) VALUES (?, ?, ?)");
   $stmt->execute([$name, $email, $hashedPassword]);
   $userId = $conn->lastInsertId();
   error_log("register.php: Usuari inserit correctament amb ID: " . $userId);

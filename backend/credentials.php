@@ -1,5 +1,5 @@
 <?php
-define('DB_NAME', 'fadesNG');
+define('DB_NAME', 'festa');
 /** Database username */
 define('DB_USER', 'root');
 /** Database password */

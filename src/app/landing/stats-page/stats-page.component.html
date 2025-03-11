@@ -51,24 +51,76 @@
       </div>
     </div>
   </div>
-
   <!-- Gràfics -->
   <div class="row g-4 mt-4">
-    <div class="col-md-6">
+    <div class="col-12">
       <div class="card shadow-sm">
         <div class="card-header bg-info text-white">
           <h5 class="card-title mb-0"><i class="bi bi-calendar3"></i> Dies sortits</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Dia</th>
+                <th>Dies sortits</th>
+                <th>Begudes</th>
+                <th>Quantitat total (L)</th>
+                <th>Mitjana (L)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let stat of statsData.weeklyStats">
+                <td>{{ stat.day_of_week }}</td>
+                <td>{{ stat.dies_sortits }}</td>
+                <td>{{ stat.begudes_preses }}</td>
+                <td>{{ stat.total_quantitat }}</td>
+                <td>{{ stat.mitjana_quantitat | number:'1.2-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light text-dark">
+          <h5 class="card-title mb-0"><i class="bi bi-graph-up"></i> Gràfic setmanal</h5>
         </div>
         <div class="card-body">
           <canvas id="weeklyStatsChart" width="400" height="200"></canvas>
         </div>
       </div>
     </div>
-
-    <div class="col-md-6">
+    <div class="col-12">
       <div class="card shadow-sm">
         <div class="card-header bg-danger text-white">
-          <h5 class="card-title mb-0"><i class="bi bi-bar-chart"></i> Resum mensual: Quantitat i preu</h5>
+          <h5 class="card-title mb-0"><i class="bi bi-bar-chart"></i> Resum mensual</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Mes</th>
+                <th>Litres</th>
+                <th>Preu (€)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let summary of statsData.monthlySummary">
+                <td>{{ summary.mes }}</td>
+                <td>{{ summary.litres }}</td>
+                <td>{{ summary.preu }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light text-dark">
+          <h5 class="card-title mb-0"><i class="bi bi-pie-chart"></i> Gràfic mensual</h5>
         </div>
         <div class="card-body">
           <canvas id="monthlySummaryChart" width="400" height="200"></canvas>

@@ -83,12 +83,12 @@ function getLastInserted($conn)
 {
   $sql = "SELECT
                 drink_data.*,
-                users.name AS user_name,
-                users.email AS user_email
+                festa_users.name AS user_name,
+                festa_users.email AS user_email
             FROM
                 drink_data
             INNER JOIN
-                users ON drink_data.user_id = users.user_id
+                festa_users ON drink_data.user_id = festa_users.user_id
             ORDER BY
                 drink_data.date DESC
             LIMIT 1";

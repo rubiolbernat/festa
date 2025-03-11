@@ -46,7 +46,7 @@ global $conn;
 
 try {
     // Obtenim les dades de l'usuari
-    $stmt = $conn->prepare("SELECT user_id, name, password FROM users WHERE email = ?");
+    $stmt = $conn->prepare("SELECT user_id, name, password FROM festa_users WHERE email = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -67,7 +67,7 @@ try {
     $refreshToken = bin2hex(random_bytes(64)); // Refresh token més llarg
 
     // Guardem el refresh token a la base de dades
-    $stmt = $conn->prepare("UPDATE users SET refresh_token = ?, token_expires_at = DATE_ADD(NOW(), INTERVAL 7 DAY) WHERE user_id = ?");
+    $stmt = $conn->prepare("UPDATE festa_users SET refresh_token = ?, token_expires_at = DATE_ADD(NOW(), INTERVAL 7 DAY) WHERE user_id = ?");
     $stmt->execute([$refreshToken, $userId]);
 
     // Retornem la resposta amb els tokens generats

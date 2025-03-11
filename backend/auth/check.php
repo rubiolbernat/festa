@@ -13,7 +13,7 @@ if (!$token) {
 // Utilitza la connexió establerta a dbconnect.php
 global $conn;
 
-$stmt = $conn->prepare("SELECT user_id FROM users WHERE reset_token = ? AND token_expires_at > NOW()");
+$stmt = $conn->prepare("SELECT user_id FROM festa_users WHERE reset_token = ? AND token_expires_at > NOW()");
 $stmt->execute([$token]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 

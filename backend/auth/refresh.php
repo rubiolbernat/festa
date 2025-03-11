@@ -33,7 +33,7 @@ global $conn;
 
 try {
     // Busquem el refresh token a la base de dades
-    $stmt = $conn->prepare("SELECT user_id FROM users WHERE refresh_token = ? AND token_expires_at > NOW()");
+    $stmt = $conn->prepare("SELECT user_id FROM festa_users WHERE refresh_token = ? AND token_expires_at > NOW()");
     $stmt->execute([$refreshToken]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -55,7 +55,7 @@ try {
     $newRefreshToken = bin2hex(random_bytes(64));
 
     // Actualitzem el refresh token a la base de dades
-    $stmt = $conn->prepare("UPDATE users SET refresh_token = ?, token_expires_at = DATE_ADD(NOW(), INTERVAL 7 DAY) WHERE user_id = ?");
+    $stmt = $conn->prepare("UPDATE festa_users SET refresh_token = ?, token_expires_at = DATE_ADD(NOW(), INTERVAL 7 DAY) WHERE user_id = ?");
     $stmt->execute([$newRefreshToken, $userId]);
 
     // Retornem la resposta amb els nous tokens
