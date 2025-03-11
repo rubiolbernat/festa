@@ -71,7 +71,7 @@
             </thead>
             <tbody>
               <tr *ngFor="let stat of statsData.weeklyStats">
-                <td>{{ stat.day_of_week }}</td>
+                <td>{{ getDayName(stat.day_of_week) }}</td>
                 <td>{{ stat.dies_sortits }}</td>
                 <td>{{ stat.begudes_preses }}</td>
                 <td>{{ stat.total_quantitat }}</td>

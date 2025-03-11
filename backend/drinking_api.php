@@ -529,8 +529,8 @@ function getWeeklyStats($conn, $userId)
 {
   $sql = "SELECT
                 day_of_week,
-                COUNT(*) AS dies_sortits,
-                COUNT(drink) AS begudes_preses,
+                COUNT(DISTINCT  date) AS dies_sortits,
+                COUNT(*) AS begudes_preses,
                 SUM(quantity) AS total_quantitat,
                 AVG(quantity) AS mitjana_quantitat,
                 AVG(price) AS mitjana_preu,
