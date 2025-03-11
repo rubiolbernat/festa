@@ -1,0 +1,106 @@
+<div class="container mt-5">
+  <h1 class="text-center mb-5">Les Meves Estadístiques de Consum 🍹</h1>
+
+  <!-- Spinner de càrrega -->
+  <div *ngIf="!statsData" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Carregant...</span>
+    </div>
+    <p class="mt-3 fs-5">Carregant dades...</p>
+  </div>
+
+  <!-- Estadístiques Generals -->
+  <div *ngIf="statsData" class="row g-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title mb-0"><i class="bi bi-bar-chart-line"></i> General</h5>
+        </div>
+        <div class="card-body">
+          <p><b>Litres totals:</b> {{ statsData.generalStats.total_litres }}</p>
+          <p><b>Preu total:</b> {{ statsData.generalStats.total_preu }} €</p>
+          <p><b>Dies beguts:</b> {{ statsData.generalStats.dies_beguts }}</p>
+          <p><b>Begudes totals:</b> {{ statsData.generalStats.begudes_totals }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-success text-white">
+          <h5 class="card-title mb-0"><i class="bi bi-calendar-day"></i> TOP: Dia que més has begut</h5>
+        </div>
+        <div class="card-body">
+          <p><b>Data:</b> {{ statsData.topDay.date }}</p>
+          <p><b>Quantitat litres:</b> {{ statsData.topDay.quantitat_litres }}</p>
+          <p><b>Preu total:</b> {{ statsData.topDay.preu_total }} €</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="card-title mb-0"><i class="bi bi-cash-coin"></i> TOP: Dia que has gastat més</h5>
+        </div>
+        <div class="card-body">
+          <p><b>Data:</b> {{ statsData.topSpendingDay.date }}</p>
+          <p><b>Preu total:</b> {{ statsData.topSpendingDay.sum_preu }} €</p>
+          <p><b>Quantitat litres:</b> {{ statsData.topSpendingDay.sum_quantitat }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gràfics -->
+  <div class="row g-4 mt-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+          <h5 class="card-title mb-0"><i class="bi bi-calendar3"></i> Dies sortits</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="weeklyStatsChart" width="400" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white">
+          <h5 class="card-title mb-0"><i class="bi bi-bar-chart"></i> Resum mensual: Quantitat i preu</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="monthlySummaryChart" width="400" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP Bevedor del Grup -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+          <h5 class="card-title mb-0"><i class="bi bi-trophy"></i> Top Bevedor del Grup</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th><i class="bi bi-person"></i> User ID</th>
+                <th><i class="bi bi-droplet-half"></i> Litres Totals</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let topDrinker of statsData.topDrinker">
+                <td>{{ topDrinker.user_id }}</td>
+                <td>{{ topDrinker.litres_totals }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

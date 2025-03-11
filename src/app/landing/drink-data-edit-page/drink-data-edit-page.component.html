@@ -1,0 +1,41 @@
+<div class="container mt-4">
+  <h2>Editar Dades de Consum</h2>
+
+  <form *ngIf="drinkData" (ngSubmit)="updateDrinkData()">
+    <div class="mb-3">
+      <label for="date" class="form-label">Data:</label>
+      <input type="date" class="form-control" id="date" name="date" [(ngModel)]="drinkData.date" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="location" class="form-label">Lloc:</label>
+      <input type="text" class="form-control" id="location" name="location" [(ngModel)]="drinkData.location"
+        required>
+    </div>
+
+    <div class="mb-3">
+      <label for="drink" class="form-label">Beguda:</label>
+      <input type="text" class="form-control" id="drink" name="drink" [(ngModel)]="drinkData.drink" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="quantity" class="form-label">Quantitat:</label>
+      <input type="number" class="form-control" id="quantity" name="quantity" [(ngModel)]="drinkData.quantity"
+        required>
+    </div>
+
+    <div class="mb-3">
+      <label for="price" class="form-label">Preu:</label>
+      <input type="number" class="form-control" id="price" name="price" [(ngModel)]="drinkData.price" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="others" class="form-label">Altres:</label>
+      <textarea class="form-control" id="others" name="others" [(ngModel)]="drinkData.others"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary me-1">Guardar Canvis</button>
+    <button type="button" class="btn btn-danger me-1" (click)="deleteDrinkData()">Eliminar</button>
+    <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel·lar</button>
+  </form>
+</div>

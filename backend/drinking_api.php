@@ -2,12 +2,6 @@
 require_once('dbconnect.php');
 require_once('restrictions.php');
 
-// OPTIONS request handler (Preflight)
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-  http_response_code(200);
-  exit;
-}
-
 // Funció per netejar les dades
 function sanitize($data)
 {
@@ -17,31 +11,279 @@ function sanitize($data)
   return $data;
 }
 
-if (isset($_GET['action']) && $_GET['action'] == 'getLastInserted') {
+// Funció per controlar si la petició és OPTIONS (Preflight)
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+  http_response_code(200);
+  exit;
+}
+
+// Peticions GET
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+  $action = isset($_GET['action']) ? $_GET['action'] : null;
+
+  switch ($action) {
+      case 'getLastLocations':
+        getLastLocationsAction($conn);
+          break;
+      case 'getLastDrinks':
+           getLastDrinksAction($conn);
+          break;
+      case 'getDataByUserId':
+          getDataByUserId($conn);
+          break;
+      case 'getDrinkDataById':
+          getDrinkDataById($conn);
+          break;
+      case 'getLastInserted':
+          getLastInserted($conn);
+          break;
+       case 'getStatsData':
+           getStatsDataAction($conn);
+           break;
+      default:
+          http_response_code(400);
+          echo json_encode(array("message" => "Acció GET invàlida."));
+          break;
+  }
+  exit;
+}
+
+// Peticions POST, PUT i DELETE
+elseif ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT' || $_SERVER['REQUEST_METHOD'] === 'DELETE') {
+  $action = isset($_GET['action']) ? $_GET['action'] : null;
+  $data = json_decode(file_get_contents("php://input"), true);
+
+  //Si el json es incorrecto, envia un error
+  if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+    http_response_code(400);
+    echo json_encode(array("message" => "Dades JSON invàlides: " . json_last_error_msg()));
+    exit;
+  }
+
+  switch ($action) {
+    case 'addDrinkData':
+      addDrinkData($conn, $data);
+      break;
+    case 'updateDrinkData':
+      updateDrinkData($conn, $data);
+      break;
+    case 'deleteDrinkData':
+      deleteDrinkData($conn, $data);
+      break;
+    default:
+      http_response_code(400);
+      echo json_encode(array("message" => "Acció POST/PUT/DELETE invàlida."));
+      break;
+  }
+  exit;
+}
+
+//Funcions
+function getLastInserted($conn)
+{
   $sql = "SELECT
-              drink_data.*,
-              users.name AS user_name,
-              users.email AS user_email
-          FROM
-              drink_data
-          INNER JOIN
-              users ON drink_data.user_id = users.user_id
-          ORDER BY
-              drink_data.date DESC
-          LIMIT 1";
+                drink_data.*,
+                users.name AS user_name,
+                users.email AS user_email
+            FROM
+                drink_data
+            INNER JOIN
+                users ON drink_data.user_id = users.user_id
+            ORDER BY
+                drink_data.date DESC
+            LIMIT 1";
 
   $result = $conn->query($sql);
 
   if ($result->rowCount() > 0) {
     $row = $result->fetch(PDO::FETCH_ASSOC);
     echo json_encode($row);
-    exit;
   } else {
-    echo json_encode(array("message" => "No records found"));
-    exit;
+    echo json_encode(array("message" => "No hi ha registres"));
   }
 }
 
+function getDrinkDataById($conn)
+{
+  if (isset($_GET['id'])) {
+    $id = sanitize($_GET['id']);
+    $sql = "SELECT * FROM drink_data WHERE id = :id";
+    try {
+      $stmt = $conn->prepare($sql);
+      $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+      $stmt->execute();
+      $data = $stmt->fetch(PDO::FETCH_ASSOC);
+      echo json_encode($data);
+    } catch (PDOException $e) {
+      http_response_code(500);
+      echo json_encode(array("message" => "Error en la consulta: " . $e->getMessage()));
+    }
+  } else {
+    http_response_code(400);
+    echo json_encode(array("message" => "Falta el paràmetre id."));
+  }
+}
+
+function getDataByUserId($conn)
+{
+  if (isset($_GET['user_id'])) {
+    $userId = sanitize($_GET['user_id']);
+    $sql = "SELECT * FROM drink_data WHERE user_id = :userId";
+    try {
+      $stmt = $conn->prepare($sql);
+      $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+      $stmt->execute();
+      $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+      echo json_encode($data);
+    } catch (PDOException $e) {
+      http_response_code(500);
+      echo json_encode(array("message" => "Error en la consulta: " . $e->getMessage()));
+    }
+  } else {
+    http_response_code(400);
+    echo json_encode(array("message" => "Falta el paràmetre user_id."));
+  }
+}
+
+function getLastLocationsAction($conn)
+{
+  $userId = isset($_GET['user_id']) ? $_GET['user_id'] : null;
+  if ($userId === null) {
+    http_response_code(400);
+    echo json_encode(array("message" => "El paràmetre 'user_id' és necessari per a getLastLocations."));
+    error_log("Error: El paràmetre 'user_id' és necessari per a getLastLocations.");
+    exit;
+  }
+  $locations = getLastLocations($conn, $userId);
+  echo json_encode($locations);
+}
+
+function getLastDrinksAction($conn)
+{
+  $userId = isset($_GET['user_id']) ? $_GET['user_id'] : null;
+  if ($userId === null) {
+    http_response_code(400);
+    echo json_encode(array("message" => "El paràmetre 'user_id' és necessari per a getLastDrinks."));
+    error_log("Error: El paràmetre 'user_id' és necessari per a getLastDrinks.");
+    exit;
+  }
+  $drinks = getLastDrinks($conn, $userId);
+  echo json_encode($drinks);
+}
+
+function addDrinkData($conn, $data)
+{
+  // Validació bàsica (millorar segons necessitats)
+  if (!isset($data['user_id']) || !isset($data['date']) || !isset($data['location']) || !isset($data['drink']) || !isset($data['quantity']) || !isset($data['price'])) {
+    http_response_code(400);
+    echo json_encode(array("message" => "Falten dades per crear el registre."));
+    exit;
+  }
+
+  $user_id = sanitize($data['user_id']);
+  $date = sanitize($data['date']);
+  $location = sanitize($data['location']);
+  $drink = sanitize($data['drink']);
+  $quantity = sanitize($data['quantity']);
+  $price = sanitize($data['price']);
+  $others = isset($data['others']) ? sanitize($data['others']) : '';
+  $latitude = isset($data['latitude']) ? sanitize($data['latitude']) : null;
+  $longitude = isset($data['longitude']) ? sanitize($data['longitude']) : null;
+  $day_of_week = isset($data['day_of_week']) ? sanitize($data['day_of_week']) : null;
+
+
+  $sql = "INSERT INTO drink_data (user_id, date, day_of_week, location, latitude, longitude, drink, quantity, others, price) VALUES (:user_id, :date, :day_of_week, :location, :latitude, :longitude, :drink, :quantity, :others, :price)";
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':user_id', $user_id);
+    $stmt->bindParam(':date', $date);
+    $stmt->bindParam(':location', $location);
+    $stmt->bindParam(':drink', $drink);
+    $stmt->bindParam(':quantity', $quantity);
+    $stmt->bindParam(':price', $price);
+    $stmt->bindParam(':others', $others);
+    $stmt->bindParam(':latitude', $latitude);
+    $stmt->bindParam(':longitude', $longitude);
+    $stmt->bindParam(':day_of_week', $day_of_week);
+    $stmt->execute();
+    echo json_encode(array("message" => "Registro creado correctamente."));
+  } catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(array("message" => "Error al crear el registro: " . $e->getMessage()));
+  }
+}
+function updateDrinkData($conn, $data)
+{
+  error_log("updateDrinkData cridada amb les dades: " . json_encode($data));
+
+  // Validació bàsica (millorar segons necessitats)
+  if (!isset($data['id']) || !isset($data['date']) || !isset($data['location']) || !isset($data['drink']) || !isset($data['quantity']) || !isset($data['price'])) {
+    http_response_code(400);
+    echo json_encode(array("message" => "Falten dades per actualitzar el registre."));
+    exit;
+  }
+  //La comprobación de más arriba, solo verifica que existe, no que contiene datos
+
+  $id = sanitize($data['id']);
+  $date = sanitize($data['date']);
+  $location = sanitize($data['location']);
+  $drink = sanitize($data['drink']);
+  $quantity = sanitize($data['quantity']);
+  $price = sanitize($data['price']);
+  $others = isset($data['others']) ? sanitize($data['others']) : '';
+  $day_of_week = isset($data['day_of_week']) ? sanitize($data['day_of_week']) : null;
+  $latitude = isset($data['latitude']) ? sanitize($data['latitude']) : null;
+  $longitude = isset($data['longitude']) ? sanitize($data['longitude']) : null;
+
+
+  $sql = "UPDATE drink_data SET date = :date, location = :location, drink = :drink, quantity = :quantity, price = :price, others = :others, latitude = :latitude, longitude = :longitude,day_of_week = :day_of_week WHERE id = :id";
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':id', $id);
+    $stmt->bindParam(':date', $date);
+    $stmt->bindParam(':location', $location);
+    $stmt->bindParam(':drink', $drink);
+    $stmt->bindParam(':quantity', $quantity);
+    $stmt->bindParam(':price', $price);
+    $stmt->bindParam(':others', $others);
+    $stmt->bindParam(':latitude', $latitude);
+    $stmt->bindParam(':longitude', $longitude);
+    $stmt->bindParam(':day_of_week', $day_of_week);
+    $stmt->execute();
+    error_log("SQL executat: " . $sql); // Registrar la consulta SQL
+    echo json_encode(array("message" => "Registro actualizado correctamente."));
+  } catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(array("message" => "Error al actualizar el registro: " . $e->getMessage()));
+    error_log("Error al actualizar el registro: " . $e->getMessage());
+  }
+}
+
+function deleteDrinkData($conn, $data)
+{
+  error_log("deleteDrinkData cridada amb les dades: " . json_encode($data));
+
+  if (!isset($data['id'])) {
+    http_response_code(400);
+    echo json_encode(array("message" => "Falta l'ID per eliminar el registre."));
+    exit;
+  }
+
+  $id = sanitize($data['id']);
+
+  $sql = "DELETE FROM drink_data WHERE id = :id";
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':id', $id);
+    $stmt->execute();
+    error_log("SQL executat: " . $sql); // Registrar la consulta SQL
+    echo json_encode(array("message" => "Registro eliminado correctamente."));
+  } catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(array("message" => "Error al eliminar el registro: " . $e->getMessage()));
+    error_log("Error al eliminar el registro: " . $e->getMessage());
+  }
+}
 // Funció per obtenir les ubicacions anteriors
 function getLastLocations($conn, $userId)
 {
@@ -111,187 +353,296 @@ function getLastDrinks($conn, $userId)
     exit;
   }
 }
-
-// Peticions GET
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-  $action = isset($_GET['action']) ? $_GET['action'] : null;
-
-  switch ($action) {
-    case 'getLastLocations':
-      $userId = isset($_GET['user_id']) ? $_GET['user_id'] : null;
-      if ($userId === null) {
-        http_response_code(400);
-        echo json_encode(array("message" => "El paràmetre 'user_id' és necessari per a getLastLocations."));
-        error_log("Error: El paràmetre 'user_id' és necessari per a getLastLocations.");
-        exit;
-      }
-      $locations = getLastLocations($conn, $userId);
-      echo json_encode($locations);
-      break;
-    case 'getLastDrinks':
-      $userId = isset($_GET['user_id']) ? $_GET['user_id'] : null;
-      if ($userId === null) {
-        http_response_code(400);
-        echo json_encode(array("message" => "El paràmetre 'user_id' és necessari per a getLastDrinks."));
-        error_log("Error: El paràmetre 'user_id' és necessari per a getLastDrinks.");
-        exit;
-      }
-      $drinks = getLastDrinks($conn, $userId);
-      echo json_encode($drinks);
-      break;
-    default:
-      http_response_code(400);
-      echo json_encode(array("message" => "Acció invàlida."));
-      error_log("Error: Acció invàlida.");
-      break;
-  }
-  exit;
+// Función para obtener estadísticas generales
+function getGeneralStats($conn, $userId)
+{
+    $sql = "SELECT
+                SUM(quantity) AS total_litres,
+                SUM(price) AS total_preu,
+                COUNT(DISTINCT date) AS dies_beguts,
+                COUNT(id) AS begudes_totals
+            FROM drink_data
+            WHERE user_id = :userId";
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result;
+    } catch (PDOException $e) {
+        error_log("Error en getGeneralStats: " . $e->getMessage());
+        return array("error" => "Error al obtenir estadístiques generals.");
+    }
 }
 
-// Peticions POST (Sense canvis, assumeixo que funcionen correctament)
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  error_log("Petició POST rebuda.");
-  // Obté les dades del cos de la petició
-  $json = file_get_contents('php://input');
-  $data = json_decode($json);
 
-  if ($data === null) {
-    http_response_code(400);
-    echo json_encode(array("message" => "Dades JSON invàlides."));
-    error_log("Error: Dades JSON invàlides.");
-    exit;
+// Función para obtener el día que más has bebido
+function getTopDay($conn, $userId)
+{
+  $sql = "SELECT
+                date,
+                SUM(quantity) AS quantitat_litres,
+                SUM(price) AS preu_total
+            FROM drink_data
+            WHERE user_id = :userId
+            GROUP BY date
+            ORDER BY quantitat_litres DESC
+            LIMIT 1";
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error en getTopDay: " . $e->getMessage());
+    return array("error" => "Error al obtener el día que más has bebido.");
   }
+}
 
-  // Neteja les dades
-  $user_id = isset($data->user_id) ? sanitize($data->user_id) : null;
-  $date = isset($data->date) ? sanitize($data->date) : null;
-  $day_of_week = isset($data->day_of_week) ? sanitize($data->day_of_week) : null;
-  $location = isset($data->location) ? sanitize($data->location) : null;
-  $latitude = isset($data->latitude) ? sanitize($data->latitude) : null;
-  $longitude = isset($data->longitude) ? sanitize($data->longitude) : null;
-  $drink = isset($data->drink) ? sanitize($data->drink) : null;
-  $quantity = isset($data->quantity) ? sanitize($data->quantity) : null;
-  $others = isset($data->others) ? sanitize($data->others) : null;
-  $price = isset($data->price) ? sanitize($data->price) : null;
-
-  // Valida les dades i els tipus
-  if (!is_numeric($user_id)) {
-    http_response_code(400);
-    echo json_encode(array("message" => "user_id ha de ser un número."));
-    error_log("Error: user_id ha de ser un número.");
-    exit;
+// Función para obtener el día que más has gastado
+function getTopSpendingDay($conn, $userId)
+{
+  $sql = "SELECT
+                date,
+                SUM(price) AS sum_preu,
+                SUM(quantity) AS sum_quantitat
+            FROM drink_data
+            WHERE user_id = :userId
+            GROUP BY date
+            ORDER BY sum_preu DESC
+            LIMIT 1";
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error en getTopSpendingDay: " . $e->getMessage());
+    return array("error" => "Error al obtener el día que más has gastado.");
   }
+}
 
-  if (!is_string($date)) {
-    http_response_code(400);
-    echo json_encode(array("message" => "date ha de ser una cadena."));
-    error_log("Error: date ha de ser una cadena.");
-    exit;
+// Función para obtener el lugar donde más has bebido
+function getTopLocationByQuantity($conn, $userId)
+{
+  $sql = "SELECT
+                location,
+                SUM(quantity) AS sum_quantitat,
+                SUM(price) AS sum_preu
+            FROM drink_data
+            WHERE user_id = :userId
+            GROUP BY location
+            ORDER BY sum_quantitat DESC
+            LIMIT 1";
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error en getTopLocationByQuantity: " . $e->getMessage());
+    return array("error" => "Error al obtener el lugar donde más has bebido.");
   }
+}
 
-  if (!is_numeric($day_of_week)) {
-    http_response_code(400);
-    echo json_encode(array("message" => "day_of_week ha de ser un número."));
-    error_log("Error: day_of_week ha de ser un número.");
-    exit;
+// Función para obtener el lugar donde más has gastado
+function getTopLocationBySpending($conn, $userId)
+{
+  $sql = "SELECT
+                location,
+                SUM(price) AS sum_preu,
+                SUM(quantity) AS sum_quantitat
+            FROM drink_data
+            WHERE user_id = :userId
+            GROUP BY location
+            ORDER BY sum_preu DESC
+            LIMIT 1";
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error en getTopLocationBySpending: " . $e->getMessage());
+    return array("error" => "Error al obtener el lugar donde más has gastado.");
   }
+}
 
-  if (!is_string($location)) {
-    http_response_code(400);
-    echo json_encode(array("message" => "location ha de ser una cadena."));
-    error_log("Error: location ha de ser una cadena.");
-    exit;
+// Funció per obtenir la beguda que més has consumit en litres
+function getTopDrinkByQuantity($conn, $userId)
+{
+  $sql = "SELECT
+                drink,
+                SUM(price) AS sum_preu,
+                SUM(quantity) AS sum_quantitat
+            FROM drink_data
+            WHERE user_id = :userId
+            GROUP BY drink
+            ORDER BY sum_quantitat DESC
+            LIMIT 1";
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error en getTopDrinkByQuantity: " . $e->getMessage());
+    return array("error" => "Error al obtener la beguda que més has consumit en litres.");
   }
+}
 
-  if ($latitude !== null && !is_numeric($latitude)) {
-    http_response_code(400);
-    echo json_encode(array("message" => "latitude ha de ser un número o null."));
-    error_log("Error: latitude ha de ser un número o null.");
-    exit;
-  }
-
-  if ($longitude !== null && !is_numeric($longitude)) {
-    http_response_code(400);
-    echo json_encode(array("message" => "longitude ha de ser un número o null."));
-    error_log("Error: longitude ha de ser un número o null.");
-    exit;
-  }
-
-  if (!is_string($drink)) {
-    http_response_code(400);
-    echo json_encode(array("message" => "drink ha de ser una cadena."));
-    error_log("Error: drink ha de ser una cadena.");
-    exit;
-  }
-
-  if (!is_numeric($quantity)) {
-    http_response_code(400);
-    echo json_encode(array("message" => "quantity ha de ser un número."));
-    error_log("Error: quantity ha de ser un número.");
-    exit;
-  }
-
-  if (!is_string($others)) {
-    http_response_code(400);
-    echo json_encode(array("message" => "others ha de ser una cadena."));
-    error_log("Error: others ha de ser una cadena.");
-    exit;
-  }
-
-  if (!is_numeric($price)) {
-    http_response_code(400);
-    echo json_encode(array("message" => "price ha de ser un número."));
-    error_log("Error: price ha de ser un número.");
-    exit;
-  }
-
-
-  // Valida que els camps obligatoris estiguin presents
-  if ($user_id === null || $date === null || $day_of_week === null || $location === null || $drink === null || $quantity === null || $price === null) {
-    http_response_code(400);
-    echo json_encode(array("message" => "Tots els camps obligatoris han d'estar presents."));
-    error_log("Error: Tots els camps obligatoris han d'estar presents.");
-    exit;
-  }
+// Funció per obtenir la beguda més cara en mitjana per litre
+function getTopDrinkByAveragePrice($conn, $userId)
+{
+  $sql = "SELECT
+    drink,
+    SUM(price) / SUM(quantity) AS average_price
+FROM
+    drink_data
+WHERE
+    user_id = :userId
+GROUP BY
+    drink
+ORDER BY
+    average_price DESC
+LIMIT 1";
 
   try {
-    // Prepara la consulta
-    $stmt = $conn->prepare("INSERT INTO drink_data (user_id, date, day_of_week, location, latitude, longitude, drink, quantity, others, price) VALUES (:user_id, :date, :day_of_week, :location, :latitude, :longitude, :drink, :quantity, :others, :price)");
-
-    // Lliga els paràmetres
-    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-    $stmt->bindParam(':date', $date, PDO::PARAM_STR);
-    $stmt->bindParam(':day_of_week', $day_of_week, PDO::PARAM_INT);
-    $stmt->bindParam(':location', $location, PDO::PARAM_STR);
-    $stmt->bindParam(':latitude', $latitude, $latitude === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
-    $stmt->bindParam(':longitude', $longitude, $longitude === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
-    $stmt->bindParam(':drink', $drink, PDO::PARAM_STR);
-    $stmt->bindParam(':quantity', $quantity, PDO::PARAM_STR);
-    $stmt->bindParam(':others', $others, PDO::PARAM_STR);
-    $stmt->bindParam(':price', $price, PDO::PARAM_STR);
-
-    // Executa la consulta
-    if ($stmt->execute()) {
-      http_response_code(201); // Created
-      echo json_encode(array("message" => "Dades afegides correctament."));
-      error_log("Dades afegides correctament.");
-    } else {
-      http_response_code(500);
-      echo json_encode(array("message" => "Error al afegir les dades."));
-      error_log("Error al afegir les dades: " . print_r($stmt->errorInfo(), true)); // Registra l'error de la declaració
-    }
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result;
   } catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(array("message" => "Error al afegir les dades: " . $e->getMessage()));
-    error_log("Error al afegir les dades: " . $e->getMessage());
+    error_log("Error en getTopDrinkByAveragePrice: " . $e->getMessage());
+    return array("error" => "Error al obtener la beguda més cara en mitjana per litre.");
   }
-  exit;
 }
 
-// Si no es proporciona cap paràmetre vàlid
-/*
-http_response_code(400);
-echo json_encode(array("message" => "Petició invàlida."));
-error_log("Petició invàlida.");
-exit;*/
+// Funció per obtenir les estadístiques per dia de la setmana
+function getWeeklyStats($conn, $userId)
+{
+  $sql = "SELECT
+                day_of_week,
+                COUNT(*) AS dies_sortits,
+                COUNT(drink) AS begudes_preses,
+                SUM(quantity) AS total_quantitat,
+                AVG(quantity) AS mitjana_quantitat,
+                AVG(price) AS mitjana_preu,
+                SUM(price) AS total_preu
+            FROM drink_data
+            WHERE user_id = :userId
+            GROUP BY day_of_week
+            ORDER BY day_of_week";
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error en getWeeklyStats: " . $e->getMessage());
+    return array("error" => "Error al obtener estadísticas per dia de la setmana.");
+  }
+}
+
+// Funció per obtenir el resum mensual: Quantitat i preu
+function getMonthlySummary($conn, $userId)
+{
+  $sql = "SELECT
+    DATE_FORMAT(date, '%Y-%m') AS mes,
+    SUM(quantity) AS litres,
+    SUM(price) AS preu
+FROM
+    drink_data
+WHERE
+    user_id = :userId
+GROUP BY
+    mes
+ORDER BY
+    mes";
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error en getMonthlySummary: " . $e->getMessage());
+    return array("error" => "Error al obtener el resum mensual: Quantitat i preu.");
+  }
+}
+
+//Funció per obtenir el mes bevedeor del grup
+function getTopDrinker($conn)
+{
+  $sql = "SELECT
+                user_id,
+                SUM(quantity) AS litres_totals
+            FROM drink_data
+            GROUP BY user_id
+            ORDER BY litres_totals DESC
+            LIMIT 10";
+
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error en getTopDrinker: " . $e->getMessage());
+    return array("error" => "Error al obtener el mes bevedeor del grup.");
+  }
+}
+
+//Funció que gestiona a getStatsData
+function getStatsDataAction($conn) {
+  if (isset($_GET['user_id'])) {
+     $userId = sanitize($_GET['user_id']);
+       // Obtener datos generales
+     $generalStats = getGeneralStats($conn, $userId);
+     // Obtener top day
+     $topDay = getTopDay($conn, $userId);
+      // Obtener top spending day
+     $topSpendingDay = getTopSpendingDay($conn, $userId);
+        // Obtener top location by quantity
+     $topLocationByQuantity = getTopLocationByQuantity($conn, $userId);
+          // Obtener top location by spending
+     $topLocationBySpending =  getTopLocationBySpending($conn, $userId);
+        // Obtener top drink by quantity
+     $topDrinkByQuantity =  getTopDrinkByQuantity($conn, $userId);
+         // Obtener top drink by average price
+     $topDrinkByAveragePrice = getTopDrinkByAveragePrice($conn, $userId);
+     // Obtener estadísticas semanales
+     $weeklyStats = getWeeklyStats($conn, $userId);
+      // Obtener resumen mensual
+     $monthlySummary = getMonthlySummary($conn, $userId);
+        // Obtener el mes bevedeor del grup
+     $topDrinker =  getTopDrinker($conn);
+
+     // Combinar resultados
+     $result = array(
+         'generalStats' => $generalStats,
+         'topDay' => $topDay,
+         'topSpendingDay' => $topSpendingDay,
+         'topLocationByQuantity' => $topLocationByQuantity,
+         'topLocationBySpending' => $topLocationBySpending,
+         'topDrinkByQuantity' => $topDrinkByQuantity,
+         'topDrinkByAveragePrice' => $topDrinkByAveragePrice,
+         'weeklyStats' => $weeklyStats,
+         'monthlySummary' => $monthlySummary,
+         'topDrinker' => $topDrinker
+     );
+
+     echo json_encode($result);
+ } else {
+     http_response_code(400);
+     echo json_encode(array("message" => "Falta el paràmetre user_id."));
+ }
+}
 ?>

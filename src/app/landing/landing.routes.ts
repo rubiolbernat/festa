@@ -30,6 +30,18 @@ export const LANDING_ROUTES: Routes = [
         path: 'la_gran_aventura',
         loadComponent: () => import('./drinking-page/drinking-page.component').then(m => m.DrinkingPageComponent),
         canActivate: [AuthGuard], //Només accessible si estàs loguejat
+      },{
+        path: 'la_gran_aventura-list',
+        loadComponent: () => import('./drink-data-list-page/drink-data-list-page.component').then(m => m.DrinkDataListPageComponent),
+        canActivate: [AuthGuard], //Només accessible si estàs loguejat
+      },{
+        path: 'la_gran_aventura-edit/:id',
+        loadComponent: () => import('./drink-data-edit-page/drink-data-edit-page.component').then(m => m.DrinkDataEditPageComponent),
+        canActivate: [AuthGuard], //Només accessible si estàs loguejat
+      },{
+        path: 'la_gran_aventura-stats',
+        loadComponent: () => import('./stats-page/stats-page.component').then(m => m.StatsPageComponent),
+        canActivate: [AuthGuard],
       }
     ]
   },

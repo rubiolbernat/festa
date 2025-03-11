@@ -1,0 +1,39 @@
+<div class="container mt-4">
+  <h2>Les meves dades de consum</h2>
+
+  <div *ngIf="drinkDataList.length > 0; else noData">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Data</th>
+          <th>Lloc</th>
+          <th>Beguda</th>
+          <th>Quantitat</th>
+          <th>Preu</th>
+          <th>Altres</th>
+          <th>Accions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let drinkData of drinkDataList">
+          <td>{{ drinkData.id }}</td>
+          <td>{{ drinkData.date }}</td>
+          <td>{{ drinkData.location }}</td>
+          <td>{{ drinkData.drink }}</td>
+          <td>{{ drinkData.quantity }}</td>
+          <td>{{ drinkData.price }}</td>
+          <td>{{ drinkData.others }}</td>
+          <td>
+            <button class="btn btn-sm btn-warning me-1" (click)="editDrinkData(drinkData)">Editar</button>
+            <button class="btn btn-sm btn-danger" (click)="deleteDrinkData(drinkData)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #noData>
+    <p class="text-muted">Encara no has afegit cap dada de consum.</p>
+  </ng-template>
+</div>

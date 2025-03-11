@@ -1,8 +1,10 @@
 <?php
-header("Access-Control-Max-Age: 3600");
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Content-Type, *');
+header("Access-Control-Allow-Origin: *"); // Permetre accés des de qualsevol origen
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"); // Permetre els mètodes necessaris
+header("Access-Control-Allow-Headers: Content-Type, Authorization"); // Permetre les capçaleres necessàries
+header("Access-Control-Max-Age: 3600"); // Cache de les opcions CORS durant 1 hora
+header('Content-Type: application/json'); // Definir el tipus de contingut de la resposta
+
 /*
 $production = true;  // Indica si estàs en producció o no
 
