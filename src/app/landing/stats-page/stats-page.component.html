@@ -140,13 +140,13 @@
           <table class="table table-hover">
             <thead class="table-dark">
               <tr>
-                <th><i class="bi bi-person"></i> User ID</th>
+                <th><i class="bi bi-person"></i> User Name</th>
                 <th><i class="bi bi-droplet-half"></i> Litres Totals</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let topDrinker of statsData.topDrinker">
-                <td>{{ topDrinker.user_id }}</td>
+                <td>{{ topDrinker.user_name }}</td>
                 <td>{{ topDrinker.litres_totals }}</td>
               </tr>
             </tbody>

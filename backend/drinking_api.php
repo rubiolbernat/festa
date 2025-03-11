@@ -582,10 +582,12 @@ ORDER BY
 function getTopDrinker($conn)
 {
   $sql = "SELECT
-                user_id,
+                drink_data.user_id AS user_id,
+                festa_users.name AS user_name,
                 SUM(quantity) AS litres_totals
             FROM drink_data
-            GROUP BY user_id
+            JOIN festa_users ON drink_data.user_id = festa_users.user_id
+            GROUP BY drink_data.user_id, festa_users.name
             ORDER BY litres_totals DESC
             LIMIT 10";
 
