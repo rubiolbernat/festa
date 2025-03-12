@@ -24,8 +24,8 @@ export class OverlayService {
     let newState = { ...currentState };
     newState[name] = false;
     this.overlaysState.next(newState);
-    console.log(`Tancat overlay: ${name}`);
-    console.log('Nou estat: ', newState);
+    //console.log(`Tancat overlay: ${name}`);
+    //console.log('Nou estat: ', newState);
   }
 
   // Comprovar si un overlay està obert

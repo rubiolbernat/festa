@@ -19,8 +19,8 @@
 -- Table structure for table `drink_data`
 --
 
-create database festa;
-use festa;
+-- create database festa;
+-- use festa;
 
 DROP TABLE IF EXISTS `drink_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

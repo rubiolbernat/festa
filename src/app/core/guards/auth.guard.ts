@@ -27,8 +27,8 @@ export class AuthGuard implements CanActivate {
     }
 
     const requiredRoles: string[] = route.data['roles'];
-    console.log("AuthGuard: Rols requerits:", requiredRoles);
-    console.log("AuthGuard: Rols de l'usuari:", user.roles);
+    //console.log("AuthGuard: Rols requerits:", requiredRoles);
+    //console.log("AuthGuard: Rols de l'usuari:", user.roles);
 
     if (requiredRoles && !user.roles.some(role => requiredRoles.includes(role))) {
       console.log("AuthGuard: Usuari no té els rols necessaris, redirigint a /forbidden");

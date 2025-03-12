@@ -1,5 +1,5 @@
 // src/environments/environment.ts
-export const environment = {
+/*export const environment = {
   production: false,
   // //MSI
   //apiUrl: 'http://localhost/festa/backend',
@@ -7,6 +7,6 @@ export const environment = {
   apiUrl: 'http://localhost:8012/festa/backend',
 
   //Assets
-  assetsUrl: 'http://localhost:8012/festa/'
-  //assetsUrl: 'http://localhost/festa/'
+  //assetsUrl: 'http://localhost:8012/festa/'
+  assetsUrl: 'http://localhost/festa/'
 };
