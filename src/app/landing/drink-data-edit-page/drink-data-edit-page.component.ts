@@ -28,7 +28,8 @@ export class DrinkDataEditPageComponent implements OnInit, OnDestroy {
     quantity: 0,
     others: '',
     price: 0,
-    id: 0
+    id: 0,
+    num_drinks: 1
   };
 
   private subscription: Subscription | undefined;

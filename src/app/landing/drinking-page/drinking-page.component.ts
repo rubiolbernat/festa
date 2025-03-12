@@ -25,10 +25,13 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
     longitude: 0,
     drink: '',
     quantity: 0.33,
+    num_drinks: 1,
     others: '',
     price: 0
   };
 
+  priceindividual: boolean = true;
+  manualQuantity: boolean = false;
   lastLocations: string[] = [];
   lastDrinks: string[] = [];
   locationSuggestions: string[] = [];
@@ -167,7 +170,8 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
           drink: '',
           quantity: 0.33,
           others: '',
-          price: 0
+          price: 0,
+          count: 1
         };
         this.locationSuggestions = [];
         this.drinkSuggestions = [];

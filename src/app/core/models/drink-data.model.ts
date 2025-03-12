@@ -11,6 +11,7 @@ export interface DrinkData {
   drink: string;
   quantity: number;
   others?: string; // Opcional
+  num_drinks: number;
   price: number;
 }
 
