@@ -10,8 +10,8 @@ export const environment = {
   //Assets
   assetsUrl: 'http://localhost:8012/festa/'
   //assetsUrl: 'http://localhost/festa/'
-};*/
-
+};
+*/
 //WEB
 
 export const environment = {

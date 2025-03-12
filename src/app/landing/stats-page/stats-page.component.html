@@ -88,7 +88,7 @@
           <h5 class="card-title mb-0"><i class="bi bi-graph-up"></i> Gràfic setmanal</h5>
         </div>
         <div class="card-body">
-          <canvas id="weeklyStatsChart" width="400" height="200"></canvas>
+          <app-chart-week *ngIf="statsData?.weeklyStats" [weeklyStats]="statsData.weeklyStats"></app-chart-week>
         </div>
       </div>
     </div>
@@ -123,7 +123,9 @@
           <h5 class="card-title mb-0"><i class="bi bi-pie-chart"></i> Gràfic mensual</h5>
         </div>
         <div class="card-body">
-          <canvas id="monthlySummaryChart" width="400" height="200"></canvas>
+          <app-chart-month *ngIf="statsData?.monthlySummary"
+            [monthlySummary]="statsData.monthlySummary"></app-chart-month>
+
         </div>
       </div>
     </div>
