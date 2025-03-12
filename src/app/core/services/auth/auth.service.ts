@@ -46,6 +46,7 @@ export class AuthService {
   }
 
   loginUser(user: any): Promise<any> {
+    console.log(this.apiUrl);
     return firstValueFrom(this.httpClient.post<any>(`${this.apiUrl}/login.php`, user)).then(response => {
       if (response && response.accessToken && response.refreshToken && response.user) {
         localStorage.setItem('token', response.accessToken);

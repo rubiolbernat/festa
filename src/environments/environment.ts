@@ -1,19 +1,24 @@
 // src/environments/environment.ts
-/*export const environment = {
+/*
+export const environment = {
   production: false,
   // //MSI
   //apiUrl: 'http://localhost/festa/backend',
   //PC
-  apiUrl: 'http://localhost:8012/festa/backend',
+  //apiUrl: 'http://localhost:8012/festa/backend',
 
   //Assets
-<<<<<<< HEAD
   assetsUrl: 'http://localhost:8012/festa/'
   //assetsUrl: 'http://localhost/festa/'
-=======
-  //assetsUrl: 'http://localhost:8012/festa/'
-  assetsUrl: 'http://localhost/festa/'
 };*/
 
 //WEB
+export const environment = {
+  production: false,
+  // API
+  apiUrl: 'https://joc.feritja.cat/backend',
+
+  //Assets
+  assetsUrl: 'https://localhost/festa/'
+};
 
