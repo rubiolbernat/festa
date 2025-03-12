@@ -148,7 +148,11 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
       this.alertService.showAlert('Si us plau, emplena la quantitat i el preu', 'warning', 5000);
       return;
     }
-    console.log("aixo tinc en drink data abans d'enviar", this.drinkData);
+    //Poso en majuscules la 1ra lletra de la ubicació i la beguda
+    this.drinkData.location = String(this.drinkData.location).charAt(0).toUpperCase() + String(this.drinkData.location).slice(1);
+    this.drinkData.drink = String(this.drinkData.drink).charAt(0).toUpperCase() + String(this.drinkData.drink).slice(1);
+
+    //console.log("aixo tinc en drink data abans d'enviar", this.drinkData);
     this.drinkingDataService.addDrinkData(this.drinkData).subscribe(
       response => {
         console.log('Resposta del backend:', response);
