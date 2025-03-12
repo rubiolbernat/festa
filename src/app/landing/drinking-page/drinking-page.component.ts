@@ -171,7 +171,6 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
           quantity: 0.33,
           others: '',
           price: 0,
-          count: 1
         };
         this.locationSuggestions = [];
         this.drinkSuggestions = [];
