@@ -66,9 +66,14 @@ export class LoginComponent implements OnInit {
                 this.errorMessage = "Credencials invàlides. Si us plau, prova de nou.";
             }
         } catch (error) {
-            console.error("Error during login:", error);
-            this.errorMessage = "Error de connexió. Si us plau, prova més tard.";
-        }
+          console.error("Error during login:", error);
+
+          if ((error as any).status === 401) {
+              this.errorMessage = "Credencials incorrectes. Si us plau, verifica el teu usuari i contrasenya.";
+          } else {
+              this.errorMessage = "Error de connexió. Si us plau, prova més tard.";
+          }
+      }
     }
 
     async refreshToken() {

@@ -3,7 +3,7 @@
 export const environment = {
   production: false,
   // //MSI
-  //apiUrl: 'http://localhost/festa/backend',
+  apiUrl: 'http://localhost/festa/backend',
   //PC
   //apiUrl: 'http://localhost:8012/festa/backend',
 
@@ -13,8 +13,9 @@ export const environment = {
 };*/
 
 //WEB
+
 export const environment = {
-  production: false,
+  production: true,
   // API
   apiUrl: 'https://joc.feritja.cat/backend',
 

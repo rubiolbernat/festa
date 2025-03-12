@@ -29,6 +29,11 @@
           <!-- Botó "Espai Personal" (només visible si estàs loguejat) -->
           @if (isLoggedIn) {
           <li class="nav-item">
+            <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura">
+              Afegir dades
+            </a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura-stats">
               Espai Personal
             </a>
@@ -59,7 +64,7 @@
       <div class="offcanvas offcanvas-end d-lg-none bg-metallic" tabindex="-1" id="offcanvasNavbar"
         aria-labelledby="offcanvasNavbarLabel">
         <div class="offcanvas-header text-dark">
-          <h5 class="offcanvas-title title-fades" id="offcanvasNavbarLabel">FADES</h5>
+          <h5 class="offcanvas-title title-fades" id="offcanvasNavbarLabel">FESTA NOi</h5>
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
@@ -74,6 +79,11 @@
             </li>
             <!-- Botó "Espai Personal" (només visible si estàs loguejat) - Offcanvas -->
             @if (isLoggedIn) {
+            <li class="nav-item">
+              <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura">
+                Afegir dades
+              </a>
+            </li>
             <li class="nav-item">
               <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura-stats">
                 Espai Personal

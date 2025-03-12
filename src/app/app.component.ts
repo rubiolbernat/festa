@@ -9,5 +9,5 @@ import { AlertComponent } from './shared/components/alert/alert.component';
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  title = 'fades';
+  title = 'festa';
 }
