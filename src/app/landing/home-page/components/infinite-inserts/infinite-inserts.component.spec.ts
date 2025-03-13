@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LastInsertComponent } from './last-insert.component';
+import { InfiniteInsertsComponent } from './infinite-inserts.component';
 
-describe('LastInsertComponent', () => {
-  let component: LastInsertComponent;
-  let fixture: ComponentFixture<LastInsertComponent>;
+describe('NetConcertComponent', () => {
+  let component: InfiniteInsertsComponent;
+  let fixture: ComponentFixture<InfiniteInsertsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LastInsertComponent]
+      imports: [InfiniteInsertsComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(LastInsertComponent);
+    fixture = TestBed.createComponent(InfiniteInsertsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

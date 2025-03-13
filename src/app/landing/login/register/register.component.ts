@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth/auth.service';
 
@@ -9,6 +9,7 @@ import { AuthService } from '../../../core/services/auth/auth.service';
   styleUrl: './register.component.css'
 })
 export class RegisterComponent {
+  public afterregister = output<void>();
   authService = inject(AuthService);
   registerform: FormGroup;
 
@@ -60,15 +61,18 @@ export class RegisterComponent {
         if (response && response.success) {
           // Si la resposta té una propietat 'success' i és true, mostra un missatge d'èxit
           console.log('Registration successful:', response.message);
+          this.afterregister.emit();
           // Redirigeix l'usuari o fes alguna altra acció
         } else {
           // Si la resposta no té 'success' o és false, mostra un missatge d'error
           console.error('Registration failed:', response ? response.message : 'Unknown error');
           // Mostra un missatge d'error a l'usuari
+          this.afterregister.emit();
         }
       } catch (error) {
         console.error('Registration failed:', error);
         // Mostra un missatge d'error a l'usuari
+        this.afterregister.emit();
       }
     } else {
       console.log('Form is invalid. Please check the fields.');

@@ -5,30 +5,32 @@
     <table class="table table-striped">
       <thead>
         <tr>
-          <th>Id</th>
           <th>Data</th>
           <th>Lloc</th>
           <th>Beguda</th>
           <th>Quantitat</th>
           <th>Preu</th>
+          <th>Num</th>
           <th>Altres</th>
           <th>Accions</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let drinkData of drinkDataList">
-          <td>{{ drinkData.id }}</td>
-          <td>{{ drinkData.date }}</td>
+        @for (drinkData of drinkDataList; track $index) {
+        <tr>
+          <td>{{ drinkData.date | date:'MM-dd-yy' }}</td>
           <td>{{ drinkData.location }}</td>
           <td>{{ drinkData.drink }}</td>
           <td>{{ drinkData.quantity }}</td>
           <td>{{ drinkData.price }}</td>
+          <td>{{ drinkData.num_drinks }}</td>
           <td>{{ drinkData.others }}</td>
           <td>
-            <button class="btn btn-sm btn-warning me-1" (click)="editDrinkData(drinkData)">Editar</button>
-            <button class="btn btn-sm btn-danger" (click)="deleteDrinkData(drinkData)">Eliminar</button>
+            <button class="btn btn-sm btn-warning me-1" (click)="editDrinkData(drinkData)"><i class="bi bi-pen"></i></button>
+            <button class="btn btn-sm btn-danger" (click)="deleteDrinkData(drinkData)"><i class="bi bi-trash"></i></button>
           </td>
         </tr>
+        }
       </tbody>
     </table>
   </div>

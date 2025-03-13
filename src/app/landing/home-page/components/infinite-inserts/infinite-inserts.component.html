@@ -1,0 +1,68 @@
+<!-- Llista Infinita de Begudes -->
+<section id="last-drinks" class="py-5" style="background-color:#732056;">
+  <div class="container px-4 px-lg-5">
+    <!-- Títol -->
+    <div class="row justify-content-between align-items-center mb-4">
+      <div class="col-12 text-center">
+        <h2 class="fw-bold text-white" style="font-size: 1.8em;">🍹 Últimes Aventures Etíliques 🍸</h2>
+      </div>
+    </div>
+
+    <!-- Llista de Begudes (amb infinite scroll) -->
+    <div class="row gx-4 gx-lg-5" infiniteScroll [infiniteScrollDistance]="2" [infiniteScrollThrottle]="300"
+      (scrolled)="loadInserts()">
+
+      @if (InfiniteDrinks.length > 0) {
+        <div *ngFor="let drink of InfiniteDrinks; let i = index" class="col-lg-12 col-md-12 mb-4">
+          <div class="card text-white bg-dark shadow-lg border-0">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <!-- Data -->
+                <div class="col-md-3 text-center">
+                  <span class="fs-5 fw-bold">{{ drink.date | date:'dd MMM yyyy' }}</span>
+                </div>
+
+                <!-- Beguda i Lloc -->
+                <div class="col-md-6 text-center">
+                  <h4 class="fw-bold">{{ drink.drink }}</h4>
+                  <h5 class="fw-semibold text-warning">{{ drink.location }}</h5>
+                  <p class="mb-0">{{ drink.user_name }}</p>
+                </div>
+
+                <!-- Quantitat i Preu -->
+                <div class="col-md-3 text-center">
+                  <span class="fw-bold fs-5">{{ drink.quantity }} L</span>
+                  <br>
+                  <span class="fw-bold fs-5">{{ drink.price }} €</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      @else {
+        <!-- Si no hi ha begudes -->
+        <ng-template>
+          <div class="col-12 text-center">
+            <p class="text-white">Encara no hi ha registres.</p>
+          </div>
+        </ng-template>
+      }
+
+      <!-- Carregant -->
+      @if (loading) {
+        <div class="col-12 text-center">
+          <p class="text-white">Carregant més registres...</p>
+        </div>
+      }
+
+      <!-- No hi ha més begudes -->
+      @if (allInsertsLoaded && InfiniteDrinks.length > 0) {
+        <div class="col-12 text-center">
+          <p class="text-white">No hi ha més registres per carregar.</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>

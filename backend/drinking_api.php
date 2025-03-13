@@ -22,28 +22,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
   $action = isset($_GET['action']) ? $_GET['action'] : null;
 
   switch ($action) {
-      case 'getLastLocations':
-        getLastLocationsAction($conn);
-          break;
-      case 'getLastDrinks':
-           getLastDrinksAction($conn);
-          break;
-      case 'getDataByUserId':
-          getDataByUserId($conn);
-          break;
-      case 'getDrinkDataById':
-          getDrinkDataById($conn);
-          break;
-      case 'getLastInserted':
-          getLastInserted($conn);
-          break;
-       case 'getStatsData':
-           getStatsDataAction($conn);
-           break;
-      default:
-          http_response_code(400);
-          echo json_encode(array("message" => "Acció GET invàlida."));
-          break;
+    case 'getLastLocations':
+      getLastLocationsAction($conn);
+      break;
+    case 'getLastDrinks':
+      getLastDrinksAction($conn);
+      break;
+    case 'getDataByUserId':
+      getDataByUserId($conn);
+      break;
+    case 'getDrinkDataById':
+      getDrinkDataById($conn);
+      break;
+    case 'getLastInserted':
+      getLastInserted($conn);
+      break;
+    case 'getInsertsPaginated':
+      getInsertsPaginated($conn);
+      break;
+    case 'getStatsData':
+      getStatsDataAction($conn);
+      break;
+    default:
+      http_response_code(400);
+      echo json_encode(array("message" => "Acció GET invàlida."));
+      break;
   }
   exit;
 }
@@ -186,13 +189,14 @@ function addDrinkData($conn, $data)
   $drink = sanitize($data['drink']);
   $quantity = sanitize($data['quantity']);
   $price = sanitize($data['price']);
+  $num_drinks = sanitize($data['num_drinks']);
   $others = isset($data['others']) ? sanitize($data['others']) : '';
   $latitude = isset($data['latitude']) ? sanitize($data['latitude']) : null;
   $longitude = isset($data['longitude']) ? sanitize($data['longitude']) : null;
   $day_of_week = isset($data['day_of_week']) ? sanitize($data['day_of_week']) : null;
 
 
-  $sql = "INSERT INTO drink_data (user_id, date, day_of_week, location, latitude, longitude, drink, quantity, others, price) VALUES (:user_id, :date, :day_of_week, :location, :latitude, :longitude, :drink, :quantity, :others, :price)";
+  $sql = "INSERT INTO drink_data (user_id, date, day_of_week, location, latitude, longitude, drink, quantity, others, price, num_drinks) VALUES (:user_id, :date, :day_of_week, :location, :latitude, :longitude, :drink, :quantity, :others, :price, :num_drinks)";
   try {
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':user_id', $user_id);
@@ -201,6 +205,7 @@ function addDrinkData($conn, $data)
     $stmt->bindParam(':drink', $drink);
     $stmt->bindParam(':quantity', $quantity);
     $stmt->bindParam(':price', $price);
+    $stmt->bindParam(':num_drinks', $num_drinks);
     $stmt->bindParam(':others', $others);
     $stmt->bindParam(':latitude', $latitude);
     $stmt->bindParam(':longitude', $longitude);
@@ -225,6 +230,7 @@ function updateDrinkData($conn, $data)
   //La comprobación de más arriba, solo verifica que existe, no que contiene datos
 
   $id = sanitize($data['id']);
+  $num_drinks = sanitize($data['num_drinks']);
   $date = sanitize($data['date']);
   $location = sanitize($data['location']);
   $drink = sanitize($data['drink']);
@@ -236,7 +242,7 @@ function updateDrinkData($conn, $data)
   $longitude = isset($data['longitude']) ? sanitize($data['longitude']) : null;
 
 
-  $sql = "UPDATE drink_data SET date = :date, location = :location, drink = :drink, quantity = :quantity, price = :price, others = :others, latitude = :latitude, longitude = :longitude,day_of_week = :day_of_week WHERE id = :id";
+  $sql = "UPDATE drink_data SET date = :date, location = :location, drink = :drink, quantity = :quantity, price = :price, others = :others, latitude = :latitude, longitude = :longitude,day_of_week = :day_of_week, num_drinks = :num_drinks WHERE id = :id";
   try {
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':id', $id);
@@ -249,6 +255,7 @@ function updateDrinkData($conn, $data)
     $stmt->bindParam(':latitude', $latitude);
     $stmt->bindParam(':longitude', $longitude);
     $stmt->bindParam(':day_of_week', $day_of_week);
+    $stmt->bindParam(':num_drinks', $num_drinks);
     $stmt->execute();
     error_log("SQL executat: " . $sql); // Registrar la consulta SQL
     echo json_encode(array("message" => "Registro actualizado correctamente."));
@@ -353,26 +360,62 @@ function getLastDrinks($conn, $userId)
     exit;
   }
 }
+
+//Funció per obtenir dades paginades.
+function getInsertsPaginated($conn)
+{
+  //Comprovar si limit i offset estan definits i són números
+  $limit = isset($_GET['limit']) && is_numeric($_GET['limit']) ? intval($_GET['limit']) : 10;
+  $offset = isset($_GET['offset']) && is_numeric($_GET['offset']) ? intval($_GET['offset']) : 0;
+
+  //Construir la query
+  $sql = "SELECT
+  drink_data.*,
+  festa_users.name AS user_name,
+  festa_users.email AS user_email
+FROM
+  drink_data
+INNER JOIN
+  festa_users ON drink_data.user_id = festa_users.user_id
+ORDER BY
+  drink_data.date DESC
+LIMIT :limit OFFSET :offset";
+
+  try {
+    $stmt = $conn->prepare($sql);
+    //Bind els parametres
+    $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    //Retorna les dades
+    echo json_encode($data);
+  } catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(array("message" => "Error en la consulta: " . $e->getMessage()));
+  }
+}
+
 // Función para obtener estadísticas generales
 function getGeneralStats($conn, $userId)
 {
-    $sql = "SELECT
+  $sql = "SELECT
                 SUM(quantity) AS total_litres,
                 SUM(price) AS total_preu,
                 COUNT(DISTINCT date) AS dies_beguts,
-                COUNT(id) AS begudes_totals
+                SUM(num_drinks) AS begudes_totals
             FROM drink_data
             WHERE user_id = :userId";
-    try {
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
-        $stmt->execute();
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result;
-    } catch (PDOException $e) {
-        error_log("Error en getGeneralStats: " . $e->getMessage());
-        return array("error" => "Error al obtenir estadístiques generals.");
-    }
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error en getGeneralStats: " . $e->getMessage());
+    return array("error" => "Error al obtenir estadístiques generals.");
+  }
 }
 
 
@@ -530,7 +573,7 @@ function getWeeklyStats($conn, $userId)
   $sql = "SELECT
                 day_of_week,
                 COUNT(DISTINCT  date) AS dies_sortits,
-                COUNT(*) AS begudes_preses,
+                SUM(num_drinks) AS begudes_preses,
                 SUM(quantity) AS total_quantitat,
                 AVG(quantity) AS mitjana_quantitat,
                 AVG(price) AS mitjana_preu,
@@ -603,48 +646,49 @@ function getTopDrinker($conn)
 }
 
 //Funció que gestiona a getStatsData
-function getStatsDataAction($conn) {
+function getStatsDataAction($conn)
+{
   if (isset($_GET['user_id'])) {
-     $userId = sanitize($_GET['user_id']);
-       // Obtener datos generales
-     $generalStats = getGeneralStats($conn, $userId);
-     // Obtener top day
-     $topDay = getTopDay($conn, $userId);
-      // Obtener top spending day
-     $topSpendingDay = getTopSpendingDay($conn, $userId);
-        // Obtener top location by quantity
-     $topLocationByQuantity = getTopLocationByQuantity($conn, $userId);
-          // Obtener top location by spending
-     $topLocationBySpending =  getTopLocationBySpending($conn, $userId);
-        // Obtener top drink by quantity
-     $topDrinkByQuantity =  getTopDrinkByQuantity($conn, $userId);
-         // Obtener top drink by average price
-     $topDrinkByAveragePrice = getTopDrinkByAveragePrice($conn, $userId);
-     // Obtener estadísticas semanales
-     $weeklyStats = getWeeklyStats($conn, $userId);
-      // Obtener resumen mensual
-     $monthlySummary = getMonthlySummary($conn, $userId);
-        // Obtener el mes bevedeor del grup
-     $topDrinker =  getTopDrinker($conn);
+    $userId = sanitize($_GET['user_id']);
+    // Obtener datos generales
+    $generalStats = getGeneralStats($conn, $userId);
+    // Obtener top day
+    $topDay = getTopDay($conn, $userId);
+    // Obtener top spending day
+    $topSpendingDay = getTopSpendingDay($conn, $userId);
+    // Obtener top location by quantity
+    $topLocationByQuantity = getTopLocationByQuantity($conn, $userId);
+    // Obtener top location by spending
+    $topLocationBySpending = getTopLocationBySpending($conn, $userId);
+    // Obtener top drink by quantity
+    $topDrinkByQuantity = getTopDrinkByQuantity($conn, $userId);
+    // Obtener top drink by average price
+    $topDrinkByAveragePrice = getTopDrinkByAveragePrice($conn, $userId);
+    // Obtener estadísticas semanales
+    $weeklyStats = getWeeklyStats($conn, $userId);
+    // Obtener resumen mensual
+    $monthlySummary = getMonthlySummary($conn, $userId);
+    // Obtener el mes bevedeor del grup
+    $topDrinker = getTopDrinker($conn);
 
-     // Combinar resultados
-     $result = array(
-         'generalStats' => $generalStats,
-         'topDay' => $topDay,
-         'topSpendingDay' => $topSpendingDay,
-         'topLocationByQuantity' => $topLocationByQuantity,
-         'topLocationBySpending' => $topLocationBySpending,
-         'topDrinkByQuantity' => $topDrinkByQuantity,
-         'topDrinkByAveragePrice' => $topDrinkByAveragePrice,
-         'weeklyStats' => $weeklyStats,
-         'monthlySummary' => $monthlySummary,
-         'topDrinker' => $topDrinker
-     );
+    // Combinar resultados
+    $result = array(
+      'generalStats' => $generalStats,
+      'topDay' => $topDay,
+      'topSpendingDay' => $topSpendingDay,
+      'topLocationByQuantity' => $topLocationByQuantity,
+      'topLocationBySpending' => $topLocationBySpending,
+      'topDrinkByQuantity' => $topDrinkByQuantity,
+      'topDrinkByAveragePrice' => $topDrinkByAveragePrice,
+      'weeklyStats' => $weeklyStats,
+      'monthlySummary' => $monthlySummary,
+      'topDrinker' => $topDrinker
+    );
 
-     echo json_encode($result);
- } else {
-     http_response_code(400);
-     echo json_encode(array("message" => "Falta el paràmetre user_id."));
- }
+    echo json_encode($result);
+  } else {
+    http_response_code(400);
+    echo json_encode(array("message" => "Falta el paràmetre user_id."));
+  }
 }
 ?>

@@ -30,8 +30,25 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
     price: 0
   };
 
+  drinks = [
+    { name: 'Selecciona', quantity: 0, descr: 'Selecciona una opció' },
+    { name: 'Manual', quantity: 0.33, descr: 'Introdueix manualment la quantitat' },
+    { name: 'Cervesa', quantity: 0.33, descr: '33 cl' },
+    { name: 'Cubata', quantity: 0.33, descr: '33 cl' },
+    { name: 'Cubata Tub', quantity: 0.25, descr: '250 ml' },
+    { name: 'Tubo', quantity: 0.40, descr: '40 cl' },
+    { name: 'Quinto', quantity: 0.20, descr: '20 cl' },
+    { name: 'Xupito', quantity: 0.04, descr: '4 cl' },
+    { name: 'Canya', quantity: 0.25, descr: '25 cl' },
+    { name: 'Gerra', quantity: 1, descr: '1 l' },
+    { name: 'Sangria', quantity: 1.5, descr: '1.5 l' },
+    { name: 'Vi', quantity: 0.15, descr: '15 cl (una copa)' }
+  ];
+
+  selectedDrink = this.drinks[0];
   priceindividual: boolean = true;
   manualQuantity: boolean = false;
+
   lastLocations: string[] = [];
   lastDrinks: string[] = [];
   locationSuggestions: string[] = [];
@@ -54,6 +71,46 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.subscription) {
       this.subscription.unsubscribe();
+    }
+  }
+
+  onDrinkQuantityChange(event: any) {
+    this.selectedDrink = this.drinks.find(d => d.name === event.target.value) || this.drinks[0];
+    this.drinkData.quantity = this.selectedDrink.quantity;
+    //True when manual
+    this.manualQuantity = this.selectedDrink.name === 'Manual';
+  }
+
+  onPriceChange(newValue: number) {
+    if (typeof newValue === 'number') {
+      this.drinkData.price = newValue;
+    }
+  }
+
+  onNumDrinksChange(newValue: number) {
+    if (Number.isInteger(newValue)) {
+      this.drinkData.num_drinks = newValue;
+    }
+  }
+
+  get totalPrice(): number {
+    if (this.priceindividual) {
+      return this.drinkData.price;
+    } else {
+      return this.drinkData.num_drinks * this.drinkData.price;
+    }
+  }
+
+  onDrinkInputChange(newValue: string) {
+    // Troba la beguda corresponent a la llista `drinks` i actualitza `selectedDrink`
+    const foundDrink = this.drinks.find(drink => drink.name === newValue);
+    if (foundDrink) {
+      this.selectedDrink = foundDrink;
+    } else {
+      // Si no es troba, pots decidir què fer:
+      // - Restablir `selectedDrink` a un valor per defecte
+      // - Deixar `selectedDrink` com està
+      console.log("No s'ha trobat la beguda:", newValue);
     }
   }
 
@@ -171,6 +228,7 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
           quantity: 0.33,
           others: '',
           price: 0,
+          num_drinks: 1
         };
         this.locationSuggestions = [];
         this.drinkSuggestions = [];

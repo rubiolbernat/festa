@@ -76,6 +76,10 @@ export class LoginOverlayComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  openlogin(){
+    this.openPage('LoginOverlay');
+  }
+
   openforgot() {
     this.openPage('ForgotmypasswordOverlay');
   }

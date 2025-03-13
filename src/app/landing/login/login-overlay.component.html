@@ -9,13 +9,12 @@
           <li class="nav-item">
             <a class="nav-link fw-medium text-dark" [ngClass]="{'active': isPageOpen('LoginOverlay')}"
               (click)="openPage('LoginOverlay')" id="signin-tab-link" data-bs-toggle="tab" href="#signin-tab" role="tab"
-              aria-controls="signin-tab" [attr.aria-selected]="isPageOpen('LoginOverlay')">Entra, reina! 👑</a>
+              aria-controls="signin-tab" [attr.aria-selected]="isPageOpen('LoginOverlay')">Accedeix</a>
           </li>
           <li class="nav-item">
             <a class="nav-link fw-medium text-dark" [ngClass]="{'active': isPageOpen('RegisterOverlay')}"
               (click)="openPage('RegisterOverlay')" id="signup-tab-link" data-bs-toggle="tab" href="#signup-tab"
-              role="tab" aria-controls="signup-tab" [attr.aria-selected]="isPageOpen('RegisterOverlay')">Registra't,
-              amorx! 💃</a>
+              role="tab" aria-controls="signup-tab" [attr.aria-selected]="isPageOpen('RegisterOverlay')">Registra't</a>
           </li>
         </ul>
         <button type="button" class="btn-close" (click)="closeOverlay()" aria-label="Close"></button>
@@ -28,7 +27,7 @@
         <app-login (Forgotmypassword)="openforgot()" (afterlogin)="closeOverlay()"></app-login>
         } @else if (isPageOpen('RegisterOverlay')) {
         <!-- Component de Registre -->
-        <app-register></app-register>
+        <app-register (afterregister)="openlogin()"></app-register>
         } @else if (isPageOpen('ForgotmypasswordOverlay')) {
         <!-- Component de Recuperar Contrasenya -->
         <app-forgotmypassword></app-forgotmypassword>

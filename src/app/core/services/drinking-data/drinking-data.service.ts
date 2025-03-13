@@ -27,11 +27,11 @@ export class DrinkingDataService {
         httpParams = httpParams.set(key, params[key]);
       });
     }
-    console.log(`GET request to: ${url} with params: ${JSON.stringify(params)}`);
+    //console.log(`GET request to: ${url} with params: ${JSON.stringify(params)}`);
 
     return this.http.get<T>(url, { headers: this.defaultHeaders, params: httpParams })
       .pipe(
-        tap(response => console.log(`Response from ${action}:`, response)),
+        //tap(response => console.log(`Response from ${action}:`, response)),
         catchError(this.handleError)
       );
   }
@@ -105,6 +105,21 @@ export class DrinkingDataService {
   // Obté l'última entrada inserida amb les dades de l'usuari
   getlastinserted(): Observable<CombinedDrinkUserData> {
     return this.get<CombinedDrinkUserData>('getLastInserted');
+  }
+
+  getInsertsPaginated(limit: number, offset: number): Observable<CombinedDrinkUserData[]> {
+    const params = { limit: limit.toString(), offset: offset.toString() };
+    //console.log('Paràmetres per getInsertsPaginated:', params);
+
+    const observable = this.get<CombinedDrinkUserData[]>('getInsertsPaginated', params);
+    /*
+    observable.subscribe(
+      (data) => console.log('Dades rebudes:', data),
+      (error) => console.error('Error en getInsertsPaginated:', error)
+    );
+    */
+
+    return observable;
   }
 
   getDrinkDataById(id: number): Observable<DrinkData> {

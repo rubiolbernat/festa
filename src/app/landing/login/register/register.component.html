@@ -5,7 +5,7 @@
     <!-- Nom complet -->
     <div class="mb-3">
       <label class="form-label" for="r-name">Nom complet</label>
-      <input type="text" class="form-control" id="r-name" formControlName="name" placeholder="Helena Garcia" required>
+      <input type="text" class="form-control" id="r-name" formControlName="name" placeholder="Josep Maria" required>
       @if (registerform.get('name')?.errors?.['required'] && registerform.get('name')?.touched) {
       <div class="space"></div>
       <div class="alert alert-danger">El nom és obligatori.</div>
@@ -16,7 +16,7 @@
     <div class="mb-3">
       <label class="form-label" for="r-email">Adreça electrònica</label>
       <input type="text" class="form-control" formControlName="email" id="r-email"
-        placeholder="helenamelero@example.com" required>
+        placeholder="alfons@example.com" required>
       @if (registerform.get('email')?.errors?.['required'] && registerform.get('email')?.touched) {
       <div class="space"></div>
       <div class="alert alert-danger">El correu electrònic és obligatori.</div>
@@ -61,7 +61,7 @@
     <!-- Botó de registre -->
     <button class="btn metallic-button text-dark btn-shadow d-block w-100" type="submit"
       [disabled]="registerform.invalid">
-      Registra't ara! 💖
+      Registra't ara!
     </button>
   </form>
 </div>
