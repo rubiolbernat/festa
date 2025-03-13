@@ -77,9 +77,9 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
   onDrinkQuantityChange(event: any) {
     this.selectedDrink = this.drinks.find(d => d.name === event.target.value) || this.drinks[0];
     this.drinkData.quantity = this.selectedDrink.quantity;
-    //True when manual
     this.manualQuantity = this.selectedDrink.name === 'Manual';
   }
+
 
   onPriceChange(newValue: number) {
     if (typeof newValue === 'number') {
