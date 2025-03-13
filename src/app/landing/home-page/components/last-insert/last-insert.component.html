@@ -1,6 +1,7 @@
 <!-- Ultima beguda -->
 <section id="last-drink" class="py-5" style="background-color:#732056; color: white;">
   <div class="container px-4 px-lg-5 text-center">
+    <canvas id="confetti-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100;"></canvas>
     <!-- Títol -->
     <div class="row justify-content-center mb-4">
       <div class="col-12">
@@ -46,7 +47,7 @@
             <br>
             <!-- Botó "Salut!" (Opcional) -->
             <button class="btn btn-primary"
-              style="background-color: #FFD700; border: none; color: #333; font-weight: bold;">Salut!</button>
+              style="background-color: #FFD700; border: none; color: #333; font-weight: bold;" (click)="lancarConfetti()">Salut!</button>
           </div>
         </div>
       </div>
