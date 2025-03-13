@@ -48,6 +48,8 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
   selectedDrink = this.drinks[0];
   priceindividual: boolean = true;
   manualQuantity: boolean = false;
+  manualQuantityValue: number = 0.33; // Emmagatzema el valor manual
+
 
   lastLocations: string[] = [];
   lastDrinks: string[] = [];
@@ -76,20 +78,39 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
 
   onDrinkQuantityChange(event: any) {
     this.selectedDrink = this.drinks.find(d => d.name === event.target.value) || this.drinks[0];
-    this.drinkData.quantity = this.selectedDrink.quantity;
+
+    // Si la beguda no és "Manual" ni "Selecciona", assignem el nom
+    if (this.selectedDrink.name !== 'Manual' && this.selectedDrink.name !== 'Selecciona') {
+      this.drinkData.drink = this.selectedDrink.name;
+    }
+
     this.manualQuantity = this.selectedDrink.name === 'Manual';
+
+    // Actualitzar la quantitat basada en num_drinks
+    this.updateQuantity();
   }
 
+  onNumDrinksChange(newValue: number) {
+    if (Number.isInteger(newValue) && newValue > 0) {
+      this.drinkData.num_drinks = newValue;
+      this.updateQuantity(); // Recalcula la quantitat total
+    }
+  }
+
+  // Funció per recalcular la quantitat total
+  updateQuantity() {
+    if (this.manualQuantity) {
+      // Multiplica per num_drinks i limita a dos decimals
+      this.drinkData.quantity = parseFloat((this.manualQuantityValue * this.drinkData.num_drinks).toFixed(2));
+    } else {
+      // Multiplica la quantitat per num_drinks i limita a dos decimals
+      this.drinkData.quantity = parseFloat((this.selectedDrink.quantity * this.drinkData.num_drinks).toFixed(2));
+    }
+  }
 
   onPriceChange(newValue: number) {
     if (typeof newValue === 'number') {
       this.drinkData.price = newValue;
-    }
-  }
-
-  onNumDrinksChange(newValue: number) {
-    if (Number.isInteger(newValue)) {
-      this.drinkData.num_drinks = newValue;
     }
   }
 
@@ -106,6 +127,7 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
     const foundDrink = this.drinks.find(drink => drink.name === newValue);
     if (foundDrink) {
       this.selectedDrink = foundDrink;
+      this.drinkData.drink = this.selectedDrink.name;
     } else {
       // Si no es troba, pots decidir què fer:
       // - Restablir `selectedDrink` a un valor per defecte
@@ -195,7 +217,12 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
   onQuantityChange(newValue: any) {
     if (typeof newValue === 'string') {
       newValue = newValue.replace(',', '.');
-      this.drinkData.quantity = parseFloat(newValue);
+    }
+
+    const parsedValue = parseFloat(newValue);
+    if (!isNaN(parsedValue) && parsedValue > 0) {
+      this.manualQuantityValue = parseFloat(parsedValue.toFixed(2)); // Arrodonim a 2 decimals
+      this.updateQuantity(); // Actualitza la quantitat total
     }
   }
 

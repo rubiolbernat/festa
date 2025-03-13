@@ -59,40 +59,40 @@
 
     <!-- Quantitat -->
     <div class="mb-3 row g-2">
-      <div class="col-sm-1 col-md-2">
-        <!-- Pantalla gran: Input -->
-        <div class="d-none d-sm-flex">
+      <div class="col-4 col-md-2">
+        <!-- Pantalla gran i mitjana: Input -->
+        <div class="d-none d-md-flex">
           <label for="totalliters" class="form-label">Total liters:</label>
         </div>
-        <div class="input-group d-none d-sm-flex">
+        <div class="input-group d-none d-md-flex">
           <input type="text" class="form-control text-white bg-dark" id="totalliters" name="totalliters"
-            [value]="(drinkData.quantity * drinkData.num_drinks) | number:'1.2-2'" readonly>
+            [value]="(drinkData.quantity) | number:'1.2-2'" readonly>
           <span class="input-group-text">L</span>
         </div>
         <!-- Pantalla petita: Text -->
-        <div class="d-sm-none">
+        <div class="d-md-none">
           <p class="form-control-plaintext">
-            <strong>Total liters: {{ (drinkData.quantity * drinkData.num_drinks) | number:'1.2-2' }} L</strong>
+            <strong>Total liters: {{ (drinkData.quantity) | number:'1.2-2' }} L</strong>
           </p>
         </div>
       </div>
 
       @if (manualQuantity) {
-      <div class="col-sm-3 col-md-3">
+      <div class="col-8 col-md-3">
         <label for="quantity" class="form-label">Quantitat (en litres):</label>
         <div class="input-group">
-          <input type="number" class="form-control" id="quantity" name="quantity" [(ngModel)]="drinkData.quantity"
+          <input type="number" class="form-control" id="quantity" name="quantity" [(ngModel)]="manualQuantityValue"
             required step="0.01" min="0.1" (ngModelChange)="onQuantityChange($event)">
           <span class="input-group-text">L</span>
         </div>
-        <div *ngIf="drinkData.quantity > 1.5" class="form-text text-warning">
+        <div *ngIf="manualQuantityValue > 1.5" class="form-text text-warning">
           <i class="bi bi-info-circle"></i>
           Si us plau, assegura't que la quantitat està en litres.
         </div>
       </div>
       }
 
-      <div class="col-sm-1 col-md-5">
+      <div class="col-12 col-md-5">
         <label for="drinkSelect" class="form-label">Sel. una quantitat:</label>
         <div class="input-group">
           <select id="drinkSelect" class="form-select" (change)="onDrinkQuantityChange($event)"
@@ -104,11 +104,11 @@
               {{ drink.name }}
             </option>
             } @else if (drink.name === "Selecciona") {
-            <option  class="bg-dark text-white" [value]="drink.name" [selected]="drink.name === selectedDrink.name">
+            <option class="bg-dark text-white" [value]="drink.name" [selected]="drink.name === selectedDrink.name">
               {{ drink.name }}
             </option>
             } @else {
-            <option  class="bg-dark text-white" [value]="drink.name" [selected]="drink.name === selectedDrink.name">
+            <option class="bg-dark text-white" [value]="drink.name" [selected]="drink.name === selectedDrink.name">
               {{ drink.name }} {{ drink.descr }}
             </option>
             }
@@ -121,28 +121,27 @@
       </div>
     </div>
 
-
     <!-- Preu -->
     <div class="mb-3 row">
-      <div class="col-sm-2">
-        <div class="d-none d-sm-flex">
+      <div class="col-4 col-md-2">
+        <div class="d-none d-md-flex">
           <label for="totalprice" class="form-label">Total €:</label>
         </div>
-        <!-- Pantalla gran: Input -->
-        <div class="input-group d-none d-sm-flex">
+        <!-- Pantalla gran i mitjana: Input -->
+        <div class="input-group d-none d-md-flex">
           <input type="text" class="form-control text-white bg-dark" id="totalprice" name="totalprice"
             [value]="totalPrice | number:'1.2-2'" readonly>
           <span class="input-group-text">€</span>
         </div>
         <!-- Pantalla petita: Text -->
-        <div class="d-sm-none">
+        <div class="d-md-none">
           <p class="form-control-plaintext">
             <strong>Total: {{ totalPrice | number:'1.2-2' }} €</strong>
           </p>
         </div>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-8 col-md-4">
         <label for="price" class="form-label">Preu:</label>
         <div class="input-group">
           <input type="number" class="form-control" id="price" name="price" [(ngModel)]="drinkData.price" required
@@ -152,7 +151,7 @@
       </div>
 
       <!-- Checkbox Preu Individual -->
-      <div class="col-md-3 d-flex align-items-end">
+      <div class="col-6 col-md-3 d-flex align-items-end">
         <div class="d-flex flex-column">
           <label class="form-label">Tipus de preu:</label>
           <!-- Radio Preu Individual -->
@@ -171,13 +170,12 @@
       </div>
 
       <!-- Input Num Drinks -->
-      <div class="col-md-2">
+      <div class="col-6 col-md-2">
         <label for="num_drinks" class="form-label">Quantitat <i class="bi bi-cup-straw"></i></label>
         <input type="number" class="form-control" id="num_drinks" name="num_drinks" [(ngModel)]="drinkData.num_drinks"
           required step="1" min="1" (ngModelChange)="onNumDrinksChange($event)">
       </div>
     </div>
-
 
     <div class="mb-3">
       <label for="others" class="form-label">Altres:</label>

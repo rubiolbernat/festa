@@ -2,7 +2,7 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-metallic">
     <div class="container">
       <!-- Marca -->
-      <a class="navbar-brand fw-bold text-dark title-fades" routerLink="/">XERINOLA</a>
+      <a class="navbar-brand fw-bold text-dark title-fades" routerLink="/home">FESTA JAMBO</a>
 
       <!-- Botó toggler per offcanvas i icona de carro per a mòbils -->
       <div class="d-flex align-items-center">
@@ -23,7 +23,7 @@
               [routerLinkActiveOptions]="{ exact: true }">Inici</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-dark" routerLink="/" routerLinkActive="text-active"
+            <a class="nav-link text-dark" routerLink="/jocs" routerLinkActive="text-active"
               [routerLinkActiveOptions]="{ exact: true }">Jocs</a>
           </li>
           <!-- Botó "Espai Personal" (només visible si estàs loguejat) -->
@@ -43,7 +43,7 @@
           <!-- Botó "Dashboard" (només visible si ets admin o vendor) -->
           @if (isAdminOrVendor) {
           <li class="nav-item">
-            <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/dashboard">
+            <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/jocs">
               Dashboard
             </a>
           </li>
@@ -64,7 +64,7 @@
       <div class="offcanvas offcanvas-end d-lg-none bg-metallic" tabindex="-1" id="offcanvasNavbar"
         aria-labelledby="offcanvasNavbarLabel">
         <div class="offcanvas-header text-dark">
-          <h5 class="offcanvas-title title-fades" id="offcanvasNavbarLabel">FESTA NOi</h5>
+          <h5 class="offcanvas-title title-fades" id="offcanvasNavbarLabel"><a class="navbar-brand fw-bold text-dark title-fades" routerLink="/home">FESTA JAMBO</a></h5>
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
@@ -74,7 +74,7 @@
                 [routerLinkActiveOptions]="{ exact: true }">Inici</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-dark" routerLink="/" routerLinkActive="text-active"
+              <a class="nav-link text-dark" routerLink="/jocs" routerLinkActive="text-active"
                 [routerLinkActiveOptions]="{ exact: true }">Jocs</a>
             </li>
             <!-- Botó "Espai Personal" (només visible si estàs loguejat) - Offcanvas -->

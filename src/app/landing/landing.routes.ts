@@ -10,6 +10,10 @@ export const LANDING_ROUTES: Routes = [
     component: LandingLayoutComponent,
     children: [
       {
+        path: '',
+        component: HomePageComponent
+      },
+      {
         path: 'home',
         component: HomePageComponent
       },
@@ -19,7 +23,7 @@ export const LANDING_ROUTES: Routes = [
       },
       //JOCS
       {
-        path: '',
+        path: 'jocs',
         loadComponent: () => import('./games-menu-page/games-menu-page.component').then(m => m.GamesMenuPageComponent),
         canActivate: [AuthGuard],
       },
@@ -45,5 +49,5 @@ export const LANDING_ROUTES: Routes = [
       }
     ]
   },
-  { path: '**', redirectTo: 'beure' }
+  { path: '**', redirectTo: 'home' }
 ];

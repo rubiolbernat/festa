@@ -71,7 +71,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   logout() {
     this.authService.logout();
     this.updateHeader();
-    this.router.navigate(['/']);
+    this.router.navigate(['/home']);
   }
 
   private updateHeader(): void {
