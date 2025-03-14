@@ -1,7 +1,6 @@
 import { Component, inject, OnInit, OnDestroy, AfterViewInit, ElementRef } from '@angular/core';
 import { RouterLinkActive, RouterModule, Router } from '@angular/router';
 import { CartStateService } from '../../../core/services/CartState/cart-state.service';
-import { OverlayService } from '../../../core/services/overlay/overlay.service';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { NgIf } from '@angular/common';
 import { Subscription } from 'rxjs';
@@ -33,7 +32,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   user: User | null = null;
   isAdminOrVendor: boolean = false;
 
-  constructor(private overlayService: OverlayService) { }
+  constructor() { }
 
   ngOnInit(): void {
     this.updateHeader();
@@ -69,7 +68,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   openOverlay(name: string) {
-    this.overlayService.open(name);
+    //this.overlayService.open(name);
   }
 
   logout() {
