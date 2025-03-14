@@ -18,6 +18,14 @@ export const LANDING_ROUTES: Routes = [
         component: HomePageComponent
       },
       {
+        path: 'login',
+        loadComponent: () => import('./login-page/login-page.component').then(m => m.LoginPageComponent)
+      },
+      {
+        path: 'register',
+        loadComponent: () => import('./login-register-page/login-register-page.component').then(m => m.LoginRegisterPageComponent)
+      },
+      {
         path: 'legal',
         loadComponent: () => import('./legal-page/legal-page.component').then(m => m.LegalPageComponent)
       },

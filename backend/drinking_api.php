@@ -93,7 +93,8 @@ function getLastInserted($conn)
             INNER JOIN
                 festa_users ON drink_data.user_id = festa_users.user_id
             ORDER BY
-                drink_data.date DESC
+                drink_data.date DESC,
+                drink_data.timestamp DESC
             LIMIT 1";
 
   $result = $conn->query($sql);
@@ -378,7 +379,8 @@ FROM
 INNER JOIN
   festa_users ON drink_data.user_id = festa_users.user_id
 ORDER BY
-  drink_data.date DESC
+  drink_data.date DESC,
+  drink_data.timestamp DESC
 LIMIT :limit OFFSET :offset";
 
   try {

@@ -1,0 +1,55 @@
+<br>
+<div class="container d-flex justify-content-center align-items-center">
+  <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%;">
+    <!-- Cos amb els formularis -->
+    <div class="modal-body tab-content py-4">
+      <!-- Formulari de login -->
+      <div class="tab-pane fade show active" id="signin-tab" role="tabpanel" aria-labelledby="signin-tab-link">
+        <!-- Missatge d'error (si n'hi ha) -->
+        @if (errorMessage) {
+        <div class="alert alert-danger" role="alert">
+          {{ errorMessage }}
+        </div>
+        }
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <div class="mb-3">
+            <label class="form-label" for="l-email">Adreça electrònica</label>
+            <input type="text" class="form-control" id="l-email" placeholder="fadetes@example.com" required
+              formControlName="email">
+            @if (loginForm.get('email')?.errors?.['required'] && loginForm.get('email')?.touched) {
+            <div class="invalid-feedback">És necessari un
+              correu vàlid, reina!</div>
+            }
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="l-password">Contrasenya</label>
+            <input type="password" class="form-control" id="l-password" required formControlName="password">
+            @if (loginForm.get('password')?.errors?.['required'] && loginForm.get('password')?.touched) {
+            <div class="invalid-feedback">La contrasenya és obligatòria.</div>
+            }
+
+          </div>
+          <!-- Checkbox "Remember Me" -->
+          <div class="mb-3 form-check">
+            <input class="form-check-input" type="checkbox" id="rememberMe" formControlName="rememberMe">
+            <label class="form-check-label" for="rememberMe">Recorda'm</label>
+          </div>
+          <button class="btn metallic-button btn-shadow d-block w-100 text-dark" type="submit">Entra ara! 🌟</button>
+        </form>
+        <!-- Enllaç a "Register" i "He oblidat la contrasenya" -->
+        <div class="text-center mt-3 d-flex gap-2">
+          <a routerLink="/register" class="btn btn-outline-light btn-sm fw-semibold">
+            <i class="bi bi-person-plus-fill me-1"></i> Registra't aquí
+          </a>
+          <a class="btn btn-outline-light btn-sm fw-semibold" data-bs-toggle="modal"
+            routerLink="/forgotpassword" data-bs-dismiss="modal">
+            <i class="bi bi-key-fill me-1"></i> He oblidat la contrasenya
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

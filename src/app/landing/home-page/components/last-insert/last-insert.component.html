@@ -34,8 +34,10 @@
               }
             </h5>
             <p class="card-text" style="font-size: 1.2em;">
-              El <span style="font-weight: bold; color: #FFFFFF;">{{ lastDrink?.date | date:'dd/MM/yyyy' }}</span> a
-              <span style="font-weight: bold; color: #FFFFFF;">{{ lastDrink?.location }}</span>!
+              El <span style="font-weight: bold; color: #FFFFFF;">{{ lastDrink?.date | date:'dd/MM/yyyy' }}</span>
+              @if (lastDrink && lastDrink.location.length >= 1) {
+              a
+              <span style="font-weight: bold; color: #FFFFFF;">{{ lastDrink?.location }}</span>}!
             </p>
 
             <p class="card-text" style="font-size: 1.1em;">

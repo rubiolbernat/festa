@@ -37,7 +37,12 @@ export class LoginOverlayComponent implements AfterViewInit, OnDestroy {
 
       if (this.isOpen) {
         this.setAllPagesClosed();
-        this.openPage('LoginOverlay'); // Obrim el login per defecte
+        this.openPage('LoginOverlay');
+
+        setTimeout(() => {
+          const input = this.elementRef.nativeElement.querySelector('.modal input') as HTMLElement;
+          input?.focus();
+        }, 100);
       }
     });
   }
@@ -76,7 +81,7 @@ export class LoginOverlayComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  openlogin(){
+  openlogin() {
     this.openPage('LoginOverlay');
   }
 

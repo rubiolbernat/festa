@@ -8,7 +8,7 @@ import { OverlayService } from '../services/overlay/overlay.service';
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
-  constructor(private alertService: AlertService, private overlayService: OverlayService) {  }
+  constructor(private alertService: AlertService) {  }
   private authService = inject(AuthService);
   private router = inject(Router);
 
@@ -21,8 +21,7 @@ export class AuthGuard implements CanActivate {
     if (!user) {
       console.log("AuthGuard: Usuari no loguejat, redirigint a /login");
       this.alertService.showAlert('Usuari no logejat', 'warning', 3000);
-      this.overlayService.open('login-overlay');
-      this.router.navigate(['/home'], { queryParams: { returnUrl: state.url } });
+      this.router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
       return false;
     }
 

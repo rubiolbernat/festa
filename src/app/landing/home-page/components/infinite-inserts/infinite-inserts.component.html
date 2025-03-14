@@ -9,6 +9,13 @@
     </div>
 
     <!-- Llista de Begudes (amb infinite scroll) -->
+    <!-- [infiniteScrollDistance]="8":
+      Aquesta propietat defineix la distància (en percentatge) des del final del contenidor a la qual s'ha de començar a carregar més contingut.
+      Per exemple, si el contenidor té una alçada de 1000 píxels, es començarà a carregar més contingut quan l'usuari faci scroll fins al punt que només quedin 80 píxels per arribar al final del contenidor.
+
+      [infiniteScrollThrottle]="300":
+      Aquesta propietat defineix un "throttle" (limitador) de temps en milisegons.
+      Un valor de 300 significa que, com a màxim, el mètode loadInserts() es cridarà un cop cada 300 milisegons, encara que l'usuari faci scroll molt ràpid. -->
     <div class="row gx-4 gx-lg-5" infiniteScroll [infiniteScrollDistance]="2" [infiniteScrollThrottle]="300"
       (scrolled)="loadInserts()">
 
@@ -26,7 +33,9 @@
               <!-- Beguda i Lloc -->
               <div class="col-6 col-md-6">
                 <h4 class="fw-bold">{{ drink.drink }}</h4>
+                @if (drink.location.length>=1) {
                 <h5 class="fw-semibold text-warning"><i class="bi bi-geo"></i> {{ drink.location }}</h5>
+                }
                 <p class="mb-0">{{ drink.others }}</p>
               </div>
 
