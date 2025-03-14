@@ -81,7 +81,9 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
 
     // Si la beguda no és "Manual" ni "Selecciona", assignem el nom
     if (this.selectedDrink.name !== 'Manual' && this.selectedDrink.name !== 'Selecciona') {
-      this.drinkData.drink = this.selectedDrink.name;
+      if (this.drinkData.drink.length == 0) {
+        this.drinkData.drink = this.selectedDrink.name;
+      }
     }
 
     this.manualQuantity = this.selectedDrink.name === 'Manual';
