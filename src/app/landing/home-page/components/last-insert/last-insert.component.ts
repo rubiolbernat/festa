@@ -15,8 +15,24 @@ import JSConfetti from 'js-confetti'
   styleUrl: './last-insert.component.css'
 })
 export class LastInsertComponent implements OnInit, AfterViewInit {
-  nextConcert: Concert | null = null;
-  lastDrink: CombinedDrinkUserData | null = null;
+
+  drinkDataempty: CombinedDrinkUserData = {
+    user_id: 0, // No cal inicialitzar user_id aquí
+    date: '',
+    day_of_week: 0,
+    location: '',
+    latitude: 0,
+    longitude: 0,
+    drink: '',
+    quantity: 0.33,
+    num_drinks: 1,
+    others: '',
+    price: 0,
+    user_email: '',
+    user_name: ''
+  };
+
+  lastDrink: CombinedDrinkUserData = this.drinkDataempty;
   jsConfetti: any;
 
   constructor(private concertService: ConcertService, private drinkingdataService: DrinkingDataService) { }
@@ -32,16 +48,13 @@ export class LastInsertComponent implements OnInit, AfterViewInit {
   }
 
   loadNextConcert(): void {
-    this.concertService.getNextConcert().subscribe({
-      next: concert => this.nextConcert = concert,
-      error: () => this.nextConcert = null
-    });
+
   }
 
   loadlastinserted(): void {
     this.drinkingdataService.getlastinserted().subscribe({
       next: drink => this.lastDrink = drink,
-      error: () => this.lastDrink = null
+      error: () => this.lastDrink = this.drinkDataempty,
     });
   }
 
