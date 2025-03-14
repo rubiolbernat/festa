@@ -54,8 +54,8 @@
           @if (isLoggedIn) {
           <button (click)="logout()" class="btn btn-primary text-dark metallic-button">Sortir</button>
           } @else {
-          <button class="btn btn-primary text-dark metallic-button" data-bs-toggle="modal"
-            routerLink="/login" >Entra / Registra't</button>
+          <button class="btn btn-primary text-dark metallic-button" data-bs-toggle="modal" routerLink="/login">Entra /
+            Registra't</button>
           }
         </div>
       </div>
@@ -64,7 +64,8 @@
       <div class="offcanvas offcanvas-end d-lg-none bg-metallic" tabindex="-1" id="offcanvasNavbar"
         aria-labelledby="offcanvasNavbarLabel">
         <div class="offcanvas-header text-dark">
-          <h5 class="offcanvas-title title-fades" id="offcanvasNavbarLabel"><a class="navbar-brand fw-bold text-dark title-fades" routerLink="/home">FESTA JAMBO</a></h5>
+          <h5 class="offcanvas-title title-fades" id="offcanvasNavbarLabel"><a
+              class="navbar-brand fw-bold text-dark title-fades" routerLink="/home">FESTA JAMBO</a></h5>
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
@@ -102,10 +103,10 @@
           </ul>
           <div class="d-flex mt-3">
             @if (isLoggedIn) {
-            <button (click)="logout()" class="btn btn-primary text-dark metallic-button">Sortir</button>
+            <button (click)="logout()" class="button-link btn btn-primary text-dark metallic-button">Sortir</button>
             } @else{
-            <button class="btn btn-primary text-dark metallic-button w-100" data-bs-toggle="modal"
-            routerLink="/login">Entra / Registra't</button>
+            <button class="button-link btn btn-primary text-dark metallic-button w-100" data-bs-toggle="modal"
+              routerLink="/login">Entra / Registra't</button>
             }
           </div>
         </div>

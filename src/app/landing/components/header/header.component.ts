@@ -33,7 +33,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   user: User | null = null;
   isAdminOrVendor: boolean = false;
 
-  constructor(private overlayService: OverlayService) {}
+  constructor(private overlayService: OverlayService) { }
 
   ngOnInit(): void {
     this.updateHeader();
@@ -44,9 +44,12 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
     const offcanvasNavbar = this.elementRef.nativeElement.querySelector('#offcanvasNavbar');
-    const offcanvasLinks = offcanvasNavbar?.querySelectorAll('.nav-link');
+    const offcanvasLinks = [
+      ...offcanvasNavbar?.querySelectorAll('.nav-link'),
+      ...offcanvasNavbar?.querySelectorAll('.button-link')
+    ];
 
-    if (offcanvasLinks) {
+    if (offcanvasLinks.length > 0) {
       offcanvasLinks.forEach((link: HTMLElement) => {
         link.addEventListener('click', () => {
           const offcanvas = bootstrap.Offcanvas.getInstance(offcanvasNavbar);
@@ -57,6 +60,7 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
       });
     }
   }
+
 
   ngOnDestroy(): void {
     if (this.authSubscription) {
