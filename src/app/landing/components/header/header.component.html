@@ -22,9 +22,21 @@
             <a class="nav-link text-dark" routerLink="/home" routerLinkActive="text-active"
               [routerLinkActiveOptions]="{ exact: true }">Inici</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link text-dark" routerLink="/jocs" routerLinkActive="text-active"
-              [routerLinkActiveOptions]="{ exact: true }">Jocs</a>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-dark" href="#" id="jocsDropdown" role="button"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-joystick"></i> Jocs
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="jocsDropdown">
+              <li>
+                <a class="dropdown-item" routerLink="/jo_maimai" routerLinkActive="active"
+                  [routerLinkActiveOptions]="{ exact: true }">Jo Mai Mai</a>
+              </li>
+              <li>
+                <a class="dropdown-item" routerLink="/veritatoprova" routerLinkActive="active"
+                  [routerLinkActiveOptions]="{ exact: true }">Prova o Veritat</a>
+              </li>
+            </ul>
           </li>
           <!-- Botó "Espai Personal" (només visible si estàs loguejat) -->
           @if (isLoggedIn) {
@@ -70,23 +82,39 @@
         </div>
         <div class="offcanvas-body">
           <ul class="navbar-nav justify-content-end flex-grow-1">
-            <li class="nav-item">
+            <li class="closenav nav-item" data-bs-dismiss="offcanvas" aria-label="Close">
               <a class="nav-link text-dark" routerLink="/home" routerLinkActive="text-active"
                 [routerLinkActiveOptions]="{ exact: true }">Inici</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link text-dark" routerLink="/jocs" routerLinkActive="text-active"
-                [routerLinkActiveOptions]="{ exact: true }">Jocs</a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle text-dark" href="#" id="jocsDropdown" role="button"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-joystick"></i> Jocs
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="jocsDropdown">
+                <li>
+                  <a class="subnav-item dropdown-item" routerLink="/jo_maimai" routerLinkActive="active"
+                    [routerLinkActiveOptions]="{ exact: true }" data-bs-dismiss="offcanvas" aria-label="Close">Jo Mai
+                    Mai</a>
+                </li>
+                <li>
+                  <a class="subnav-item dropdown-item" routerLink="/veritatoprova" routerLinkActive="active"
+                    [routerLinkActiveOptions]="{ exact: true }" data-bs-dismiss="offcanvas" aria-label="Close">Prova o
+                    Veritat</a>
+                </li>
+              </ul>
             </li>
             <!-- Botó "Espai Personal" (només visible si estàs loguejat) - Offcanvas -->
             @if (isLoggedIn) {
-            <li class="nav-item">
-              <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura">
+            <li class="closenav nav-item">
+              <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura"
+                data-bs-dismiss="offcanvas" aria-label="Close">
                 Afegir dades
               </a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura-stats">
+            <li class="closenav nav-item">
+              <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura-stats"
+                data-bs-dismiss="offcanvas" aria-label="Close">
                 Espai Personal
               </a>
             </li>
@@ -94,8 +122,9 @@
 
             <!-- Botó "Dashboard" (només visible si ets admin o vendor) - Offcanvas -->
             @if (isAdminOrVendor) {
-            <li class="nav-item">
-              <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/dashboard">
+            <li class="closenav nav-item">
+              <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/jocs"
+                data-bs-dismiss="offcanvas" aria-label="Close">
                 Dashboard
               </a>
             </li>

@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, OnDestroy, AfterViewInit, ElementRef } from '@angular/core';
+import { Dropdown } from 'bootstrap';
 import { RouterLinkActive, RouterModule, Router } from '@angular/router';
 import { CartStateService } from '../../../core/services/CartState/cart-state.service';
 import { AuthService } from '../../../core/services/auth/auth.service';
@@ -44,9 +45,14 @@ export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
     const offcanvasNavbar = this.elementRef.nativeElement.querySelector('#offcanvasNavbar');
     const offcanvasLinks = [
-      ...offcanvasNavbar?.querySelectorAll('.nav-link'),
-      ...offcanvasNavbar?.querySelectorAll('.button-link')
+      ...offcanvasNavbar?.querySelectorAll('.closenav'),
+      ...offcanvasNavbar?.querySelectorAll('.subnav-item'),
     ];
+
+    const dropdownElement = document.getElementById('jocsDropdown');
+    if (dropdownElement) {
+      new Dropdown(dropdownElement);
+    }
 
     if (offcanvasLinks.length > 0) {
       offcanvasLinks.forEach((link: HTMLElement) => {

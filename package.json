@@ -39,6 +39,7 @@
     "@angular/cli": "^19.1.2",
     "@angular/compiler-cli": "^19.1.0",
     "@angular/localize": "^19.1.0",
+    "@types/bootstrap": "^5.2.10",
     "@types/chart.js": "^2.9.41",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.5.0",

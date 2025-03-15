@@ -1,0 +1,54 @@
+/* Estils CSS per al disseny del "ring" */
+.ring-ring {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.ring-box {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #000;
+  border-radius: 10px;
+  margin: 0 10px;
+  position: relative;
+  background-color: #f9f9f9;
+  color: #454545;
+}
+
+.ring-title {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.ring-count {
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.ring-count.winner {
+  color: #28a745;
+  /* Verd per al guanyador */
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

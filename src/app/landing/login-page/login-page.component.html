@@ -15,7 +15,7 @@
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
           <div class="mb-3">
             <label class="form-label" for="l-email">Adreça electrònica</label>
-            <input type="text" class="form-control" id="l-email" placeholder="fadetes@example.com" required
+            <input type="text" class="form-control" id="l-email" placeholder="cotorra@example.com" required
               formControlName="email">
             @if (loginForm.get('email')?.errors?.['required'] && loginForm.get('email')?.touched) {
             <div class="invalid-feedback">És necessari un

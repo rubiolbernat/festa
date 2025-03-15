@@ -1,0 +1,152 @@
+<!-- trhuthdare-page.component.html -->
+<div class="container mt-5">
+  <h1 class="text-center mb-4">Veritat o Repte</h1>
+
+  <div *ngIf="!gameStarted">
+    <div class="mb-3">
+      <h3>Selecciona Categories:</h3>
+      <div class="d-flex flex-column">
+        <!-- Botons de selecció/deselecció general -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <button class="btn btn-sm btn-outline-secondary" (click)="toggleAllCategories()">
+            <i class="bi bi-check-all"></i> {{ allCategoriesSelected ? 'Desseleccionar Tot' : 'Seleccionar Tot' }}
+          </button>
+        </div>
+
+        <!-- Contenidor de categories -->
+        <div class="d-flex flex-wrap justify-content-center">
+          <div *ngFor="let category of categories" class="form-check m-1 d-flex align-items-center">
+            <input class="form-check-input" type="checkbox" [value]="category" id="category-{{category}}"
+              (change)="toggleCategory(category)" [checked]="selectedCategories.includes(category)">
+            <label class="form-check-label me-2" for="category-{{category}}">
+              {{ category }}
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <h3>Selecciona Dificultat:</h3>
+      <div class="d-flex justify-content-center">
+        <div *ngFor="let dificultat of dificultats" class="form-check m-2">
+          <input class="form-check-input" type="radio" name="dificultat" id="dificultat-{{dificultat}}"
+            [value]="dificultat" [(ngModel)]="selectedDificultat">
+          <label class="form-check-label" for="dificultat-{{dificultat}}">
+            {{ dificultat }}
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-center">
+      <button class="btn btn-warning" (click)="startGame()">
+        <i class="bi bi-play-circle"></i> Començar Joc
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="gameStarted" class="d-flex justify-content-center align-items-center row">
+    <div class="d-flex flex-column align-items-center">
+      <div class="ring-ring">
+        <div class="ring-box">
+          <div class="ring-title">Veritat</div>
+          <div class="ring-count" [class.winner]="truthAnswered > dareAnswered">
+            <span>{{ truthAnswered }}</span>
+          </div>
+        </div>
+        <div class="ring-box">
+          <div class="ring-title">Repte</div>
+          <div class="ring-count" [class.winner]="dareAnswered > truthAnswered">
+            <span>{{ dareAnswered }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="currentQuestion" class="card mt-4">
+      <div class="card-body">
+        <p><strong>Pregunta: {{ totalQuestionsAnswered +1 }} / {{totalQuestions +1}}</strong></p>
+        <h5 class="card-title">
+          {{ currentQuestion.tipus ? 'Veritat' : 'Repte' }}
+          {{ currentQuestion.tipus ? truthAnswered + '/' + truthQuestions.length : dareAnswered + '/' +
+          dareQuestions.length }}
+        </h5>
+        <p class="card-text">{{ currentQuestion?.text || 'Carregant...' }}</p>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-center mt-4">
+      <button class="btn btn-secondary me-2" (click)="passQuestion()">
+        <i class="bi bi-arrow-right-circle"></i> Passar
+      </button>
+      <button class="btn btn-success me-2" (click)="getNextQuestion(true)" *ngIf="truthCount > 0">
+        <i class="bi bi-question-circle"></i> Veritat
+      </button>
+      <button class="btn btn-danger" (click)="getNextQuestion(false)" *ngIf="dareCount > 0">
+        <i class="bi bi-gem"></i> Repte
+      </button>
+    </div>
+  </div>
+  <hr>
+  <div class="d-flex justify-content-center mt-3">
+    <button class="btn btn-primary" (click)="toggleAddQuestionForm()">
+      <i class="bi bi-plus-circle"></i> Afegir Pregunta
+    </button>
+  </div>
+
+  <div *ngIf="showAddQuestionForm" class="mt-3">
+    <h3>Afegir Nova Pregunta</h3>
+    <form [formGroup]="addQuestionForm" (ngSubmit)="onSubmitAddQuestion()">
+      <div class="mb-3">
+        <label for="text" class="form-label">Text de la Pregunta:</label>
+        <textarea class="form-control" id="text" formControlName="text"></textarea>
+        <div *ngIf="formSubmitted && form['text'].errors" class="text-danger">
+          El text de la pregunta és obligatori.
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="category" class="form-label">Categoria:</label>
+        <select class="form-select" id="category" formControlName="category">
+          <option value="" disabled selected>Selecciona una categoria</option>
+          <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+        </select>
+        <div *ngIf="formSubmitted && form['category'].errors" class="text-danger">
+          La categoria és obligatòria.
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Tipus:</label>
+        <div class="d-flex">
+          <div class="form-check me-3">
+            <input class="form-check-input" type="radio" id="tipus-veritat" formControlName="tipus" [value]="true">
+            <label class="form-check-label" for="tipus-veritat">Veritat</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" id="tipus-repte" formControlName="tipus" [value]="false">
+            <label class="form-check-label" for="tipus-repte">Repte</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="dificultat" class="form-label">Dificultat:</label>
+        <select class="form-select" id="dificultat" formControlName="dificultat">
+          <option value="" disabled selected>Selecciona una dificultat</option>
+          <option *ngFor="let dificultat of dificultats" [value]="dificultat">{{ dificultat }}</option>
+        </select>
+        <div *ngIf="formSubmitted && form['dificultat'].errors" class="text-danger">
+          La dificultat és obligatòria.
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-center">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-circle"></i> Afegir Pregunta
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
