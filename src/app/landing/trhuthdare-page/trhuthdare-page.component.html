@@ -66,13 +66,28 @@
 
     <div *ngIf="currentQuestion" class="card mt-4">
       <div class="card-body">
-        <p><strong>Pregunta: {{ totalQuestionsAnswered +1 }} / {{totalQuestions +1}}</strong></p>
-        <h5 class="card-title">
-          {{ currentQuestion.tipus ? 'Veritat' : 'Repte' }}
-          {{ currentQuestion.tipus ? truthAnswered + '/' + truthQuestions.length : dareAnswered + '/' +
-          dareQuestions.length }}
-        </h5>
-        <p class="card-text">{{ currentQuestion?.text || 'Carregant...' }}</p>
+        <p class="text-muted mt-0 mb-2 small">
+          <strong class="text-white">Pregunta {{ totalQuestionsAnswered }} / {{ totalQuestions + 1 }}</strong>
+          <br> Resten:
+          <span class="fw-semibold text-success">
+            <i class="bi bi-check-circle-fill"></i> {{ truthQuestions.length }} Veritats
+          </span> ·
+          <span class="fw-semibold text-danger">
+            <i class="bi bi-x-circle-fill"></i> {{ dareQuestions.length }} Proves
+          </span>
+          <span class="text-white"></span>
+        </p>
+
+        <div class="p-3 rounded text-white" [ngClass]="currentQuestion.tipus ? 'bg-success' : 'bg-danger'">
+          <h5 class="card-title mb-0">
+            {{ currentQuestion.tipus ? 'Veritat' : 'Repte' }}
+            <span class="fs-6">
+              ({{ currentQuestion.tipus ? truthAnswered + '/' + initialTruthCount : dareAnswered + '/' +
+              initialDareCount }})
+            </span>
+          </h5>
+        </div>
+        <p class="card-text fs-5 mt-3">{{ currentQuestion?.text || 'Carregant...' }}</p>
       </div>
     </div>
 

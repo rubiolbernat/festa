@@ -1,19 +1,19 @@
 // src/environments/environment.ts
-/*
+
 export const environment = {
   production: false,
   // //MSI
-  apiUrl: 'http://localhost/festa/backend',
+  //apiUrl: 'http://localhost/festa/backend',
   //PC
-  //apiUrl: 'http://localhost:8012/festa/backend',
+  apiUrl: 'http://localhost:8012/festa/backend',
 
   //Assets
   assetsUrl: 'http://localhost:8012/festa/'
   //assetsUrl: 'http://localhost/festa/'
 };
-*/
-//WEB
 
+//WEB
+/*
 export const environment = {
   production: true,
   // API
@@ -22,4 +22,4 @@ export const environment = {
   //Assets
   assetsUrl: 'https://localhost/festa/'
 };
-
+*/

@@ -37,7 +37,6 @@ export const LANDING_ROUTES: Routes = [
       {
         path: 'jocs',
         loadComponent: () => import('./games-menu-page/games-menu-page.component').then(m => m.GamesMenuPageComponent),
-        canActivate: [AuthGuard],
       },
       {
         path: 'jo_maimai',
