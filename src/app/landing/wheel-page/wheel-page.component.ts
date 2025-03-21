@@ -21,7 +21,6 @@ declare var bootstrap: any;
 
 @Component({
   selector: 'app-wheel-page',
-  standalone: true,
   imports: [CommonModule, FormsModule, MatGridListModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, ClipboardModule],
   templateUrl: './wheel-page.component.html',
   styleUrl: './wheel-page.component.css'
