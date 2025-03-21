@@ -11,7 +11,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 
-const COLORS = ["#FF5733", "#33A8FF", "#FFC300", "#33FF57", "#C733FF", "#FF33C7", "#33FFC7"];
+const COLORS = [
+  "#FF5733", "#33A8FF", "#FFC300", "#33FF57", "#C733FF", "#FF33C7", "#33FFC7",
+  "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF", "#800000",
+  "#808000", "#008000", "#800080", "#008080", "#000080", "#FFA500", "#A52A2A",
+  "#B22222", "#DC143C", "#FFD700", "#ADFF2F", "#32CD32", "#40E0D0", "#4682B4"
+];
 declare var bootstrap: any;
 
 @Component({
