@@ -62,6 +62,9 @@ export const LANDING_ROUTES: Routes = [
         path: 'la_gran_aventura-stats',
         loadComponent: () => import('./stats-page/stats-page.component').then(m => m.StatsPageComponent),
         canActivate: [AuthGuard],
+      },{
+        path: 'ruleta',
+        loadComponent: () => import('./wheel-page/wheel-page.component').then(m => m.WheelPageComponent),
       }
     ]
   },

@@ -1,0 +1,76 @@
+<div style="display: flex; justify-content: center; align-items: center">
+  <!-- <hello name="{{ name }}"></hello> -->
+</div>
+
+<div class="container mt-3 d-flex justify-content-center">
+  <button class="btn btn-secondary" (click)="resetWheel()" aria-label="reset">
+      <i class="bi bi-arrow-counterclockwise"></i> Reset
+  </button>
+</div>
+<br>
+
+<div style="display: flex; justify-content: center; align-items: center">
+  <div id="wheelOfFortune">
+      <canvas #wheel id="wheel" width="500" height="500"></canvas>
+      <div #spin id="spin" (click)="spinner()">GIRAR</div>
+  </div>
+</div>
+
+<div class="container mt-3">
+  <div class="row">
+      <div class="col-md-6" *ngFor="let option of option$ | async; let i = index; trackBy: trackByFn">
+          <div class="mb-3">
+              <label class="form-label">Opció {{i + 1}}</label>
+              <div class="input-group">
+                  <input type="text" class="form-control" [value]="option" readonly>
+                  <button class="btn btn-outline-secondary" type="button" (click)="deleteOpt(option)">
+                      <i class="bi bi-x-lg"></i>
+                  </button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <div class="row justify-content-center mt-3">
+      <div class="col-md-6">
+          <div class="input-group">
+              <input type="text" class="form-control" placeholder="Afegir opció" [(ngModel)]="newDeveloper">
+              <button class="btn btn-primary" type="button" (click)="addNewDeveloper(newDeveloper)" [disabled]="!newDeveloper">
+                  <i class="bi bi-plus"></i> Afegir
+              </button>
+          </div>
+      </div>
+  </div>
+</div>
+
+<div class="container mt-3">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+        <h5>Guanyadors</h5>
+          <div class="input-group">
+              <textarea class="form-control" id="clipboard-example-textarea" rows="3" [(ngModel)]="value"></textarea>
+              <button class="btn btn-outline-secondary" type="button" [cdkCopyToClipboard]="value">
+                  <i class="bi bi-clipboard"></i> Copiar
+              </button>
+          </div>
+      </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="winnerModal" tabindex="-1" aria-labelledby="winnerModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="winnerModalLabel">🎉 Enhorabona! 🎉</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              El guanyador és: <b>{{ winnerName }}</b>!
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tancar</button>
+          </div>
+      </div>
+  </div>
+</div>
