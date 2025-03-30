@@ -59,8 +59,8 @@
           <!-- Botó "Dashboard" (només visible si ets admin o vendor) -->
           @if (isAdminOrVendor) {
           <li class="nav-item">
-            <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/jocs">
-              Dashboard
+            <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura_v2">
+              La gran aventura v2
             </a>
           </li>
           }
@@ -130,12 +130,11 @@
 
             <!-- Botó "Dashboard" (només visible si ets admin o vendor) - Offcanvas -->
             @if (isAdminOrVendor) {
-            <li class="closenav nav-item">
-              <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/jocs"
-                data-bs-dismiss="offcanvas" aria-label="Close">
-                Dashboard
-              </a>
-            </li>
+              <li class="nav-item">
+                <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura_v2">
+                  La gran aventura v2
+                </a>
+              </li>
             }
           </ul>
           <div class="d-flex mt-3">

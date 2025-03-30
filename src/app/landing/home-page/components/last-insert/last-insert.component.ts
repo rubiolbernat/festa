@@ -1,23 +1,27 @@
 import { DrinkingDataService } from './../../../../core/services/drinking-data/drinking-data.service';
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { DatePipe, NgIf } from '@angular/common';
 import { ConcertService } from '../../../../core/services/concert_db/concert.service';
 import { CombinedDrinkUserData } from '../../../../core/models/drink-data.model';
 import { Concert } from '../../../../core/models/concert';
 import { RouterModule } from '@angular/router';
-import JSConfetti from 'js-confetti'
+import JSConfetti from 'js-confetti';
+import { environment } from '../../../../../environments/environment';
+import { StoryViewerComponent } from './../../../story-viewer-component/story-viewer-component.component';
+
+declare var bootstrap: any;
 
 @Component({
   selector: 'app-last-insert',
   standalone: true,
-  imports: [DatePipe, NgIf, RouterModule],
+  imports: [DatePipe, NgIf, RouterModule, StoryViewerComponent], // Afegim StoryViewerComponent a la llista imports
   templateUrl: './last-insert.component.html',
   styleUrl: './last-insert.component.css'
 })
 export class LastInsertComponent implements OnInit, AfterViewInit {
 
   drinkDataempty: CombinedDrinkUserData = {
-    user_id: 0, // No cal inicialitzar user_id aquí
+    user_id: 0,
     date: '',
     day_of_week: 0,
     location: '',
@@ -29,11 +33,18 @@ export class LastInsertComponent implements OnInit, AfterViewInit {
     others: '',
     price: 0,
     user_email: '',
-    user_name: ''
+    user_name: '',
+    image_url: ''
   };
 
   lastDrink: CombinedDrinkUserData = this.drinkDataempty;
   jsConfetti: any;
+
+  showImage: boolean = false; // Afegim la propietat showImage
+  isImageModalOpen: boolean = false;
+  selectedImageUrl: string = '';
+
+  @ViewChild('imageModal') imageModal!: ElementRef;
 
   constructor(private concertService: ConcertService, private drinkingdataService: DrinkingDataService) { }
 
@@ -41,6 +52,7 @@ export class LastInsertComponent implements OnInit, AfterViewInit {
     this.loadNextConcert();
     this.loadlastinserted();
   }
+
   ngAfterViewInit(): void {
     this.jsConfetti = new JSConfetti({
       canvas: document.getElementById('confetti-canvas') as HTMLCanvasElement
@@ -48,29 +60,41 @@ export class LastInsertComponent implements OnInit, AfterViewInit {
   }
 
   loadNextConcert(): void {
-
   }
 
   loadlastinserted(): void {
     this.drinkingdataService.getlastinserted().subscribe({
-      next: drink => this.lastDrink = drink,
+      next: drink => {
+        console.log(drink);
+        this.lastDrink = drink;
+      },
       error: () => this.lastDrink = this.drinkDataempty,
     });
   }
 
   lancarConfetti() {
     if (this.jsConfetti) {
-      // Llança confeti de colors
       this.jsConfetti.addConfetti({
-        confettiNumber: 170, // Ajusta el número segons sigui necessari
+        confettiNumber: 170,
       });
 
-      // Llança emojis
       this.jsConfetti.addConfetti({
         emojis: ['🍺', '🥂', '🍷', '🥃', '🍻', '🍸', '🍾'],
         emojiSize: 30,
-        confettiNumber: 20, // Ajusta el número segons sigui necessari
+        confettiNumber: 20,
       });
     }
+  }
+
+  // Nova funció per obrir la imatge en un modal
+  openImage(imageUrl: string) {
+    this.selectedImageUrl = environment.assetsUrl + imageUrl;
+    this.isImageModalOpen = true;
+    const modal = new bootstrap.Modal(this.imageModal.nativeElement);
+    modal.show();
+  }
+
+  closeImage() {
+    this.isImageModalOpen = false;
   }
 }

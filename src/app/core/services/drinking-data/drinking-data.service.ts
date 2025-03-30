@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse, HttpParams, HttpEvent } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
@@ -36,7 +36,7 @@ export class DrinkingDataService {
       );
   }
 
-  // Funció genèrica per fer peticions POST
+  // Funció genèrica per fer peticions POST (JSON)
   private post<T>(action: string, body: any): Observable<T> {
     const url = `${this.apiUrl}?action=${action}`;
     console.log(`POST request to: ${url} with body: ${JSON.stringify(body)}`);
@@ -45,6 +45,20 @@ export class DrinkingDataService {
         tap(response => console.log(`Response from ${action}:`, response)),
         catchError(this.handleError)
       );
+  }
+
+  // Funció per fer peticions POST amb FormData (sense Content-Type: application/json)
+  uploadFormData(action: string, formData: FormData): Observable<HttpEvent<any>> {
+    const url = `${this.apiUrl}?action=${action}`;
+    console.log(`POST request to: ${url} with FormData`);
+
+    return this.http.post<any>(url, formData, {
+      reportProgress: true, // Per rebre esdeveniments de progrés
+      observe: 'events'       // Per observar tots els esdeveniments (incloent-hi el progrés)
+    }).pipe(
+      tap(response => console.log(`Response from ${action}:`, response)),
+      catchError(this.handleError)
+    );
   }
 
   // Funció genèrica per fer peticions PUT
@@ -71,15 +85,15 @@ export class DrinkingDataService {
       );
   }
 
-  // Envia les dades del formulari al backend
-  addDrinkData(drinkData: DrinkData): Observable<any> {
+  // Envia les dades del formulari al backend (ara utilitza FormData)
+  addDrinkData(formData: FormData): Observable<HttpEvent<any>> {
     const user = this.authService.getUser();
     if (!user) {
       console.error('Usuari no autenticat. No es pot enviar les dades.');
       return throwError(() => new Error('Usuari no autenticat.'));
     }
-    drinkData.user_id = user.id;
-    return this.post('addDrinkData', drinkData);
+    formData.append('user_id', user.id.toString()); // Afegir user_id al FormData
+    return this.uploadFormData('addDrinkData', formData); // Utilitza uploadFormData
   }
 
   // Obté les últimes ubicacions per a l'autocompletat
@@ -159,5 +173,10 @@ export class DrinkingDataService {
     }
 
     return throwError(() => error);
+  }
+
+  getStoriesByUser(userId: number): Observable<any[]> {
+    // Replace the following line with the actual implementation to fetch stories
+    return this.get<any[]>('getStoriesByUser', { user_id: userId });
   }
 }

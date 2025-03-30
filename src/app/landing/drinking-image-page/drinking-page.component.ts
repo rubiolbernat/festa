@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import { DrinkData } from '../../core/models/drink-data.model';
 import { AlertService } from '../../core/services/alert/alert.service';
 import { RouterModule } from '@angular/router';
-import { HttpClient, HttpEventType } from '@angular/common/http'; // Import HttpClient
+import { HttpEventType } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 
 @Component({
@@ -59,16 +59,14 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
   private subscription: Subscription | undefined;
   hasGpsData: boolean = true;
 
-  imageUrl: any;  // Per guardar la URL de la imatge seleccionada
-  imageFile: File | null = null; // Per guardar l'objecte File de la imatge
+  imageUrl: any;
+  imageFile: File | null = null;
   uploadProgress: number | undefined;
   uploadSub: Subscription | undefined;
 
-
   constructor(
     private drinkingDataService: DrinkingDataService,
-    private alertService: AlertService,
-    private http: HttpClient // Inject HttpClient
+    private alertService: AlertService
   ) { }
 
   ngOnInit(): void {
@@ -248,7 +246,6 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
             this.imageUrl = canvas.toDataURL('image/jpeg');
             this.imageFile = this.dataURLtoFile(this.imageUrl, 'cameraImage.jpeg');
 
-            stream.getTracks().forEach(track => track.stop()); // Important: parar la càmera
           });
         })
         .catch(err => {
@@ -263,35 +260,26 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.imageUrl = e.target.result;
-        this.imageFile = file;
-      };
-      reader.readAsDataURL(file);
+      this.imageFile = file;
+      this.loadImage(file);
     }
   }
 
   openGallery() {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/*'; // Accepta només imatges
+    input.accept = 'image/*';
 
     input.onchange = (event: any) => {
-      const file = event.target.files[0];
+      const file = (event.target as HTMLInputElement).files?.[0];
 
       if (file) {
         this.imageFile = file;
-
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          this.imageUrl = e.target.result;
-        };
-        reader.readAsDataURL(file);
+        this.loadImage(file);
       }
     };
 
-    input.click(); // Obre el diàleg de selecció de fitxers
+    input.click();
   }
 
   dataURLtoFile(dataurl: any, filename: any) {
@@ -306,11 +294,20 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
     return new File([u8arr], filename, { type: mime });
   }
 
-  onSubmit() {
-    this.submitData();
+  // Nova funció per carregar i processar la imatge
+  loadImage(file: File) {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.imageUrl = e.target.result;
+    };
+    reader.readAsDataURL(file);
   }
 
-  submitData() {
+  async onSubmit() {
+    await this.submitData();
+  }
+
+  async submitData() {
     if (this.drinkData.price < 0 || !this.drinkData.quantity) {
       this.alertService.showAlert('Si us plau, emplena la quantitat i el preu', 'warning', 5000);
       return;
@@ -319,6 +316,11 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
     this.drinkData.location = String(this.drinkData.location).charAt(0).toUpperCase() + String(this.drinkData.location).slice(1);
     this.drinkData.drink = String(this.drinkData.drink).charAt(0).toUpperCase() + String(this.drinkData.drink).slice(1);
 
+    let fileToUpload = this.imageFile;
+
+    if (this.imageFile) {
+      fileToUpload = await this.modifyImage(this.imageFile);
+    }
     const formData = new FormData();
     formData.append("date", this.drinkData.date);
     formData.append("day_of_week", String(this.drinkData.day_of_week));
@@ -330,27 +332,22 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
     formData.append("others", String(this.drinkData.others));
     formData.append("price", String(this.drinkData.price));
     formData.append("num_drinks", String(this.drinkData.num_drinks));
-    if (this.imageFile) {
-      formData.append("image", this.imageFile, this.imageFile.name);
+
+    if (fileToUpload) {
+      formData.append("image", fileToUpload, fileToUpload.name);
     }
 
     this.upload(formData);
   }
-
   upload(formData: FormData) {
-    const url = 'http://localhost:3000/api/drink-data/add';
-
-    this.uploadSub = this.http.post<any>(url, formData, {
-      reportProgress: true,
-      observe: 'events'
-    }).pipe(
-      finalize(() => this.reset())
-    )
+    this.uploadSub = this.drinkingDataService.addDrinkData(formData)
+      .pipe(
+        finalize(() => this.reset())
+      )
       .subscribe(event => {
-        if (event.type == HttpEventType.UploadProgress) {
+        if (event.type === HttpEventType.UploadProgress) {
           this.uploadProgress = Math.round(100 * (event.loaded / (event.total || 1)));
-        }
-        if (event.type == HttpEventType.Response) {
+        } else if (event.type === HttpEventType.Response) {
           console.log('Resposta del backend:', event.body);
           this.alertService.showAlert('Dades enviades correctament', 'success', 3000);
           this.resetForm();
@@ -359,7 +356,9 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
       },
         error => {
           console.error('Error al enviar les dades:', error);
-        });
+          this.alertService.showAlert('Error al enviar les dades', 'danger', 5000);
+        }
+      );
   }
 
   cancelUpload() {
@@ -374,7 +373,7 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
 
   resetForm() {
     this.drinkData = {
-      user_id: 0, // No cal enviar l'ID de l'usuari
+      user_id: 0,
       date: '',
       day_of_week: 0,
       location: '',
@@ -390,5 +389,54 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
     this.imageFile = null;
     this.locationSuggestions = [];
     this.drinkSuggestions = [];
+  }
+  modifyImage(file: File): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event: any) => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          // Redimensionar mantenint la proporció
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Comprimir la imatge (qualitat 0.7 = 70%)
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const newFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              });
+              resolve(newFile);
+            } else {
+              reject(new Error('Error en comprimir la imatge'));
+            }
+          }, 'image/jpeg', 0.7);
+        };
+        img.src = event.target.result;
+      };
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
   }
 }
