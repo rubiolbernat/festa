@@ -7,14 +7,13 @@ import { Concert } from '../../../../core/models/concert';
 import { RouterModule } from '@angular/router';
 import JSConfetti from 'js-confetti';
 import { environment } from '../../../../../environments/environment';
-import { StoryViewerComponent } from './../../../story-viewer-component/story-viewer-component.component';
 
 declare var bootstrap: any;
 
 @Component({
   selector: 'app-last-insert',
   standalone: true,
-  imports: [DatePipe, NgIf, RouterModule, StoryViewerComponent], // Afegim StoryViewerComponent a la llista imports
+  imports: [DatePipe, NgIf, RouterModule], // Afegim StoryViewerComponent a la llista imports
   templateUrl: './last-insert.component.html',
   styleUrl: './last-insert.component.css'
 })

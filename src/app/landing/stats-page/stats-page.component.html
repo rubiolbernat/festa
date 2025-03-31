@@ -136,18 +136,18 @@
     <div class="col-12">
       <div class="card shadow-sm">
         <div class="card-header bg-secondary text-white">
-          <h5 class="card-title mb-0"><i class="bi bi-trophy"></i> Top Bevedor del Grup</h5>
+          <h5 class="card-title mb-0"><i class="bi bi-trophy"></i> Top Bevedor del Grup d'aquest mes</h5>
         </div>
         <div class="card-body">
           <table class="table table-hover">
             <thead class="table-dark">
               <tr>
-                <th><i class="bi bi-person"></i> User Name</th>
+                <th><i class="bi bi-person"></i> User</th>
                 <th><i class="bi bi-droplet-half"></i> Litres Totals</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let topDrinker of statsData.topDrinker">
+              <tr *ngFor="let topDrinker of statsData.topDrinkerMonth">
                 <td>{{ topDrinker.user_id }}</td>
                 <td>{{ topDrinker.litres_totals }}</td>
               </tr>

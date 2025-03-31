@@ -726,6 +726,30 @@ function getTopDrinker($conn)
   }
 }
 
+function getTopDrinkerMonth($conn)
+{
+  $sql = "SELECT
+              drink_data.user_id AS user_id,
+              festa_users.name AS user_name,
+              SUM(quantity) AS litres_totals
+            FROM drink_data
+            JOIN festa_users ON drink_data.user_id = festa_users.user_id
+            WHERE DATE_FORMAT(drink_data.date, '%Y-%m') = DATE_FORMAT(CURRENT_DATE(), '%Y-%m')
+            GROUP BY drink_data.user_id, festa_users.name
+            ORDER BY litres_totals DESC
+            LIMIT 10";
+
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error en getTopDrinker: " . $e->getMessage());
+    return array("error" => "Error al obtener el mes bevedeor del grup.");
+  }
+}
+
 //Funció que gestiona a getStatsData
 function getStatsDataAction($conn)
 {
@@ -751,6 +775,7 @@ function getStatsDataAction($conn)
     $monthlySummary = getMonthlySummary($conn, $userId);
     // Obtener el mes bevedeor del grup
     $topDrinker = getTopDrinker($conn);
+    $topDrinkerMonth = getTopDrinkerMonth($conn);
 
     // Combinar resultados
     $result = array(
@@ -763,7 +788,8 @@ function getStatsDataAction($conn)
       'topDrinkByAveragePrice' => $topDrinkByAveragePrice,
       'weeklyStats' => $weeklyStats,
       'monthlySummary' => $monthlySummary,
-      'topDrinker' => $topDrinker
+      'topDrinker' => $topDrinker,
+      'topDrinkerMonth' => $topDrinkerMonth
     );
 
     echo json_encode($result);
