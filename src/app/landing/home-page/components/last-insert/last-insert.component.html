@@ -66,7 +66,7 @@
 
                       <!-- Botó per veure la imatge (si existeix) -->
                       <button *ngIf="lastDrink.image_url" class="btn btn-info ms-2"
-                          (click)="showImage = true"
+                          (click)="openImage()"
                           style="background-color: #007bff; border: none; color: #fff; font-weight: bold;">
                           Veure foto
                       </button>
@@ -79,3 +79,13 @@
 
 <!-- Si no hi ha begudes -->
 <p class="text-center text-white" *ngIf="!lastDrink">Encara no ha començat la festa! 🍹</p>
+
+<app-stories *ngIf="showStory" [singleStory]="lastDrink" (close)="closeImage()"></app-stories>
+
+<!--<app-stories
+  [stories]="[0,1]"
+  [initialUserIndex]="0">
+  (close)="onStoriesClosed()"
+  (navigateToStory)="onNavigateToStory($event)">
+</app-stories>-->
+

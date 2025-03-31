@@ -1,3 +1,4 @@
+// Removed duplicate import of StoriesComponent
 import { DrinkingDataService } from './../../../../core/services/drinking-data/drinking-data.service';
 import { Component, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { DatePipe, NgIf } from '@angular/common';
@@ -7,13 +8,14 @@ import { Concert } from '../../../../core/models/concert';
 import { RouterModule } from '@angular/router';
 import JSConfetti from 'js-confetti';
 import { environment } from '../../../../../environments/environment';
+import { StoriesComponent } from './../../../stories-component/stories.component';
 
 declare var bootstrap: any;
 
 @Component({
   selector: 'app-last-insert',
   standalone: true,
-  imports: [DatePipe, NgIf, RouterModule], // Afegim StoryViewerComponent a la llista imports
+  imports: [DatePipe, NgIf, RouterModule, StoriesComponent], // Afegim StoryViewerComponent a la llista imports
   templateUrl: './last-insert.component.html',
   styleUrl: './last-insert.component.css'
 })
@@ -40,8 +42,7 @@ export class LastInsertComponent implements OnInit, AfterViewInit {
   jsConfetti: any;
 
   showImage: boolean = false; // Afegim la propietat showImage
-  isImageModalOpen: boolean = false;
-  selectedImageUrl: string = '';
+  showStory: boolean = false;
 
   @ViewChild('imageModal') imageModal!: ElementRef;
 
@@ -86,14 +87,11 @@ export class LastInsertComponent implements OnInit, AfterViewInit {
   }
 
   // Nova funció per obrir la imatge en un modal
-  openImage(imageUrl: string) {
-    this.selectedImageUrl = environment.assetsUrl + imageUrl;
-    this.isImageModalOpen = true;
-    const modal = new bootstrap.Modal(this.imageModal.nativeElement);
-    modal.show();
+  openImage() {
+    this.showStory = true;
   }
 
   closeImage() {
-    this.isImageModalOpen = false;
+    this.showStory = false;
   }
 }

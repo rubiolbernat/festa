@@ -1,31 +1,19 @@
+import { NgFor } from '@angular/common';
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 
 @Component({
   selector: 'app-stories',
   templateUrl: './stories.component.html',
-  styleUrls: ['./stories.component.css']
+  styleUrls: ['./stories.component.css'],
+  imports: [NgFor]
 })
 export class StoriesComponent implements OnInit, OnDestroy {
 
+  @Input() singleStory: any = null; // Accepta una única història si es passa
   @Input() stories: any[] = []; // Array d'usuaris amb les seves històries
   @Input() initialUserIndex: number = 0; // Índex de l'usuari inicial a mostrar
   @Output() close = new EventEmitter<void>(); // Event per notificar que es tanca
   @Output() navigateToStory = new EventEmitter<number>(); // Event per tornar a la llista amb l'index.
-
-  storiesExample: any[] = [
-    {
-      user: [
-        { image: 'https://example.com/image1.jpg', votes: 10 }
-      ]
-    },
-    {
-      user: [
-        { image: 'https://example.com/image2.jpg', votes: 5 },
-        { image: 'https://example.com/image3.jpg', votes: 8 }
-      ]
-    }
-  ];
-
 
   currentUserIndex: number = 0;
   currentStoryIndex: number = 0;
@@ -34,7 +22,25 @@ export class StoriesComponent implements OnInit, OnDestroy {
   timerRemaining: number = this.timerDuration;
 
   ngOnInit(): void {
+    // Si es rep una història individual, la transformem en un array de stories amb un únic usuari
+    if (this.singleStory) {
+      this.stories = [{
+        user: {
+          name: this.singleStory.user_name || 'Usuari desconegut',
+          profileImage: this.singleStory.profileImage || 'https://joc.feritja.cat/image.png '
+        },
+        stories: [{
+          imageUrl: this.singleStory.image_url,
+          votes: this.singleStory.votes || 0,
+          votsPositius: this.singleStory.votsPositius || 0,
+          votsNegatius: this.singleStory.votsNegatius || 0
+        }]
+      }];
+      this.initialUserIndex = 0; // Ens assegurem que comenci des del primer (i únic) usuari
+    }
+
     this.currentUserIndex = this.initialUserIndex;
+    this.currentStoryIndex = 0;
     this.startTimer();
   }
 
@@ -43,6 +49,8 @@ export class StoriesComponent implements OnInit, OnDestroy {
   }
 
   startTimer(): void {
+    this.stopTimer(); // Assegura que no hi ha un altre interval actiu
+    this.timerRemaining = this.timerDuration;
     this.timerInterval = setInterval(() => {
       this.timerRemaining--;
       if (this.timerRemaining <= 0) {
@@ -52,12 +60,13 @@ export class StoriesComponent implements OnInit, OnDestroy {
   }
 
   stopTimer(): void {
-    clearInterval(this.timerInterval);
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
   }
 
   resetTimer(): void {
     this.stopTimer();
-    this.timerRemaining = this.timerDuration;
     this.startTimer();
   }
 
@@ -95,20 +104,19 @@ export class StoriesComponent implements OnInit, OnDestroy {
       this.currentStoryIndex = 0;
       this.resetTimer();
     } else {
-      // torna a la pàgina principal amb l'índex 0;
       this.navigateToStory.emit(0);
       this.closeStories();
     }
   }
 
   voteUp(): void {
-    // Implementa la lògica de votació positiva aquí
-
+    this.currentStory.votes++;
   }
 
   voteDown(): void {
-    // Implementa la lògica de votació negativa aquí
-
+    if (this.currentStory.votes > 0) {
+      this.currentStory.votes--;
+    }
   }
 
   closeStories(): void {
@@ -117,15 +125,14 @@ export class StoriesComponent implements OnInit, OnDestroy {
   }
 
   get currentUser(): any {
-    return this.stories[this.currentUserIndex];
+    return this.stories[this.currentUserIndex]?.user || {};
   }
 
-  get currentStory(): number {
-    return this.currentUser.stories[this.currentStoryIndex];
+  get currentStory(): any {
+    return this.currentUser?.stories?.[this.currentStoryIndex] || {};
   }
 
   get progress(): number {
-    return (this.timerDuration - this.timerRemaining) / this.timerDuration * 100;
+    return ((this.timerDuration - this.timerRemaining) / this.timerDuration) * 100;
   }
-
 }

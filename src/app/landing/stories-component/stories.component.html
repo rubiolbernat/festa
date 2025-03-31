@@ -1,9 +1,11 @@
 <div class="stories-container">
   <div class="header">
     <img [src]="currentUser.profileImage" alt="Profile" class="profile-image">
-    <span>{{ currentUser.username }}</span>
-    <div class="progress-bar">
-      <div class="progress" [style.width.%]="progress"></div>
+    <span>{{ currentUser.name }}</span>
+    <div class="progress-bars">
+      <div *ngFor="let story of currentUser.stories.length; let i = index" class="progress-bar">
+        <div class="progress" [style.width.%]="i === currentStoryIndex ? progress : (i < currentStoryIndex ? 100 : 0)"></div>
+      </div>
     </div>
     <button (click)="closeStories()" class="close-button">X</button>
   </div>
@@ -13,14 +15,12 @@
   </div>
 
   <div class="controls">
-    <button (click)="prevStory()" class="nav-button">Anterior</button>
-    <button (click)="nextStory()" class="nav-button">Següent</button>
+    <button (click)="prevStory()" class="nav-button"> < Anterior</button>
+    <button (click)="nextStory()" class="nav-button">Següent ></button>
   </div>
 
   <div class="votes">
-      <button (click)="voteUp()">Vot Positiu</button>
-      <button (click)="voteDown()">Vot Negatiu</button>
-      <p>Vots Positius: {{currentStory.votsPositius ? currentStory.votsPositius : 0}}</p>
-      <p>Vots Negatius: {{currentStory.votsNegatius ? currentStory.votsNegatius : 0}}</p>
+    <button (click)="voteUp()">Vot Positiu</button>
+    <p>Vots Positius: {{currentStory.votsPositius ? currentStory.votsPositius : 0}}</p>
   </div>
 </div>
