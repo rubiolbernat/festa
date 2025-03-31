@@ -1,0 +1,65 @@
+/* ... (Estils anteriors) ... */
+
+/* Contenidor per alinear la miniatura */
+.thumbnail-container {
+  width: 60px; /* Amplada fixa per al contenidor de la miniatura */
+}
+
+/* Estil per a la miniatura rodona */
+.story-thumbnail {
+  width: 60px; /* Amplada de la miniatura */
+  height: 60px; /* Alçada de la miniatura */
+  border-radius: 50%; /* Fa el cercle */
+  overflow: hidden; /* Amaga el que sobri de la imatge */
+  cursor: pointer;
+  border: 2px solid #ae4483; /* Vora opcional amb color del tema */
+  display: flex; /* Per centrar imatge/placeholder */
+  justify-content: center;
+  align-items: center;
+  background-color: #555; /* Fons mentre carrega o per placeholder */
+  transition: transform 0.2s ease;
+}
+
+.story-thumbnail:hover {
+  transform: scale(1.1); /* Efecte zoom al passar per sobre */
+  border-color: #fff; /* Canvia color de vora */
+}
+
+.story-thumbnail img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Assegura que la imatge ompli el cercle */
+}
+
+/* Estil per al placeholder si no hi ha imatge */
+.story-thumbnail.placeholder {
+  background-color: #444;
+  border-color: #666;
+  cursor: default; /* No sembla clicable */
+}
+.story-thumbnail.placeholder:hover {
+    transform: none; /* Treu efecte hover */
+}
+.story-thumbnail.placeholder span {
+    font-size: 1.5em;
+    color: #888;
+}
+
+/* Estil per quan la imatge falla */
+.story-thumbnail.error {
+    border-color: #dc3545; /* Vora vermella */
+    background-color: #444;
+}
+.story-thumbnail.error::after { /* Mostra una 'X' si falla */
+    content: '✕';
+    color: #dc3545;
+    font-size: 1.8em;
+    font-weight: bold;
+}
+
+
+/* Ajustaments al card per acomodar la miniatura */
+.card-body.d-flex {
+    align-items: center; /* Centra verticalment miniatura i text */
+}

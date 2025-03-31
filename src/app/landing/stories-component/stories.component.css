@@ -1,84 +1,199 @@
+/* Contenidor principal que ocupa tota la pantalla */
 .stories-container {
-  position: fixed; /* o absolute, depenent del teu disseny */
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8); /* Fons semi-transparent */
+  background-color: rgba(0, 0, 0, 0.9); /* Una mica més fosc potser? */
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000; /* Assegura't que estigui per sobre de tot */
+  flex-direction: column; /* Organitza els fills verticalment */
+  z-index: 10001;
   color: white;
+  /* Elimina align/justify-items aquí, controlarem l'espai amb flex-grow */
 }
 
+/* Capçalera (Header) */
 .header {
   display: flex;
   align-items: center;
-  width: 80%;
-  margin-bottom: 20px;
+  width: 100%; /* Ocupa tot l'ample */
+  padding: 10px 15px; /* Afegeix una mica d'espai interior */
+  box-sizing: border-box; /* Perquè el padding no afegeixi ample */
+  /* background-color: rgba(0, 0, 0, 0.3); /* Opcional: Fons lleuger per diferenciar */
+  flex-shrink: 0; /* Evita que la capçalera s'encongeixi */
 }
 
 .profile-image {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%; /* Fa el cercle */
   margin-right: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.5); /* Vora opcional */
+  /* background: purple; (Això ho tens inline, però podria anar aquí) */
+
+  /* --- Propietats per centrar el text --- */
+  display: flex;             /* Activa Flexbox */
+  justify-content: center; /* Centra horitzontalment */
+  align-items: center;    /* Centra verticalment */
+  /* --- Fi de les propietats per centrar --- */
+
+  /* Estils addicionals per la lletra */
+  color: white;           /* Color de la lletra (ajusta si cal) */
+  font-size: 18px;        /* Mida de la lletra (ajusta al gust) */
+  font-weight: bold;      /* Fa la lletra negreta */
+  text-transform: uppercase; /* Opcional: Posa la lletra en majúscula */
+
+  /* Elimina object-fit, no aplica aquí */
+  /* object-fit: cover; */
 }
 
-.progress-bar {
-  flex-grow: 1;
-  height: 5px;
-  background-color: rgba(255, 255, 255, 0.5);
-  border-radius: 5px;
-  margin: 0 10px;
+.user-name {
+    font-weight: bold;
+    margin-right: 15px;
 }
 
-.progress {
-  height: 100%;
-  background-color: white;
-  border-radius: 5px;
+/* Contenidor de les barres de progrés */
+.progress-bars {
+    display: flex;
+    flex-grow: 1; /* Ocupa l'espai restant al header */
+    gap: 4px; /* Espai entre barres */
+    height: 3px; /* Alçada de les barres */
 }
 
-.story-image-container {
-  width: 80%;
-  max-height: 70%; /* Ajusta segons necessitis */
+.progress-bar-wrapper {
+    flex-grow: 1; /* Cada barra ocupa el mateix espai */
+    background-color: rgba(255, 255, 255, 0.3); /* Fons de la barra */
+    border-radius: 3px;
+    overflow: hidden; /* Amaga el que sobri del progrés */
 }
 
-.story-image {
-  width: 100%;
-  height: auto;
-  object-fit: contain; /* Important per ajustar la imatge */
+.progress-bar-background {
+    height: 100%;
+    /* No cal res més aquí si wrapper té el fons */
 }
 
-.controls {
-  display: flex;
-  justify-content: space-between;
-  width: 80%;
-  margin-top: 20px;
+.progress-bar-foreground {
+    height: 100%;
+    background-color: white; /* Color del progrés */
+    border-radius: 3px;
+    transition: width 0.1s linear; /* Transició suau */
 }
 
-.nav-button {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-}
 
 .close-button {
-    background-color: rgba(255, 0, 0, 0.8);
-    color: white;
+    background: none;
     border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
+    color: white;
+    font-size: 24px; /* Mida de la 'X' */
+    line-height: 1;
+    padding: 5px;
     cursor: pointer;
-    margin-left: auto;
+    margin-left: 10px; /* Espai respecte les barres */
 }
 
-.votes{
-    display: flex;
-    flex-direction: column;
+/* Àrea principal per a la imatge i la navegació */
+.story-content {
+  flex-grow: 1; /* <-- MOLT IMPORTANT: Fa que ocupi l'espai vertical restant */
+  width: 100%;   /* Ocupa tot l'ample disponible */
+  display: flex; /* Utilitza flex per centrar el contenidor de la imatge si cal */
+  justify-content: center;
+  align-items: center;
+  position: relative; /* Necessari per als overlays de navegació */
+  overflow: hidden; /* Evita qualsevol desbordament accidental */
+}
+
+/* Contenidor directe de la imatge */
+.story-image-container {
+  width: 100%; /* Ocupa tot l'ample del seu pare (.story-content) */
+  height: 100%; /* Ocupa tota l'alçada del seu pare (.story-content) */
+  display: flex; /* Per centrar la imatge dins seu si no ocupa tot l'espai */
+  justify-content: center;
+  align-items: center;
+}
+
+/* La imatge de la història */
+.story-image {
+  display: block; /* Evita espais inferiors estranys */
+  max-width: 100%; /* <-- Clau: No pot ser més ample que el contenidor */
+  max-height: 100%; /* <-- Clau: No pot ser més alt que el contenidor */
+  width: auto; /* Deixa que l'ample s'ajusti (si l'alçada és el límit) */
+  height: auto; /* Deixa que l'alçada s'ajusti (si l'ample és el límit) */
+  object-fit: contain; /* <-- Clau: Ajusta dins dels límits mantenint aspect ratio */
+}
+
+/* Placeholder per quan no hi ha imatge */
+.no-image-placeholder {
+    padding: 20px;
+    background-color: rgba(50, 50, 50, 0.7);
+    border-radius: 8px;
+}
+
+/* Capes per a la navegació per clic */
+.navigation-overlay {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 30%; /* Ocupa un percentatge de l'ample per clicar */
+    cursor: pointer;
+    /* background-color: rgba(255, 0, 0, 0.1); /* Descomenta per veure les zones */
+    z-index: 1; /* Per sobre de la imatge */
+}
+
+.navigation-overlay.left {
+    left: 0;
+}
+
+.navigation-overlay.right {
+    right: 0;
+}
+
+
+/* Secció de Vots (a sota) */
+.votes {
+  display: flex;
+  align-items: center; /* Centra elements verticalment */
+  justify-content: center; /* Centra elements horitzontalment */
+  width: 100%;
+  padding: 10px 15px;
+  box-sizing: border-box;
+  /* background-color: rgba(0, 0, 0, 0.3); /* Opcional: Fons lleuger */
+  flex-shrink: 0; /* Evita que s'encongeixi */
+  gap: 15px; /* Espai entre botó i text */
+}
+
+.vote-button {
+    background: none;
+    border: 1px solid white;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    transition: background-color 0.2s ease;
+}
+
+.vote-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.vote-count {
+    font-size: 14px;
+}
+
+/* Indicador de càrrega (quan hasData és false) */
+.loading-indicator {
+  position: fixed; /* Similar al contenidor principal */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001; /* Per sobre del contenidor si cal */
+  color: white;
+  font-size: 18px;
 }

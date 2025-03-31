@@ -5,83 +5,94 @@
     <div class="row justify-content-between align-items-center mb-4">
       <div class="col-12 text-center">
         <h2 class="fw-bold text-white" style="font-size: 1.8em;">🍹 Últimes Aventures Etíliques 🍸</h2>
+        <p class="text-white-50">Fes clic a les miniatures per veure les històries!</p> <!-- Afegit -->
       </div>
     </div>
 
     <!-- Llista de Begudes (amb infinite scroll) -->
-    <!-- [infiniteScrollDistance]="8":
-      Aquesta propietat defineix la distància (en percentatge) des del final del contenidor a la qual s'ha de començar a carregar més contingut.
-      Per exemple, si el contenidor té una alçada de 1000 píxels, es començarà a carregar més contingut quan l'usuari faci scroll fins al punt que només quedin 80 píxels per arribar al final del contenidor.
-
-      [infiniteScrollThrottle]="300":
-      Aquesta propietat defineix un "throttle" (limitador) de temps en milisegons.
-      Un valor de 300 significa que, com a màxim, el mètode loadInserts() es cridarà un cop cada 300 milisegons, encara que l'usuari faci scroll molt ràpid. -->
-    <div class="row gx-4 gx-lg-5" infiniteScroll [infiniteScrollDistance]="2" [infiniteScrollThrottle]="300"
-      (scrolled)="loadInserts()">
+    <div class="row gx-4 gx-lg-5"
+         infiniteScroll
+         [infiniteScrollDistance]="2"
+         [infiniteScrollThrottle]="300"
+         (scrolled)="loadInserts()">
 
       @if (InfiniteDrinks.length > 0) {
-      <div *ngFor="let drink of InfiniteDrinks; let i = index" class="col-lg-12 col-md-12 mb-4">
-        <div class="card text-white bg-dark shadow-lg border-0">
-          <div class="card-body">
-            <div class="row align-items-center text-center">
-              <!-- Data -->
-              <div class="col-3 col-md-3">
-                <span class="fs-5 fw-bold">{{ drink.date | date:'dd MMM yyyy' }}</span>
-                <p class="mb-0">{{ drink.user_name }}</p>
-              </div>
+        <!-- Itera sobre cada beguda -->
+        <!-- Passem 'i = index' per saber quin element s'ha clicat -->
+        <div *ngFor="let drink of InfiniteDrinks; let i = index; trackBy: trackById" class="col-lg-12 col-md-12 mb-4"> <!-- Tornem a col-lg-12 per a fila completa -->
+          <div class="card text-white bg-dark shadow-lg border-0">
+            <div class="card-body">
+              <!-- Fila interna per a les columnes originals + thumbnail -->
+              <div class="row align-items-center text-center">
 
-              <!-- Beguda i Lloc -->
-              <div class="col-6 col-md-6">
-                <h4 class="fw-bold">{{ drink.drink }}</h4>
-                @if (drink.location.length>=1) {
-                <h5 class="fw-semibold text-warning"><i class="bi bi-geo"></i> {{ drink.location }}</h5>
-                }
-                <p class="mb-0">{{ drink.others }}</p>
-              </div>
+                <!-- Columna 1: DATA/USUARI (i THUMBNAIL si existeix) -->
+                <!-- Usem flexbox dins d'aquesta columna per alinear thumbnail i text -->
+                <div class="col-12 col-sm-4 col-md-3 d-flex flex-column flex-sm-row align-items-center justify-content-center justify-content-sm-start text-center text-sm-start">
+                    <!-- Miniatura Rodona (NOMÉS SI HI HA IMATGE) -->
+                    @if (drink.image_url) {
+                      <div class="thumbnail-container flex-shrink-0 mb-2 mb-sm-0 me-sm-3"> <!-- Marges per separar -->
+                        <div class="story-thumbnail" (click)="openStoriesViewerAtIndex(i)"> <!-- Crida amb l'índex 'i' -->
+                          <img [src]="getThumbnailUrl(drink.image_url)"
+                               alt="Miniatura de {{ drink.user_name }}"
+                               (error)="handleThumbnailError($event)"> <!-- Gestiona error -->
+                        </div>
+                      </div>
+                    }
+                    <!-- Informació de Data i Usuari -->
+                    <div>
+                      <span class="fs-6 fw-bold d-block">{{ drink.date | date:'dd MMM yyyy' }}</span>
+                      <p class="mb-0 small mt-1">{{ drink.user_name }}</p>
+                    </div>
+                </div>
 
-              <!-- Quantitat i Preu -->
-              <div class="col-3 col-md-3">
-                @if (drink.num_drinks<=1) { <span class="fw-bold fs-5">
-                  {{ drink.quantity }} <small>L</small>
-                  </span>
-                  } @else {
-                  <span class="fw-bold fs-5">
-                    {{ drink.num_drinks }} <small>x</small>
-                    {{ (drink.quantity / drink.num_drinks) | number:'1.0-2' }} <small>L</small>
-                  </span>
+                <!-- Columna 2: BEGUDA/LLOC -->
+                <div class="col-12 col-sm-5 col-md-6 border-sm-start border-sm-end border-secondary px-sm-3 my-3 my-sm-0 text-center">
+                  <h4 class="fw-bold mb-1">{{ drink.drink }}</h4>
+                  @if (drink.location.length>=1) {
+                    <h5 class="fw-semibold text-warning mb-1"><i class="bi bi-geo-alt-fill"></i> {{ drink.location }}</h5>
                   }
-                  <br>
-                  <span class="fw-bold fs-5">{{ drink.price }} €</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+                  @if(drink.others) {
+                    <p class="mb-0 small text-muted fst-italic">"{{ drink.others }}"</p>
+                  }
+                </div>
 
-      }
+                <!-- Columna 3: QUANTITAT/PREU -->
+                <div class="col-12 col-sm-3 col-md-3 text-center text-sm-end">
+                  @if (drink.num_drinks<=1) {
+                    <span class="fw-bold fs-5 d-block">
+                    {{ drink.quantity }} <small>L</small>
+                    </span>
+                  } @else {
+                    <span class="fw-bold fs-5 d-block">
+                    {{ drink.num_drinks }}<small>x</small>{{ (drink.quantity / drink.num_drinks) | number:'1.0-2' }}<small>L</small>
+                    </span>
+                  }
+                  <span class="fw-bold fs-5 d-block mt-1">{{ drink.price | number:'1.2-2' }} €</span>
+                </div>
 
-      @else {
-      <!-- Si no hi ha begudes -->
-      <ng-template>
+              </div> <!-- Fi de la fila interna -->
+            </div> <!-- Fi card-body -->
+          </div> <!-- Fi card -->
+        </div> <!-- Fi col -->
+      } @else {
+        <!-- Si no hi ha begudes -->
         <div class="col-12 text-center">
           <p class="text-white">Encara no hi ha registres.</p>
         </div>
-      </ng-template>
       }
 
-      <!-- Carregant -->
-      @if (loading) {
-      <div class="col-12 text-center">
-        <p class="text-white">Carregant més registres...</p>
-      </div>
-      }
+      <!-- Indicadors -->
+      @if (loading) { No hi ha mes resultats }
+      @if (allInsertsLoaded && !loading && InfiniteDrinks.length > 0) { No hi ha mes resultats }
 
-      <!-- No hi ha més begudes -->
-      @if (allInsertsLoaded && InfiniteDrinks.length > 0) {
-      <div class="col-12 text-center">
-        <p class="text-white">No hi ha més registres per carregar.</p>
-      </div>
-      }
-    </div>
-  </div>
+    </div> <!-- Fi row principal -->
+  </div> <!-- Fi container -->
 </section>
+
+<!-- VISOR DE STORIES (Es manté igual al final) -->
+<app-stories
+    *ngIf="showStoriesViewer"
+    [stories]="allStoriesForViewer"
+    [initialUserIndex]="initialStoryIndexForViewer"
+    (close)="closeStoriesViewer()">
+</app-stories>

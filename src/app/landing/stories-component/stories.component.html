@@ -1,26 +1,117 @@
-<div class="stories-container">
+<!-- Embolcalla tot amb *ngIf per esperar les dades -->
+<div class="stories-container" *ngIf="hasData">
+  <!-- Header -->
   <div class="header">
-    <img [src]="currentUser.profileImage" alt="Profile" class="profile-image">
-    <span>{{ currentUser.name }}</span>
+    <!-- Imatge de perfil (amb *ngIf opcional per més seguretat) -->
+    <div class="profile-image" style="background: purple">
+      {{ currentUser.name[0] }}
+    </div>
+    <!-- Placeholder si no hi ha imatge? -->
+    <!-- Ajusta la ruta al teu placeholder -->
+
+    <!-- Nom d'usuari -->
+    <span class="user-name">{{ currentUser.name }} <small>{{ currentUser.uploaded_at }}</small></span>
+
+    <!-- Barres de Progrés (CORREGIT EL *ngFor) -->
     <div class="progress-bars">
-      <div *ngFor="let story of currentUser.stories.length; let i = index" class="progress-bar">
-        <div class="progress" [style.width.%]="i === currentStoryIndex ? progress : (i < currentStoryIndex ? 100 : 0)"></div>
+      <!-- Itera sobre l'array d'històries -->
+      <div
+        *ngFor="let story of currentUser.stories; let i = index"
+        class="progress-bar-wrapper"
+      >
+        <div class="progress-bar-background">
+          <!-- La lògica de l'ample sembla correcta -->
+          <div
+            class="progress-bar-foreground"
+            [style.width.%]="
+              i === currentStoryIndex
+                ? progress
+                : i < currentStoryIndex
+                ? 100
+                : 0
+            "
+          ></div>
+        </div>
       </div>
     </div>
-    <button (click)="closeStories()" class="close-button">X</button>
+
+    <!-- Botó de tancar -->
+    <button
+      (click)="closeStories()"
+      class="close-button"
+      aria-label="Tancar històries"
+    >
+      ×
+    </button>
+    <!-- Millora accessibilitat amb aria-label -->
   </div>
 
-  <div class="story-image-container">
-    <img [src]="currentStory.imageUrl" alt="Story" class="story-image">
+  <!-- Contingut de la història -->
+  <!-- Contingut de la història -->
+  <div
+    class="story-content"
+    (mousedown)="pauseTimerOnPress($event)"
+    (touchstart)="pauseTimerOnPress($event)"
+    (mouseup)="resumeTimerOnRelease()"
+    (touchend)="resumeTimerOnRelease()"
+    (mouseleave)="resumeTimerOnRelease()"
+    >
+    <!-- Navegació (click a l'esquerra/dreta de la imatge) -->
+    <!-- Important: Aturem la propagació d'esdeveniments aquí per evitar -->
+    <!-- que els clics de navegació també pausinn/reprenguin el timer -->
+    <div
+      class="navigation-overlay left"
+      (click)="prevStory(); $event.stopPropagation()"
+    ></div>
+    <div
+      class="navigation-overlay right"
+      (click)="nextStory(); $event.stopPropagation()"
+    ></div>
+
+    <!-- Imatge de la història -->
+    <div class="story-image-container">
+      <img
+        *ngIf="currentStory.imageUrl"
+        [src]="currentStory.imageUrl"
+        alt="Story"
+        class="story-image"
+        draggable="false"
+      />
+      <div *ngIf="!currentStory.imageUrl" class="no-image-placeholder">
+        Imatge no disponible
+      </div>
+    </div>
   </div>
 
+  <!-- Controls inferiors (opcional si ja tens navegació per clic a la imatge) -->
+  <!--
   <div class="controls">
-    <button (click)="prevStory()" class="nav-button"> < Anterior</button>
-    <button (click)="nextStory()" class="nav-button">Següent ></button>
+    <button (click)="prevStory()" class="nav-button" [disabled]="currentUserIndex === 0 && currentStoryIndex === 0"> < Anterior</button>
+    <button (click)="nextStory()" class="nav-button" [disabled]="currentUserIndex === stories.length - 1 && currentStoryIndex === currentUser.stories.length - 1">Següent ></button>
   </div>
+  -->
 
+  <!-- Vots -->
   <div class="votes">
-    <button (click)="voteUp()">Vot Positiu</button>
-    <p>Vots Positius: {{currentStory.votsPositius ? currentStory.votsPositius : 0}}</p>
+    <button
+      (click)="voteUp()"
+      class="vote-button positive"
+      aria-label="Vot positiu"
+    >
+      👍
+    </button>
+    <!-- Afegeix el botó de vot negatiu si el necessites -->
+    <!-- <button (click)="voteDown()" class="vote-button negative" aria-label="Vot negatiu">👎</button> -->
+    <span class="vote-count"
+      >Vots positius:
+      {{ currentStory.votsPositius ? currentStory.votsPositius : 0 }}</span
+    >
+    <!-- Mostra altres comptes si cal -->
   </div>
+</div>
+
+<!-- Indicador de càrrega (es mostra si hasData és false) -->
+<div class="loading-indicator" *ngIf="!hasData">
+  <p>Carregant...</p>
+  <!-- Podries posar un spinner aquí -->
 </div>

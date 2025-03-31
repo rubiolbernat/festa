@@ -450,7 +450,8 @@ function getInsertsPaginated($conn)
                 drink_data.*,
                 festa_users.name AS user_name,
                 festa_users.email AS user_email,
-                drink_stories.image_url
+                drink_stories.image_url,
+                drink_stories.uploaded_at
             FROM
                 drink_data
             INNER JOIN
