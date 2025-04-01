@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleCha
 // Eliminat RelativeTimePipe dels imports
 import { NgFor, NgIf, JsonPipe, CommonModule, DatePipe } from '@angular/common'; // Afegit DatePipe
 import { environment } from '../../../environments/environment';
+import { RelativeTimePipe } from '../../core/pipes/relative-time.pipe';
 
 // Si no fas servir HammerModule globalment, importa'l aquí si cal
 // import { HammerModule } from '@angular/platform-browser';
@@ -14,9 +15,10 @@ import { environment } from '../../../environments/environment';
     NgIf,
     JsonPipe,
     CommonModule,
-    DatePipe // *** AFEGIT DatePipe Natiu d'Angular ***
+    DatePipe, // *** AFEGIT DatePipe Natiu d'Angular ***
     // HammerModule // Afegeix si no és global
     // RelativeTimePipe // ELIMINAT
+    RelativeTimePipe
   ],
   templateUrl: './stories.component.html',
   styleUrls: ['./stories.component.css'],

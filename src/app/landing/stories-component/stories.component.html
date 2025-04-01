@@ -14,13 +14,8 @@
       <!-- *** CANVI: Utilitza el DatePipe nadiu d'Angular *** -->
       <!-- Formats possibles: 'shortTime', 'mediumDate', 'longDate', 'dd/MM/yy HH:mm', etc. -->
       <!-- Assegura't que currentStory.uploaded_at és una data vàlida (Date object, ISO string, timestamp) -->
-      <small class="story-time" style="font-size: 8px;" *ngIf="currentStory.uploaded_at">
-        {{ currentStory.uploaded_at | date : "shortTime" }}
-        <!-- Ex: Mostra només l'hora HH:mm -->
-        <!-- O pots mostrar data i hora: -->
-        <!-- {{ currentStory.uploaded_at | date:'dd/MM HH:mm' }} -->
-        <!-- O la data original si el pipe falla: -->
-        <!-- {{ currentStory.uploaded_at }} -->
+      <small class="story-time" style="font-size: 10px;" *ngIf="currentStory.uploaded_at">
+        {{ currentStory.uploaded_at | relativeTime }}
       </small>
     </span>
 
