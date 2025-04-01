@@ -1,17 +1,29 @@
-import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
-import { NgFor, NgIf, JsonPipe } from '@angular/common';
+import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges, HostListener, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+// Eliminat RelativeTimePipe dels imports
+import { NgFor, NgIf, JsonPipe, CommonModule, DatePipe } from '@angular/common'; // Afegit DatePipe
 import { environment } from '../../../environments/environment';
+
+// Si no fas servir HammerModule globalment, importa'l aquí si cal
+// import { HammerModule } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-stories',
   standalone: true,
-  imports: [NgFor, NgIf, JsonPipe],
+  imports: [
+    NgFor,
+    NgIf,
+    JsonPipe,
+    CommonModule,
+    DatePipe // *** AFEGIT DatePipe Natiu d'Angular ***
+    // HammerModule // Afegeix si no és global
+    // RelativeTimePipe // ELIMINAT
+  ],
   templateUrl: './stories.component.html',
-  styleUrls: ['./stories.component.css']
+  styleUrls: ['./stories.component.css'],
+  // changeDetection: ChangeDetectionStrategy.OnPush // Opcional
 })
 export class StoriesComponent implements OnChanges, OnDestroy {
 
-  // ... (Inputs, Outputs, índexs, timerDuration, hasData - sense canvis) ...
   @Input() stories: any[] = [];
   @Input() initialUserIndex: number = 0;
   @Output() close = new EventEmitter<void>();
@@ -19,35 +31,64 @@ export class StoriesComponent implements OnChanges, OnDestroy {
 
   currentUserIndex: number = 0;
   currentStoryIndex: number = 0;
-  timerInterval: any = null; // Inicialitza a null
-  timerDuration: number = 5; // EXEMPLE: Posat a 5s per provar
+  timerInterval: ReturnType<typeof setInterval> | null = null;
+  timerDuration: number = 5;
   timerRemaining: number = this.timerDuration;
   hasData: boolean = false;
 
-  // ---- Noves propietats per la pausa ----
-  private isPausedByUser: boolean = false; // Indica si la pausa és per pressió de l'usuari
-  private pausedTimeRemaining: number | null = null; // Guarda el temps restant quan es pausa
-  // Freqüència d'actualització visual (si s'usa l'opció d'interval ràpid)
-  private readonly updateIntervalMs = 100;
-  private timerStartTime: number = 0; // Hora d'inici de l'interval actual
+  private isPausedByUser: boolean = false;
+  private pausedTimeRemaining: number | null = null;
+  private readonly updateIntervalMs = 50;
+  private timerStartTime: number = 0;
 
+  constructor(private cdr: ChangeDetectorRef) {}
 
+  // --- HostListener per a ESC ---
+  @HostListener('window:keydown.escape', ['$event'])
+  handleEscapeKey(event: KeyboardEvent) {
+    console.log('ESC pressed - Closing stories');
+    this.closeStories();
+  }
+
+  // --- Cicle de Vida ---
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['stories'] && changes['stories'].currentValue) {
       this.stories = changes['stories'].currentValue || [];
+
       if (this.stories.length > 0) {
         this.hasData = true;
-        this.currentUserIndex = this.initialUserIndex < this.stories.length ? this.initialUserIndex : 0;
+        let validInitialIndex = -1;
+        for(let i=0; i<this.stories.length; i++){
+            if (this.stories[i]?.user?.stories?.length > 0){
+                validInitialIndex = i;
+                break;
+            }
+        }
+
+        if(validInitialIndex === -1) {
+            console.warn("No users with stories found.");
+            this.hasData = false;
+            this.stopTimer();
+            // this.cdr.markForCheck(); // Si uses OnPush
+            return;
+        }
+
+        const suggestedIndexIsValid = this.initialUserIndex >= 0 && this.initialUserIndex < this.stories.length && this.stories[this.initialUserIndex]?.user?.stories?.length > 0;
+        this.currentUserIndex = suggestedIndexIsValid ? this.initialUserIndex : validInitialIndex;
+
         this.currentStoryIndex = 0;
-        this.isPausedByUser = false; // Assegura que no estigui pausat al canviar dades
+        this.isPausedByUser = false;
         this.pausedTimeRemaining = null;
+        console.log(`Stories data received. Starting at user index: ${this.currentUserIndex}, story index: ${this.currentStoryIndex}`);
         this.resetTimer();
       } else {
+        console.log("Stories data is empty.");
         this.hasData = false;
         this.isPausedByUser = false;
         this.pausedTimeRemaining = null;
         this.stopTimer();
       }
+      // this.cdr.markForCheck(); // Si uses OnPush
     }
   }
 
@@ -57,7 +98,6 @@ export class StoriesComponent implements OnChanges, OnDestroy {
 
   // --- Funció Auxiliar URL (sense canvis) ---
   private buildFullImageUrl(relativePath: string | undefined | null): string {
-    // ... (codi igual) ...
     if (!relativePath) { return 'https://joc.feritja.cat/image.png'; }
     if (relativePath.startsWith('http://') || relativePath.startsWith('https://') || relativePath.startsWith('data:')) { return relativePath; }
     const baseUrl = environment.assetsUrl.endsWith('/') ? environment.assetsUrl : environment.assetsUrl + '/';
@@ -67,59 +107,56 @@ export class StoriesComponent implements OnChanges, OnDestroy {
 
   // --- Getters (sense canvis) ---
   get currentUser(): any {
-    if (!this.hasData || this.currentUserIndex >= this.stories.length) { return {}; }
+    if (!this.hasData || this.currentUserIndex < 0 || this.currentUserIndex >= this.stories.length) { return {}; }
     const user = this.stories[this.currentUserIndex]?.user;
     if (!user) { return {}; }
     return { ...user, profileImage: this.buildFullImageUrl(user.profileImage) };
   }
   get currentStory(): any {
-    const user = this.currentUser;
-    if (!this.hasData || !user?.stories || this.currentStoryIndex >= user.stories.length) { return {}; }
-    const story = user.stories[this.currentStoryIndex];
+    const userStories = this.stories[this.currentUserIndex]?.user?.stories;
+    if (!this.hasData || !userStories || this.currentStoryIndex < 0 || this.currentStoryIndex >= userStories.length) { return {}; }
+    const story = userStories[this.currentStoryIndex];
     if (!story) { return {}; }
-    return { ...story, imageUrl: this.buildFullImageUrl(story.imageUrl) };
+    // *** Assegura't que uploaded_at sigui un objecte Date o timestamp numèric si vols usar DatePipe ***
+    // Si ve com string de MySQL (YYYY-MM-DD HH:MM:SS), necessites convertir-lo abans o al pipe
+    const storyDate = story.uploaded_at ? new Date(story.uploaded_at.replace(' ', 'T') + 'Z') : null; // Intent de conversió a Date (UTC)
+
+    return {
+        ...story,
+        imageUrl: this.buildFullImageUrl(story.image_url || story.imageUrl),
+        // Podries afegir la data ja convertida aquí si prefereixes
+        // uploadedDate: storyDate && !isNaN(storyDate.getTime()) ? storyDate : null
+       };
   }
 
-  // --- Mètodes del Timer MODIFICATS ---
-
+  // --- Mètodes del Timer (sense canvis a la lògica principal) ---
   startTimer(resumeFrom?: number): void {
-    if (!this.hasData || this.isPausedByUser) return; // No comencis si no hi ha dades o està pausat per l'usuari
+    if (!this.hasData || this.isPausedByUser) return;
+    this.stopTimer();
 
-    this.stopTimer(); // Atura qualsevol timer anterior
+    const initialRemaining = typeof resumeFrom === 'number' ? Math.max(0, resumeFrom) : this.timerDuration;
+    this.timerRemaining = initialRemaining;
 
-    // Determina el temps restant inicial: si reprenem, usem el valor passat, sinó la duració total
-    const initialRemaining = typeof resumeFrom === 'number' ? resumeFrom : this.timerDuration;
-    this.timerRemaining = initialRemaining; // Estableix el valor visual inicial
-
-    // Si el temps restant ja és zero o menys, no cal iniciar l'interval
     if (initialRemaining <= 0) {
-        // Podríem avançar directament? Millor deixar que la lògica de nextStory ho gestioni si cal
-        // console.log('Intentant iniciar timer amb temps restant 0 o menys.');
-        // this.nextStory(); // Això podria causar bucles si no es gestiona bé
-        return; // No iniciïs l'interval si ja s'ha acabat el temps
+      setTimeout(() => this.nextStory(), 0);
+      return;
     }
 
     this.timerStartTime = Date.now();
-    const totalDurationMs = initialRemaining * 1000; // La durada *d'aquest* interval
-
-    // console.log(`Timer iniciat/représ. Durada interval: ${initialRemaining.toFixed(2)}s`);
+    const totalDurationMs = initialRemaining * 1000;
 
     this.timerInterval = setInterval(() => {
-      // Comprova si mentrestant s'ha pausat
       if (this.isPausedByUser) {
-          this.stopTimer(); // Atura si l'usuari ha pausat
-          return;
+        this.stopTimer();
+        return;
       }
 
       const elapsedTimeMs = Date.now() - this.timerStartTime;
       const remainingMs = Math.max(0, totalDurationMs - elapsedTimeMs);
       this.timerRemaining = remainingMs / 1000;
+      // this.cdr.markForCheck(); // Si uses OnPush
 
       if (remainingMs <= 0) {
-        // console.log('Interval completat, cridant nextStory');
-        // Important: Atura l'interval ABANS de cridar nextStory per evitar execucions múltiples
-        // si nextStory triga una mica o hi ha canvis d'estat ràpids.
-        // stopTimer(); // nextStory cridarà resetTimer, que inclou stopTimer. No cal aquí.
         this.nextStory();
       }
     }, this.updateIntervalMs);
@@ -127,115 +164,174 @@ export class StoriesComponent implements OnChanges, OnDestroy {
 
   stopTimer(): void {
     if (this.timerInterval) {
-      // console.log('Aturant interval del timer.');
       clearInterval(this.timerInterval);
       this.timerInterval = null;
     }
-    // No resetejem isPausedByUser aquí, només ho fa resumeTimerOnRelease o resetTimer
   }
 
   resetTimer(): void {
-    // console.log('Resetejant timer completament.');
     this.stopTimer();
-    this.isPausedByUser = false; // Assegura que no estigui en estat de pausa d'usuari
+    this.isPausedByUser = false;
     this.pausedTimeRemaining = null;
-    this.startTimer(); // Comença des del principi (sense argument 'resumeFrom')
+    if (this.hasData && this.stories[this.currentUserIndex]?.user?.stories?.length > 0) {
+        this.startTimer();
+    } else {
+        console.log("Cannot start timer, no valid story found after reset.");
+    }
   }
 
-  // --- Nous Mètodes per Pausar/Reprendre ---
-
-  pauseTimerOnPress(event: MouseEvent | TouchEvent): void {
-    // Només pausa si el timer està actiu i no està ja pausat per l'usuari
+  // --- Mètodes per Pausar/Reprendre (sense canvis) ---
+  pauseTimerOnPress(event: MouseEvent | TouchEvent | PointerEvent): void {
     if (this.timerInterval && !this.isPausedByUser) {
-        // console.log('Pausant timer per pressió d\'usuari.');
-        event.preventDefault(); // Evita comportaments per defecte (selecció, scroll tàctil)
-        this.pausedTimeRemaining = this.timerRemaining; // Guarda el temps restant actual
-        this.isPausedByUser = true;
-        // Aturem l'interval *després* de guardar el temps i posar el flag
-        this.stopTimer();
+      event.preventDefault();
+      this.pausedTimeRemaining = this.timerRemaining;
+      this.isPausedByUser = true;
+      this.stopTimer();
     }
   }
 
   resumeTimerOnRelease(): void {
-    // Només reprèn si estava pausat per l'usuari
     if (this.isPausedByUser) {
-        // console.log(`Reprenent timer des de ${this.pausedTimeRemaining?.toFixed(2)}s`);
-        this.isPausedByUser = false;
-        const timeToResume = this.pausedTimeRemaining;
-        this.pausedTimeRemaining = null; // Neteja el temps guardat
+      this.isPausedByUser = false;
+      const timeToResume = this.pausedTimeRemaining;
+      this.pausedTimeRemaining = null;
 
-        // Si per alguna raó no teníem temps guardat, o era 0, reinicia completament
-        if (typeof timeToResume !== 'number' || timeToResume <= 0) {
-            console.warn('Intent de reprendre sense temps restant vàlid, reiniciant.');
-            this.resetTimer(); // O potser nextStory()? Depèn del comportament desitjat.
-        } else {
-            this.startTimer(timeToResume); // Reprèn des del temps guardat
-        }
+      if (typeof timeToResume !== 'number' || timeToResume <= 0) {
+        this.startTimer();
+      } else {
+        this.startTimer(timeToResume);
+      }
     }
   }
 
-  // --- Mètodes de Navegació (ara només criden resetTimer) ---
+  // --- Mètodes de Navegació (sense canvis a la lògica principal) ---
   nextStory(): void {
-    const user = this.currentUser;
-    if (!this.hasData || !user?.stories) return;
-    if (this.currentStoryIndex < user.stories.length - 1) {
-      this.currentStoryIndex++;
-      this.resetTimer(); // Correcte
-    } else {
-      this.nextUser();
+    this.stopTimer();
+    this.isPausedByUser = false;
+    this.pausedTimeRemaining = null;
+
+    const currentUserStories = this.stories[this.currentUserIndex]?.user?.stories;
+    if (!this.hasData || !currentUserStories) {
+        this.closeStories();
+        return;
     }
-  }
+
+    if (this.currentStoryIndex < currentUserStories.length - 1) {
+        this.currentStoryIndex++;
+
+
+        this.resetTimer();
+    } else {
+        this.nextUser();
+    }
+}
+
 
   prevStory(): void {
-     if (!this.hasData) return;
-     const user = this.currentUser;
+    this.stopTimer();
+    this.isPausedByUser = false;
+    this.pausedTimeRemaining = null;
+
+    if (!this.hasData) return;
+
     if (this.currentStoryIndex > 0) {
       this.currentStoryIndex--;
-      this.resetTimer(); // Correcte
+      this.resetTimer();
     } else {
-      this.prevUser();
+      this.prevUser(true);
     }
   }
 
   nextUser(): void {
-     if (!this.hasData) return;
-    if (this.currentUserIndex < this.stories.length - 1) {
-      this.currentUserIndex++;
-      this.currentStoryIndex = 0;
-      this.resetTimer(); // Correcte
-    } else {
-      this.closeStories();
-    }
-  }
+    this.stopTimer();
+    this.isPausedByUser = false;
+    this.pausedTimeRemaining = null;
 
-  prevUser(): void {
     if (!this.hasData) return;
-    if (this.currentUserIndex > 0) {
-      this.currentUserIndex--;
+
+    let nextIndex = this.currentUserIndex + 1;
+    while (nextIndex < this.stories.length && (!this.stories[nextIndex]?.user?.stories || this.stories[nextIndex].user.stories.length === 0)) {
+        nextIndex++;
+    }
+
+    if (nextIndex < this.stories.length) {
+      this.currentUserIndex = nextIndex;
       this.currentStoryIndex = 0;
-      this.resetTimer(); // Correcte
+      this.resetTimer();
     } else {
-      this.navigateToStory.emit(0);
       this.closeStories();
     }
   }
 
-  // --- Altres Mètodes ---
-  voteUp(): void { /* ... (sense canvis) ... */ }
-  voteDown(): void { /* ... (sense canvis) ... */ }
+  prevUser(goToLastStory: boolean = false): void {
+     this.stopTimer();
+     this.isPausedByUser = false;
+     this.pausedTimeRemaining = null;
+
+    if (!this.hasData) return;
+
+    let prevIndex = this.currentUserIndex - 1;
+     while (prevIndex >= 0 && (!this.stories[prevIndex]?.user?.stories || this.stories[prevIndex].user.stories.length === 0)) {
+         prevIndex--;
+     }
+
+    if (prevIndex >= 0) {
+      this.currentUserIndex = prevIndex;
+      const prevUserStories = this.stories[this.currentUserIndex]?.user?.stories;
+      this.currentStoryIndex = goToLastStory ? (prevUserStories.length - 1) : 0;
+      this.resetTimer();
+    } else {
+      console.log("Beginning of all users with stories.");
+    }
+  }
+
+  // --- Gestor de Swipes (sense canvis) ---
+  handleSwipe(event: any): void {
+    console.log('Swipe Detected:', event.type, 'Direction:', event.direction);
+    this.stopTimer();
+    this.isPausedByUser = false;
+    this.pausedTimeRemaining = null;
+
+    switch (event.type) {
+      case 'swipeleft':
+        this.nextUser();
+        break;
+      case 'swiperight':
+        this.prevUser();
+        break;
+      case 'swipedown':
+        this.closeStories();
+        break;
+    }
+    // this.cdr.markForCheck(); // Si uses OnPush
+  }
+
+  // --- Altres Mètodes (sense canvis) ---
+  voteUp(): void {
+     console.log(`Vot positiu per story ID: ${this.currentStory?.id || 'N/A'}`);
+     if(this.currentStory) {
+         this.currentStory.votes = (this.currentStory.votes || 0) + 1;
+     }
+  }
 
   closeStories(): void {
-    this.stopTimer(); // Atura el timer
-    this.isPausedByUser = false; // Assegura que es neteja l'estat de pausa
+    console.log("Closing stories component.");
+    this.stopTimer();
+    this.isPausedByUser = false;
     this.pausedTimeRemaining = null;
     this.close.emit();
   }
 
-  // Getter progress (sense canvis, depèn de timerRemaining)
+  // --- Getter Progress (sense canvis) ---
   get progress(): number {
     if (!this.hasData || this.timerDuration <= 0) { return 0; }
+    if (this.isPausedByUser && typeof this.pausedTimeRemaining === 'number') {
+        const elapsedPaused = this.timerDuration - Math.max(0, this.pausedTimeRemaining);
+        return Math.min(100, (elapsedPaused / this.timerDuration) * 100);
+    }
     const elapsed = this.timerDuration - Math.max(0, this.timerRemaining);
     const progressPercent = Math.min(100, (elapsed / this.timerDuration) * 100);
     return progressPercent;
   }
+
 }

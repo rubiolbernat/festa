@@ -79,31 +79,59 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 
 //Funcions
 function getLastInserted($conn)
 {
-  $sql = "SELECT
-                drink_data.*,
-                festa_users.name AS user_name,
-                festa_users.email AS user_email,
-                drink_stories.image_url
+    // Query SQL sense comentaris interns
+    $sql = "SELECT
+                dd.id, dd.user_id, dd.date, dd.day_of_week, dd.location, dd.latitude, dd.longitude,
+                dd.drink, dd.quantity, dd.others, dd.price, dd.num_drinks, dd.timestamp,
+                fu.name AS user_name,
+                fu.email AS user_email,
+                MAX(ds.id) AS story_id,
+                MAX(ds.image_url) AS image_url,
+                MAX(ds.uploaded_at) AS uploaded_at,
+                MAX(ds.expires_at) AS expires_at,
+                MAX(ds.votes) AS votes,
+                MAX(ds.is_saved) AS is_saved
             FROM
-                drink_data
+                drink_data dd
             INNER JOIN
-                festa_users ON drink_data.user_id = festa_users.user_id
+                festa_users fu ON dd.user_id = fu.user_id
             LEFT JOIN
-                drink_stories ON drink_data.id = drink_stories.drink_id
+                drink_stories ds ON dd.id = ds.drink_id
+            GROUP BY
+                dd.id,
+                dd.user_id, dd.date, dd.day_of_week, dd.location, dd.latitude, dd.longitude,
+                dd.drink, dd.quantity, dd.others, dd.price, dd.num_drinks, dd.timestamp,
+                fu.name, fu.email
             ORDER BY
-                drink_data.date DESC,
-                drink_data.timestamp DESC
+                dd.date DESC,
+                dd.timestamp DESC
             LIMIT 1";
 
-  $result = $conn->query($sql);
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
 
-  if ($result->rowCount() > 0) {
-    $row = $result->fetch(PDO::FETCH_ASSOC);
-    echo json_encode($row);
-  } else {
-    echo json_encode(array("message" => "No hi ha registres"));
-  }
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($row) {
+            header('Content-Type: application/json');
+            echo json_encode($row);
+        } else {
+            http_response_code(404);
+            header('Content-Type: application/json');
+            echo json_encode(array("message" => "No s'ha trobat cap registre de consum."));
+        }
+
+    } catch (PDOException $e) {
+        http_response_code(500);
+        // Log detallat de l'error per al servidor
+        error_log("Error PDO en getLastInserted: " . $e->getMessage() . " | SQL: " . $sql);
+        header('Content-Type: application/json');
+        // Missatge genèric per al client
+        echo json_encode(array("message" => "Error intern del servidor al consultar les dades."));
+    }
 }
+
 
 function getDrinkDataById($conn)
 {
@@ -187,111 +215,162 @@ function getLastDrinksAction($conn)
 
 function addDrinkData($conn)
 {
-  // Definim la carpeta on guardarem les imatges
-  $target_dir = "../assets/uploads/";
-  // Generem un nom únic per a la imatge
-  $image_name = uniqid() . "_" . basename($_FILES["image"]["name"]);
-  $target_file = $target_dir . $image_name;
-  $uploadOk = 1;
-  $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+  // --- Gestió de la Imatge (igual que abans) ---
+  $target_dir = "../assets/uploads/"; // Assegura't que aquesta carpeta existeix i té permisos d'escriptura
+  $image_name = null; // Inicialitza a null per defecte
+  $target_file = null;
+  $imageUploadedSuccessfully = false; // Flag per saber si hem mogut l'arxiu
 
-  // Comprovem si s'ha pujat una imatge
-  if (isset($_FILES["image"]) && $_FILES["image"]["error"] == 0) {
-    // Comprovem si el fitxer és una imatge real
-    $check = getimagesize($_FILES["image"]["tmp_name"]);
+  if (isset($_FILES["image"]) && $_FILES["image"]["error"] == 0 && $_FILES["image"]["size"] > 0) {
+    // Nom de fitxer original
+    $original_filename = basename($_FILES["image"]["name"]);
+    // Nom únic per evitar col·lisions
+    $image_name = uniqid('img_', true) . "_" . preg_replace("/[^a-zA-Z0-9\.\_\-]/", "_", $original_filename); // Nom més segur
+    $target_file = $target_dir . $image_name;
+    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+
+    // Validació de la imatge (mida, tipus, si és imatge real)
+    $check = @getimagesize($_FILES["image"]["tmp_name"]); // Usa @ per suprimir warnings si no és imatge
     if ($check === false) {
       http_response_code(400);
-      echo json_encode(array("message" => "El fitxer no és una imatge."));
+      echo json_encode(array("message" => "El fitxer proporcionat no sembla ser una imatge vàlida."));
       exit;
     }
 
-    // Comprovem la mida del fitxer
-    if ($_FILES["image"]["size"] > 5000000) { // 5MB
+    if ($_FILES["image"]["size"] > 5000000) { // 5MB Limit
       http_response_code(400);
-      echo json_encode(array("message" => "La imatge és massa gran."));
+      echo json_encode(array("message" => "La imatge supera el límit de 5MB."));
       exit;
     }
 
-    // Allow certain file formats
-    if (
-      $imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
-      && $imageFileType != "gif"
-    ) {
+    $allowed_types = array("jpg", "png", "jpeg", "gif");
+    if (!in_array($imageFileType, $allowed_types)) {
       http_response_code(400);
-      echo json_encode(array("message" => "Només es permeten els formats JPG, JPEG, PNG i GIF."));
+      echo json_encode(array("message" => "Format d'imatge no permès. Només JPG, JPEG, PNG, GIF."));
       exit;
     }
 
-    // Intentem pujar el fitxer
+    // Intentem moure el fitxer pujat
     if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-      // Fitxer pujat correctament
+      $imageUploadedSuccessfully = true; // Marquem que s'ha mogut correctament
+      error_log("Imatge pujada amb èxit a: " . $target_file); // Log per debugging
     } else {
+      // Si falla el move_uploaded_file, no continuem amb la BD
+      error_log("Error crític: No s'ha pogut moure el fitxer pujat a " . $target_file); // Log més detallat
       http_response_code(500);
-      echo json_encode(array("message" => "Error al pujar la imatge."));
+      // Podria ser un problema de permisos a la carpeta $target_dir
+      echo json_encode(array("message" => "Error intern del servidor al processar la imatge."));
       exit;
     }
   } else {
-    $image_name = null; // No hi ha imatge
+    error_log("No s'ha rebut cap imatge o hi ha hagut un error en la pujada inicial. Codi Error: " . ($_FILES["image"]["error"] ?? 'N/A'));
+    // Si no hi ha imatge, $image_name es manté null
   }
 
-  // Obtenim les dades del formulari
+  // --- Obtenció i Validació de Dades del Formulari ---
+  // (Asegura't que sanitize() existeix i funciona com esperes)
   $user_id = isset($_POST['user_id']) ? sanitize($_POST['user_id']) : null;
   $date = isset($_POST['date']) ? sanitize($_POST['date']) : null;
   $location = isset($_POST['location']) ? sanitize($_POST['location']) : null;
   $drink = isset($_POST['drink']) ? sanitize($_POST['drink']) : null;
   $quantity = isset($_POST['quantity']) ? sanitize($_POST['quantity']) : null;
   $price = isset($_POST['price']) ? sanitize($_POST['price']) : null;
-  $num_drinks = isset($_POST['num_drinks']) ? sanitize($_POST['num_drinks']) : null;
+  $num_drinks = isset($_POST['num_drinks']) ? sanitize($_POST['num_drinks']) : 1; // Valor per defecte si no ve
   $others = isset($_POST['others']) ? sanitize($_POST['others']) : '';
-  $latitude = isset($_POST['latitude']) ? sanitize($_POST['latitude']) : null;
-  $longitude = isset($_POST['longitude']) ? sanitize($_POST['longitude']) : null;
+  $latitude = isset($_POST['latitude']) && is_numeric($_POST['latitude']) ? sanitize($_POST['latitude']) : null; // Validació numèrica bàsica
+  $longitude = isset($_POST['longitude']) && is_numeric($_POST['longitude']) ? sanitize($_POST['longitude']) : null; // Validació numèrica bàsica
   $day_of_week = isset($_POST['day_of_week']) ? sanitize($_POST['day_of_week']) : null;
 
-
-  // Validació bàsica (millorar segons necessitats)
-  if ($user_id === null || $date === null || $location === null || $drink === null || $quantity === null || $price === null) {
+  // Validació més estricta de dades obligatòries
+  if (empty($user_id) || empty($date) || $location === null || empty($drink) || $quantity === null || $price === null || $day_of_week === null || $num_drinks === null) {
+    // Si hem mogut una imatge però les dades són invàlides, l'eliminem
+    if ($imageUploadedSuccessfully && $target_file && file_exists($target_file)) {
+      unlink($target_file);
+      error_log("Dades invàlides rebudes. Imatge " . $target_file . " eliminada.");
+    }
     http_response_code(400);
-    echo json_encode(array("message" => "Falten dades per crear el registre."));
+    // Sigues més específic sobre quina dada falta si és possible
+    echo json_encode(array("message" => "Falten dades obligatòries o alguna dada és invàlida per crear el registre."));
     exit;
   }
 
-  $sql = "INSERT INTO drink_data (user_id, date, day_of_week, location, latitude, longitude, drink, quantity, others, price, num_drinks) VALUES (:user_id, :date, :day_of_week, :location, :latitude, :longitude, :drink, :quantity, :others, :price, :num_drinks)";
+  // --- Operacions de Base de Dades amb Transacció ---
   try {
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':user_id', $user_id);
-    $stmt->bindParam(':date', $date);
-    $stmt->bindParam(':location', $location);
-    $stmt->bindParam(':drink', $drink);
-    $stmt->bindParam(':quantity', $quantity);
-    $stmt->bindParam(':price', $price);
-    $stmt->bindParam(':num_drinks', $num_drinks);
-    $stmt->bindParam(':others', $others);
-    $stmt->bindParam(':latitude', $latitude);
-    $stmt->bindParam(':longitude', $longitude);
-    $stmt->bindParam(':day_of_week', $day_of_week);
-    $stmt->execute();
+    // Iniciem la transacció
+    $conn->beginTransaction();
 
-    $drink_id = $conn->lastInsertId(); // Obtener el ID del drink_data insertado
+    // 1. Insert a drink_data (sempre es fa)
+    $sql_drink = "INSERT INTO drink_data
+                        (user_id, date, day_of_week, location, latitude, longitude, drink, quantity, others, price, num_drinks)
+                      VALUES
+                        (:user_id, :date, :day_of_week, :location, :latitude, :longitude, :drink, :quantity, :others, :price, :num_drinks)";
 
-    // Insertar en drink_stories
+    $stmt_drink = $conn->prepare($sql_drink);
+
+    $stmt_drink->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+    $stmt_drink->bindParam(':date', $date); // PDO::PARAM_STR per defecte
+    $stmt_drink->bindParam(':day_of_week', $day_of_week, PDO::PARAM_INT);
+    $stmt_drink->bindParam(':location', $location);
+    $stmt_drink->bindParam(':latitude', $latitude); // PDO gestionarà NULL si $latitude és null
+    $stmt_drink->bindParam(':longitude', $longitude); // PDO gestionarà NULL si $longitude és null
+    $stmt_drink->bindParam(':drink', $drink);
+    $stmt_drink->bindParam(':quantity', $quantity);
+    $stmt_drink->bindParam(':price', $price);
+    $stmt_drink->bindParam(':num_drinks', $num_drinks, PDO::PARAM_INT);
+    $stmt_drink->bindParam(':others', $others);
+
+    $stmt_drink->execute();
+
+    // Obtenim l'ID de l'últim registre inserit a drink_data
+    $drink_id = $conn->lastInsertId();
+
+    // Verifiquem si l'ID és vàlid (hauria de ser major que 0)
+    if (!$drink_id) {
+      throw new PDOException("No s'ha pogut obtenir l'ID del registre de beguda inserit.");
+    }
+
+    // 2. Insert a drink_stories (NOMÉS si s'ha pujat una imatge)
     if ($image_name !== null) {
-      $sql_story = "INSERT INTO drink_stories (user_id, drink_id, image_url) VALUES (:user_id, :drink_id, :image_url)";
+      $sql_story = "INSERT INTO drink_stories
+                            (user_id, drink_id, image_url)
+                          VALUES
+                            (:user_id, :drink_id, :image_url)";
+
       $stmt_story = $conn->prepare($sql_story);
-      $stmt_story->bindParam(':user_id', $user_id);
-      $stmt_story->bindParam(':drink_id', $drink_id);
-      $stmt_story->bindParam(':image_url', $image_name);
+      $stmt_story->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+      $stmt_story->bindParam(':drink_id', $drink_id, PDO::PARAM_INT);
+      $stmt_story->bindParam(':image_url', $image_name); // Guardem només el nom del fitxer
+
       $stmt_story->execute();
     }
 
-    echo json_encode(array("message" => "Registro creado correctamente."));
-  } catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(array("message" => "Error al crear el registro: " . $e->getMessage()));
+    // Si hem arribat aquí sense errors, confirmem la transacció
+    $conn->commit();
 
-    // Si hi ha un error, eliminem la imatge
-    if (isset($target_file) && file_exists($target_file)) {
+    // Enviem resposta d'èxit
+    http_response_code(201); // 201 Created és més apropiat per a un POST exitós
+    echo json_encode(array(
+      "message" => "Registre creat correctament.",
+      "drink_id" => $drink_id, // Pot ser útil retornar l'ID creat
+      "image_uploaded" => ($image_name !== null) // Indica si es va incloure imatge
+    ));
+
+  } catch (PDOException $e) {
+    // Si hi ha qualsevol error durant la transacció, desfem els canvis
+    $conn->rollBack();
+
+    // Si l'error ha ocorregut DESPRÉS d'haver mogut la imatge, l'eliminem
+    if ($imageUploadedSuccessfully && $target_file && file_exists($target_file)) {
       unlink($target_file);
+      error_log("Error durant la transacció de BD. Imatge " . $target_file . " eliminada.");
     }
+
+    // Log detallat de l'error de BD
+    error_log("Error PDO en addDrinkData: " . $e->getMessage());
+
+    // Enviem resposta d'error genèrica
+    http_response_code(500);
+    echo json_encode(array("message" => "Error intern del servidor al guardar les dades. Si us plau, intenta-ho més tard."));
   }
 }
 function updateDrinkData($conn, $data)
@@ -441,40 +520,60 @@ function getLastDrinks($conn, $userId)
 //Funció per obtenir dades paginades.
 function getInsertsPaginated($conn)
 {
-  //Comprovar si limit i offset estan definits i són números
+  // Comprovar si limit i offset estan definits i són números
   $limit = isset($_GET['limit']) && is_numeric($_GET['limit']) ? intval($_GET['limit']) : 10;
   $offset = isset($_GET['offset']) && is_numeric($_GET['offset']) ? intval($_GET['offset']) : 0;
 
-  //Construir la query
+  // Construir la query
+  // Seleccionem explícitament les columnes de drink_data i festa_users
+  // Apliquem funcions d'agregació a TOTES les columnes de drink_stories que volem
   $sql = "SELECT
-                drink_data.*,
-                festa_users.name AS user_name,
-                festa_users.email AS user_email,
-                drink_stories.image_url,
-                drink_stories.uploaded_at
+                dd.id, dd.user_id, dd.date, dd.day_of_week, dd.location, dd.latitude, dd.longitude,
+                dd.drink, dd.quantity, dd.others, dd.price, dd.num_drinks, dd.timestamp, -- Columnes de drink_data (alias dd)
+                fu.name AS user_name,
+                fu.email AS user_email, -- Columnes de festa_users (alias fu)
+                MAX(ds.id) AS story_id,                 -- ID de la story (prenem el màxim si hi ha duplicats)
+                MAX(ds.image_url) AS image_url,         -- URL de la imatge (prenem el màxim)
+                MAX(ds.uploaded_at) AS uploaded_at,     -- Data de pujada (prenem la més recent)
+                MAX(ds.expires_at) AS expires_at,       -- Data d'expiració (prenem la màxima)
+                MAX(ds.votes) AS votes,                 -- Vots (prenem el màxim)
+                MAX(ds.is_saved) AS is_saved            -- Estat 'guardat' (prenem el màxim, on 1 > 0)
             FROM
-                drink_data
+                drink_data dd
             INNER JOIN
-                festa_users ON drink_data.user_id = festa_users.user_id
+                festa_users fu ON dd.user_id = fu.user_id
             LEFT JOIN
-                drink_stories ON drink_data.id = drink_stories.drink_id
+                drink_stories ds ON dd.id = ds.drink_id
+            GROUP BY
+                dd.id, -- Agrupació principal per evitar duplicats de drink_data
+                -- Incloure totes les columnes de dd i fu al GROUP BY
+                dd.user_id, dd.date, dd.day_of_week, dd.location, dd.latitude, dd.longitude,
+                dd.drink, dd.quantity, dd.others, dd.price, dd.num_drinks, dd.timestamp,
+                fu.name, fu.email
             ORDER BY
-                drink_data.date DESC,
-                drink_data.timestamp DESC
-            LIMIT :limit OFFSET :offset";
+                dd.date DESC,             -- Ordena primer per data
+                dd.timestamp DESC         -- Després per marca de temps
+            LIMIT :limit OFFSET :offset"; // Aplica paginació
 
   try {
     $stmt = $conn->prepare($sql);
-    //Bind els parametres
+    // Bind els paràmetres de paginació
     $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
+
+    // Obtenim totes les files resultants
     $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    //Retorna les dades
+
+    // Retornem les dades en format JSON
+    header('Content-Type: application/json'); // Bona pràctica: indicar el tipus de contingut
     echo json_encode($data);
+
   } catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(array("message" => "Error en la consulta: " . $e->getMessage()));
+    // En cas d'error de base de dades
+    http_response_code(500); // Error intern del servidor
+    error_log("Error PDO en getInsertsPaginated: " . $e->getMessage()); // Log de l'error real
+    echo json_encode(array("message" => "Error en obtenir les dades: " . $e->getMessage())); // Missatge per al client
   }
 }
 

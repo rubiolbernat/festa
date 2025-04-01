@@ -106,6 +106,7 @@ export class InfiniteInsertsComponent implements OnInit {
       num_drinks: parseInt(drink.num_drinks, 10) || 1,
       user_id: parseInt(drink.user_id, 10) || 0,
       image_url: drink.image_url || '',
+      uploaded_at: drink.uploaded_at || '',
       user_name: drink.user_name || '',
       user_email: drink.user_email || '',
       date: drink.date || '',
@@ -143,6 +144,7 @@ export class InfiniteInsertsComponent implements OnInit {
             stories: [
               {
                 imageUrl: drink.image_url || '',
+                uploaded_at:drink.uploaded_at||'',
                 // !!! Assegura't que 'drink.id' existeix i és un número !!!
                 // Si CombinedDrinkUserData no té 'id', no pots posar originalDrinkId
                 // o l'has de treure d'un altre lloc (potser l'índex?)

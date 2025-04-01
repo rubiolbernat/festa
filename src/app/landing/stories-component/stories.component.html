@@ -2,25 +2,37 @@
 <div class="stories-container" *ngIf="hasData">
   <!-- Header -->
   <div class="header">
-    <!-- Imatge de perfil (amb *ngIf opcional per més seguretat) -->
+    <!-- Imatge de perfil (Manté la teva lògica original) -->
     <div class="profile-image" style="background: purple">
-      {{ currentUser.name[0] }}
+      <!-- Accedeix directament a la propietat 'name' del getter 'currentUser' -->
+      {{ currentUser.name ? currentUser.name[0] : "?" }}
     </div>
-    <!-- Placeholder si no hi ha imatge? -->
-    <!-- Ajusta la ruta al teu placeholder -->
 
-    <!-- Nom d'usuari -->
-    <span class="user-name">{{ currentUser.name }} <small>{{ currentUser.uploaded_at }}</small></span>
+    <!-- Nom d'usuari i temps -->
+    <span class="user-name">
+      {{ currentUser.name }}
+      <!-- *** CANVI: Utilitza el DatePipe nadiu d'Angular *** -->
+      <!-- Formats possibles: 'shortTime', 'mediumDate', 'longDate', 'dd/MM/yy HH:mm', etc. -->
+      <!-- Assegura't que currentStory.uploaded_at és una data vàlida (Date object, ISO string, timestamp) -->
+      <small class="story-time" style="font-size: 8px;" *ngIf="currentStory.uploaded_at">
+        {{ currentStory.uploaded_at | date : "shortTime" }}
+        <!-- Ex: Mostra només l'hora HH:mm -->
+        <!-- O pots mostrar data i hora: -->
+        <!-- {{ currentStory.uploaded_at | date:'dd/MM HH:mm' }} -->
+        <!-- O la data original si el pipe falla: -->
+        <!-- {{ currentStory.uploaded_at }} -->
+      </small>
+    </span>
 
-    <!-- Barres de Progrés (CORREGIT EL *ngFor) -->
+    <!-- Barres de Progrés (Manté la teva lògica original) -->
     <div class="progress-bars">
-      <!-- Itera sobre l'array d'històries -->
+      <!-- Itera sobre les històries via el getter 'currentUser' -->
       <div
         *ngFor="let story of currentUser.stories; let i = index"
         class="progress-bar-wrapper"
       >
         <div class="progress-bar-background">
-          <!-- La lògica de l'ample sembla correcta -->
+          <!-- L'ample utilitza el getter 'progress' -->
           <div
             class="progress-bar-foreground"
             [style.width.%]="
@@ -35,7 +47,7 @@
       </div>
     </div>
 
-    <!-- Botó de tancar -->
+    <!-- Botó de tancar (Manté la teva lògica original) -->
     <button
       (click)="closeStories()"
       class="close-button"
@@ -43,37 +55,44 @@
     >
       ×
     </button>
-    <!-- Millora accessibilitat amb aria-label -->
   </div>
 
   <!-- Contingut de la història -->
-  <!-- Contingut de la història -->
   <div
     class="story-content"
+    (panstart)="pauseTimerOnPress($any($event))"
+    (panend)="resumeTimerOnRelease()"
+    (pancancel)="resumeTimerOnRelease()"
+    (swipeleft)="handleSwipe($any($event))"
+    (swiperight)="handleSwipe($any($event))"
+    (swipedown)="handleSwipe($any($event))"
+    role="region"
+    aria-label="Contingut de la història"
     (mousedown)="pauseTimerOnPress($event)"
     (touchstart)="pauseTimerOnPress($event)"
     (mouseup)="resumeTimerOnRelease()"
     (touchend)="resumeTimerOnRelease()"
     (mouseleave)="resumeTimerOnRelease()"
-    >
-    <!-- Navegació (click a l'esquerra/dreta de la imatge) -->
-    <!-- Important: Aturem la propagació d'esdeveniments aquí per evitar -->
-    <!-- que els clics de navegació també pausinn/reprenguin el timer -->
+  >
+    <!-- Navegació per clic/tap (Manté la teva lògica original) -->
     <div
       class="navigation-overlay left"
       (click)="prevStory(); $event.stopPropagation()"
+      aria-label="Història anterior"
     ></div>
     <div
       class="navigation-overlay right"
       (click)="nextStory(); $event.stopPropagation()"
+      aria-label="Història següent"
     ></div>
 
-    <!-- Imatge de la història -->
+    <!-- Imatge de la història (Manté la teva lògica original) -->
     <div class="story-image-container">
+      <!-- Utilitza el getter 'currentStory' que ja resol la URL -->
       <img
         *ngIf="currentStory.imageUrl"
         [src]="currentStory.imageUrl"
-        alt="Story"
+        [alt]="'Història de ' + currentUser.name"
         class="story-image"
         draggable="false"
       />
@@ -83,7 +102,7 @@
     </div>
   </div>
 
-  <!-- Controls inferiors (opcional si ja tens navegació per clic a la imatge) -->
+  <!-- Controls inferiors (Comentats, com al teu original) -->
   <!--
   <div class="controls">
     <button (click)="prevStory()" class="nav-button" [disabled]="currentUserIndex === 0 && currentStoryIndex === 0"> < Anterior</button>
@@ -91,7 +110,7 @@
   </div>
   -->
 
-  <!-- Vots -->
+  <!-- Vots (Manté la teva lògica original) -->
   <div class="votes">
     <button
       (click)="voteUp()"
@@ -102,15 +121,21 @@
     </button>
     <!-- Afegeix el botó de vot negatiu si el necessites -->
     <!-- <button (click)="voteDown()" class="vote-button negative" aria-label="Vot negatiu">👎</button> -->
-    <span class="vote-count"
-      >Vots positius:
-      {{ currentStory.votsPositius ? currentStory.votsPositius : 0 }}</span
-    >
-    <!-- Mostra altres comptes si cal -->
+    <span class="vote-count">
+      Vots positius:
+      <!-- Accedeix al camp de vots (ajusta 'votes' o 'votsPositius' segons la teva dada real) -->
+      {{
+        currentStory.votes
+          ? currentStory.votes
+          : currentStory.votsPositius
+          ? currentStory.votsPositius
+          : 0
+      }}
+    </span>
   </div>
 </div>
 
-<!-- Indicador de càrrega (es mostra si hasData és false) -->
+<!-- Indicador de càrrega (Manté la teva lògica original) -->
 <div class="loading-indicator" *ngIf="!hasData">
   <p>Carregant...</p>
   <!-- Podries posar un spinner aquí -->

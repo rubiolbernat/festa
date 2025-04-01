@@ -126,12 +126,12 @@ export class DrinkingDataService {
     //console.log('Paràmetres per getInsertsPaginated:', params);
 
     const observable = this.get<CombinedDrinkUserData[]>('getInsertsPaginated', params);
-    /*
+    
     observable.subscribe(
       (data) => console.log('Dades rebudes:', data),
       (error) => console.error('Error en getInsertsPaginated:', error)
     );
-    */
+
 
     return observable;
   }

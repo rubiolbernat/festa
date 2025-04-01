@@ -19,4 +19,5 @@ export interface CombinedDrinkUserData extends DrinkData {
   user_name: string;
   user_email: string;
   image_url?: string; //Añadimos la url de la imagen
+  uploaded_at?: string; //Añadimos la url de la imagen
 }
