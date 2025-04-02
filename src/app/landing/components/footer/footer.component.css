@@ -1,0 +1,74 @@
+/* Estils per al Footer Personalitzat */
+.app-footer {
+  /* Pots donar-li un fons subtil si vols diferenciar-lo més */
+  /* background-color: #f8f9fa; */ /* Un gris molt clar, opcional */
+}
+
+.app-footer footer {
+  /* Ajusta el padding si cal */
+  padding-top: 1.5rem;
+  padding-bottom: 1rem;
+}
+
+/* Contingut del footer */
+.footer-content {
+  line-height: 1.6; /* Millora la llegibilitat */
+}
+
+/* Estil per a l'enllaç */
+.footer-link {
+  transition: color 0.2s ease-in-out; /* Transició suau al passar el ratolí */
+  font-weight: 500; /* Una mica més de pes */
+}
+
+.footer-link:hover {
+  color: var(--bs-primary) !important; /* Color primari de Bootstrap al passar el ratolí */
+  text-decoration: underline !important;
+}
+
+/* Informació del desenvolupador */
+.developer-info span {
+  display: inline-block; /* Permet un lleuger espaiat si cal */
+  margin-right: 0.3em; /* Petit espai entre spans si estan inline */
+}
+
+.developer-info i.bi-emoji-kiss {
+  vertical-align: middle; /* Alinea la icona amb el text */
+  font-size: 1.1em; /* Una mica més gran si vols */
+  /* El color ja el dóna text-primary a l'HTML, o pots definir-lo aquí */
+  /* color: #0d6efd; */
+}
+
+/* Text de suport, potser una mica menys prominent */
+.support-text {
+ color: #888; /* Un gris una mica més fosc que text-body-secondary */
+}
+
+/* Ajust per a pantalles petites si cal (opcional) */
+@media (max-width: 767.98px) {
+  .app-footer footer {
+      /* Potser menys padding vertical en mòbil */
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+  }
+  .support-text::before {
+      content: "\A"; /* Salt de línia CSS */
+      white-space: pre;
+      display: block; /* Assegura que el salt de línia funcioni */
+      margin-top: 0.2rem; /* Petit espai abans del text de suport */
+  }
+  .support-text{
+    display: block; /* Força que estigui en una línia separada */
+  }
+  .developer-info span:first-child{
+    margin-right: 0; /* Treu marge dret al nom del dev en mòbil */
+  }
+  /* Elimina el separador en mòbil si salta de línia */
+  .developer-info .support-text::before {
+        content: ""; /* Sobreescriu el salt de línia si ja hem fet display block */
+   }
+   .developer-info .support-text::before { /* Elimina el separador '|' si hem posat display:block */
+        display: none;
+    }
+
+}

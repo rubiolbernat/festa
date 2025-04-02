@@ -1,7 +1,7 @@
 <?php
 require_once('dbconnect.php');
 require_once('restrictions.php');
-
+define('STORIES_UPLOAD_DIR',  '/../assets/uploads/');
 // Funció per netejar les dades
 function sanitize($data)
 {
@@ -424,28 +424,129 @@ function updateDrinkData($conn, $data)
 
 function deleteDrinkData($conn, $data)
 {
-  error_log("deleteDrinkData cridada amb les dades: " . json_encode($data));
+    error_log("[deleteDrinkData] Inici amb dades: " . json_encode($data));
 
-  if (!isset($data['id'])) {
-    http_response_code(400);
-    echo json_encode(array("message" => "Falta l'ID per eliminar el registre."));
-    exit;
-  }
+    if (!isset($data['id'])) {
+        http_response_code(400);
+        echo json_encode(array("message" => "Falta l'ID per eliminar el registre."));
+        exit;
+    }
 
-  $id = sanitize($data['id']);
+    $id = sanitize($data['id']);
+    if (!filter_var($id, FILTER_VALIDATE_INT)) {
+         http_response_code(400);
+         echo json_encode(array("message" => "L'ID proporcionat no és un número enter vàlid."));
+         exit;
+    }
 
-  $sql = "DELETE FROM drink_data WHERE id = :id";
-  try {
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':id', $id);
-    $stmt->execute();
-    error_log("SQL executat: " . $sql); // Registrar la consulta SQL
-    echo json_encode(array("message" => "Registro eliminado correctamente."));
-  } catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(array("message" => "Error al eliminar el registro: " . $e->getMessage()));
-    error_log("Error al eliminar el registro: " . $e->getMessage());
-  }
+
+    $imageUrlToDelete = null; // Variable per guardar el nom del fitxer
+    $dbDeleted = false;
+    $fileDeleted = false;
+    $fileDeleteAttempted = false;
+    $fileError = null;
+
+
+    try {
+        // --- Pas 1: Obtenir el nom del fitxer (si existeix) ABANS d'eliminar ---
+        $sql_select_image = "SELECT image_url FROM drink_stories WHERE drink_id = :id";
+        $stmt_select = $conn->prepare($sql_select_image);
+        $stmt_select->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt_select->execute();
+        $storyData = $stmt_select->fetch(PDO::FETCH_ASSOC);
+
+        if ($storyData && !empty($storyData['image_url'])) {
+            $imageUrlToDelete = $storyData['image_url'];
+            error_log("[deleteDrinkData] Story trobada per a drink_id $id. Fitxer a eliminar: " . $imageUrlToDelete);
+        } else {
+            error_log("[deleteDrinkData] No s'ha trobat story o image_url per a drink_id $id.");
+        }
+
+        // --- Pas 2: Eliminar de la BD (amb transacció) ---
+        $conn->beginTransaction();
+
+        $sql_delete_drink = "DELETE FROM drink_data WHERE id = :id";
+        $stmt_delete = $conn->prepare($sql_delete_drink);
+        $stmt_delete->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt_delete->execute();
+
+        $deletedRowCount = $stmt_delete->rowCount();
+        error_log("[deleteDrinkData] Files eliminades de drink_data (i per cascade de drink_stories): " . $deletedRowCount);
+
+        if ($deletedRowCount > 0) {
+            $dbDeleted = true;
+            // Confirmem la transacció NOMÉS si s'ha eliminat alguna fila
+            $conn->commit();
+            error_log("[deleteDrinkData] Commit de la BD realitzat.");
+        } else {
+            // Si no s'ha eliminat res (l'ID no existia?), fem rollback
+            $conn->rollBack();
+            error_log("[deleteDrinkData] L'ID $id no existia a drink_data. Rollback realitzat.");
+            http_response_code(404); // Not Found
+            echo json_encode(array("message" => "No s'ha trobat cap registre amb l'ID proporcionat."));
+            exit;
+        }
+
+        // --- Pas 3: Eliminar el fitxer físic (si s'ha eliminat de BD i tenim nom) ---
+        if ($dbDeleted && $imageUrlToDelete) {
+            $fileDeleteAttempted = true;
+            $filePath = rtrim(STORIES_UPLOAD_DIR, '/') . '/' . $imageUrlToDelete;
+            error_log("[deleteDrinkData] Intentant eliminar el fitxer: " . $filePath);
+
+            if (is_file($filePath)) {
+                if (unlink($filePath)) {
+                    $fileDeleted = true;
+                    error_log("[deleteDrinkData] Fitxer eliminat amb èxit: " . $filePath);
+                } else {
+                    $fileError = "No s'ha pogut eliminar el fitxer (verificar permisos a " . STORIES_UPLOAD_DIR . ")";
+                    error_log("[deleteDrinkData] ERROR: " . $fileError . " Fitxer: " . $filePath);
+                }
+            } else {
+                $fileError = "El fitxer no existeix o no és un fitxer.";
+                error_log("[deleteDrinkData] AVÍS: " . $fileError . " Fitxer: " . $filePath);
+            }
+        }
+
+        // --- Pas 4: Enviar Resposta d'Èxit ---
+        http_response_code(200);
+        $responseMessage = "Registre eliminat correctament de la base de dades.";
+        if($fileDeleteAttempted){
+             $responseMessage .= ($fileDeleted ? " Fitxer associat eliminat." : " Error o avís eliminant fitxer associat: " . ($fileError ?? 'Desconegut'));
+        } elseif ($imageUrlToDelete) {
+            $responseMessage .= " No s'ha intentat eliminar el fitxer perquè el registre BD no existia.";
+        } else {
+             $responseMessage .= " No hi havia cap fitxer associat per eliminar.";
+        }
+
+        echo json_encode(array(
+            "message" => $responseMessage,
+            "dbDeleted" => $dbDeleted,
+            "fileDeleted" => $fileDeleted,
+            "fileError" => $fileError // Retorna el missatge d'error del fitxer si n'hi ha
+        ));
+        exit;
+
+
+    } catch (PDOException $e) {
+        // Si hi ha error durant la transacció, desfem
+        if ($conn->inTransaction()) {
+            $conn->rollBack();
+             error_log("[deleteDrinkData] Error PDO, Rollback realitzat: " . $e->getMessage());
+        } else {
+             error_log("[deleteDrinkData] Error PDO (fora de transacció?): " . $e->getMessage());
+        }
+
+        http_response_code(500);
+        echo json_encode(array("message" => "Error de base de dades en eliminar el registre: " . $e->getMessage()));
+        exit; // Important sortir després d'enviar la resposta d'error
+
+    } catch (Exception $e) {
+         // Captura altres errors inesperats (p. ex., problemes amb la ruta?)
+         error_log("[deleteDrinkData] ERROR General: " . $e->getMessage());
+         http_response_code(500);
+         echo json_encode(array("message" => "Error general inesperat durant l'eliminació: " . $e->getMessage()));
+         exit;
+    }
 }
 // Funció per obtenir les ubicacions anteriors
 function getLastLocations($conn, $userId)
