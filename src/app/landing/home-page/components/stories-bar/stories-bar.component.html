@@ -1,63 +1,70 @@
 <!-- Indicador de Càrrega -->
 @if (isLoading) {
-  <div class="loading-indicator text-center p-4 text-muted">
-    <p>Carregant històries...</p>
-    <!-- Pots afegir un spinner de Bootstrap o un altre -->
-    <div class="spinner-border spinner-border-sm" role="status">
-      <span class="visually-hidden">Carregant...</span>
-    </div>
+<div class="loading-indicator text-center p-4 text-muted">
+  <p>Carregant històries...</p>
+  <!-- Pots afegir un spinner de Bootstrap o un altre -->
+  <div class="spinner-border spinner-border-sm" role="status">
+    <span class="visually-hidden">Carregant...</span>
   </div>
+</div>
 }
 
 <!-- Missatge d'Error -->
 @if (errorMsg && !isLoading) {
-  <div class="error-message alert alert-danger text-center p-3 mx-3">
-    <p class="mb-1"><strong>Error:</strong> {{ errorMsg }}</p>
-    <button class="btn btn-sm btn-danger mt-1" (click)="loadStoriesForBar()">
-      Tornar a intentar
-    </button>
-  </div>
+<br />
+<div class="error-message alert alert-danger text-center p-3 mx-3">
+  <p class="mb-1"><strong>Error:</strong> {{ errorMsg }}</p>
+  <button class="btn btn-sm btn-danger mt-1" (click)="loadStoriesForBar()">
+    Tornar a intentar
+  </button>
+</div>
 }
 
 <!-- Barra de Stories (Només si NO està carregant I NO hi ha error) -->
 @if (!isLoading && !errorMsg) {
-  <div class="stories-bar-container">
-    <!-- Comprova si hi ha dades a l'array storiesData -->
-    @if (storiesData && storiesData.length > 0) {
-      <div class="stories-list">
+<div class="stories-bar-container">
+  <!-- Comprova si hi ha dades a l'array storiesData -->
+  @if (storiesData && storiesData.length > 0) {
+  <div class="stories-list">
+    <!-- Iteració sobre 'storiesData' (l'array d'objectes StoryUserData) -->
+    <!-- 'userData' representa un usuari i totes les seves stories -->
+    <div
+      *ngFor="let userData of storiesData; let i = index; trackBy: trackById"
+      class="story-item"
+      (click)="openStoriesViewerAtIndex(i)"
+    >
+      <!-- Crida amb l'índex de l'USUARI (i) -->
 
-        <!-- Iteració sobre 'storiesData' (l'array d'objectes StoryUserData) -->
-        <!-- 'userData' representa un usuari i totes les seves stories -->
-        <div *ngFor="let userData of storiesData; let i = index; trackBy: trackById"
-             class="story-item"
-             (click)="openStoriesViewerAtIndex(i)"> <!-- Crida amb l'índex de l'USUARI (i) -->
-
-          <!-- Miniatura -->
-          <!-- La classe 'seen' ara és més complexa. Podria indicar si TOTES les stories de l'usuari s'han vist.
+      <!-- Miniatura -->
+      <!-- La classe 'seen' ara és més complexa. Podria indicar si TOTES les stories de l'usuari s'han vist.
                De moment, la comentem o l'eliminem per simplicitat a la barra.
                [class.seen]="areAllUserStoriesSeen(userData)" // Necessitaria una funció auxiliar
           -->
-          <div class="story-thumbnail">
-            <!-- Les funcions auxiliars ara reben l'objecte 'userData' -->
-            <img [src]="getThumbnailUrl(userData)"
-                 [alt]="'Històries de ' + getUserName(userData)"
-                 (error)="handleThumbnailError($event)">
-          </div>
-
-          <!-- Nom d'usuari -->
-          <span class="story-user-name">{{ getUserName(userData) }}</span>
-
-        </div> <!-- Fi story-item -->
-      </div> <!-- Fi stories-list -->
-    } @else {
-      <!-- Missatge si la càrrega ha anat bé però l'array és buit -->
-      <div class="no-stories-message text-center p-3 text-muted">
-        <p>No hi ha històries disponibles ara mateix.</p>
+      <div class="story-thumbnail">
+        <!-- Les funcions auxiliars ara reben l'objecte 'userData' -->
+        <img
+          [src]="getThumbnailUrl(userData)"
+          [alt]="'Històries de ' + getUserName(userData)"
+          (error)="handleThumbnailError($event)"
+        />
       </div>
-    }
-  </div> <!-- Fi stories-bar-container -->
-}
 
+      <!-- Nom d'usuari -->
+      <span class="story-user-name">{{ getUserName(userData) }}</span>
+    </div>
+    <!-- Fi story-item -->
+  </div>
+  <!-- Fi stories-list -->
+  } @else {
+  <!-- Ho he deixat per si algun dia ho vull posar en comptes de tenir-ho buit -->
+  <!-- Missatge si la càrrega ha anat bé però l'array és buit -->
+   <!--
+  <div class="no-stories-message text-center p-3 text-muted">
+    <p>No hi ha històries disponibles ara mateix.</p>
+  </div> -->}
+</div>
+<!-- Fi stories-bar-container -->
+}
 
 <!-- ============================================================ -->
 <!-- VISOR DE STORIES                                           -->
@@ -66,9 +73,10 @@
 <!-- Rep l'índex de l'USUARI que s'ha de mostrar primer (i)     -->
 <!-- ============================================================ -->
 <app-stories
-    *ngIf="showStoriesViewer"
-    [stories]="storiesData"
-    [initialUserIndex]="initialStoryIndexForViewer"
-    (close)="closeStoriesViewer()">
+  *ngIf="showStoriesViewer"
+  [stories]="storiesData"
+  [initialUserIndex]="initialStoryIndexForViewer"
+  (close)="closeStoriesViewer()"
+>
 </app-stories>
 <!-- ============================================================ -->

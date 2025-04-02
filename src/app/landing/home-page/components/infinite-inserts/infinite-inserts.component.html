@@ -1,98 +1,136 @@
 <!-- Llista Infinita de Begudes -->
-<section id="last-drinks" class="py-5" style="background-color:#732056;">
+<section id="last-drinks" class="py-5" style="background-color: #732056">
   <div class="container px-4 px-lg-5">
     <!-- Títol -->
     <div class="row justify-content-between align-items-center mb-4">
       <div class="col-12 text-center">
-        <h2 class="fw-bold text-white" style="font-size: 1.8em;">🍹 Últimes Aventures Etíliques 🍸</h2>
-        <p class="text-white-50">Fes clic a les miniatures per veure les històries!</p> <!-- Afegit -->
+        <h2 class="fw-bold text-white" style="font-size: 1.8em">
+          🍹 Últimes Aventures Etíliques 🍸
+        </h2>
+        <p class="text-white-50">
+          Fes clic a les miniatures per veure les històries!
+        </p>
+        <!-- Afegit -->
       </div>
     </div>
 
     <!-- Llista de Begudes (amb infinite scroll) -->
-    <div class="row gx-4 gx-lg-5"
-         infiniteScroll
-         [infiniteScrollDistance]="2"
-         [infiniteScrollThrottle]="300"
-         (scrolled)="loadInserts()">
-
+    <div
+      class="row gx-4 gx-lg-5"
+      infiniteScroll
+      [infiniteScrollDistance]="2"
+      [infiniteScrollThrottle]="300"
+      (scrolled)="loadInserts()"
+    >
       @if (InfiniteDrinks.length > 0) {
-        <!-- Itera sobre cada beguda -->
-        <!-- Passem 'i = index' per saber quin element s'ha clicat -->
-        <div *ngFor="let drink of InfiniteDrinks; let i = index; trackBy: trackById" class="col-lg-12 col-md-12 mb-4"> <!-- Tornem a col-lg-12 per a fila completa -->
-          <div class="card text-white bg-dark shadow-lg border-0">
-            <div class="card-body">
-              <!-- Fila interna per a les columnes originals + thumbnail -->
-              <div class="row align-items-center text-center">
-
-                <!-- Columna 1: DATA/USUARI (i THUMBNAIL si existeix) -->
-                <!-- Usem flexbox dins d'aquesta columna per alinear thumbnail i text -->
-                <div class="col-12 col-sm-4 col-md-3 d-flex flex-column flex-sm-row align-items-center justify-content-center justify-content-sm-start text-center text-sm-start">
-                    <!-- Miniatura Rodona (NOMÉS SI HI HA IMATGE) -->
-                    @if (drink.image_url) {
-                      <div class="thumbnail-container flex-shrink-0 mb-2 mb-sm-0 me-sm-3"> <!-- Marges per separar -->
-                        <div class="story-thumbnail" (click)="openStoriesViewerAtIndex(i)"> <!-- Crida amb l'índex 'i' -->
-                          <img [src]="getThumbnailUrl(drink.image_url)"
-                               alt="Miniatura de {{ drink.user_name }}"
-                               (error)="handleThumbnailError($event)"> <!-- Gestiona error -->
-                        </div>
-                      </div>
-                    }
-                    <!-- Informació de Data i Usuari -->
-                    <div>
-                      <span class="fs-6 fw-bold d-block">{{ drink.date | date:'dd MMM yyyy' }}</span>
-                      <p class="mb-0 small mt-1">{{ drink.user_name }}</p>
-                    </div>
+      <!-- Itera sobre cada beguda -->
+      <!-- Passem 'i = index' per saber quin element s'ha clicat -->
+      <!--                      Afegeix | slice:1 aquí  👇                 -->
+      <div
+        *ngFor="
+          let drink of InfiniteDrinks | slice : 1;
+          let i = index;
+          trackBy: trackById
+        "
+        class="col-lg-12 col-md-12 mb-4"
+      >
+        <div class="card text-white bg-dark shadow-lg border-0">
+          <div class="card-body">
+            <!-- Fila interna per a les columnes originals + thumbnail -->
+            <div class="row align-items-center text-center">
+              <!-- Columna 1: DATA/USUARI (i THUMBNAIL si existeix) -->
+              <div
+                class="col-12 col-sm-4 col-md-3 d-flex flex-column flex-sm-row align-items-center justify-content-center justify-content-sm-start text-center text-sm-start"
+              >
+                <!-- Miniatura Rodona (NOMÉS SI HI HA IMATGE) -->
+                @if (drink.image_url) {
+                <div
+                  class="thumbnail-container flex-shrink-0 mb-2 mb-sm-0 me-sm-3"
+                >
+                  <!--                       Canvia i per i + 1 aquí 👇     -->
+                  <div
+                    class="story-thumbnail"
+                    (click)="openStoriesViewerAtIndex(i + 1)"
+                  >
+                    <img
+                      [src]="getThumbnailUrl(drink.image_url)"
+                      alt="Miniatura de {{ drink.user_name }}"
+                      (error)="handleThumbnailError($event)"
+                    />
+                  </div>
                 </div>
-
-                <!-- Columna 2: BEGUDA/LLOC -->
-                <div class="col-12 col-sm-5 col-md-6 border-sm-start border-sm-end border-secondary px-sm-3 my-3 my-sm-0 text-center">
-                  <h4 class="fw-bold mb-1">{{ drink.drink }}</h4>
-                  @if (drink.location.length>=1) {
-                    <h5 class="fw-semibold text-warning mb-1"><i class="bi bi-geo-alt-fill"></i> {{ drink.location }}</h5>
-                  }
-                  @if(drink.others) {
-                    <p class="mb-0 small text-muted fst-italic">"{{ drink.others }}"</p>
-                  }
+                }
+                <!-- Informació de Data i Usuari -->
+                <div>
+                  <span class="fs-6 fw-bold d-block">{{
+                    drink.date | date : "dd MMM yyyy"
+                  }}</span>
+                  <p class="mb-0 small mt-1">{{ drink.user_name }}</p>
                 </div>
+              </div>
 
-                <!-- Columna 3: QUANTITAT/PREU -->
-                <div class="col-12 col-sm-3 col-md-3 text-center text-sm-end">
-                  @if (drink.num_drinks<=1) {
-                    <span class="fw-bold fs-5 d-block">
-                    {{ drink.quantity }} <small>L</small>
-                    </span>
-                  } @else {
-                    <span class="fw-bold fs-5 d-block">
-                    {{ drink.num_drinks }}<small>x</small>{{ (drink.quantity / drink.num_drinks) | number:'1.0-2' }}<small>L</small>
-                    </span>
-                  }
-                  <span class="fw-bold fs-5 d-block mt-1">{{ drink.price | number:'1.2-2' }} €</span>
-                </div>
+              <!-- Columna 2: BEGUDA/LLOC -->
+              <div
+                class="col-12 col-sm-5 col-md-6 border-sm-start border-sm-end border-secondary px-sm-3 my-3 my-sm-0 text-center"
+              >
+                <h4 class="fw-bold mb-1">{{ drink.drink }}</h4>
+                @if (drink.location.length>=1) {
+                <h5 class="fw-semibold text-warning mb-1">
+                  <i class="bi bi-geo-alt-fill"></i> {{ drink.location }}
+                </h5>
+                } @if(drink.others) {
+                <p class="mb-0 small text-muted fst-italic">
+                  "{{ drink.others }}"
+                </p>
+                }
+              </div>
 
-              </div> <!-- Fi de la fila interna -->
-            </div> <!-- Fi card-body -->
-          </div> <!-- Fi card -->
-        </div> <!-- Fi col -->
-      } @else {
-        <!-- Si no hi ha begudes -->
-        <div class="col-12 text-center">
-          <p class="text-white">Encara no hi ha registres.</p>
+              <!-- Columna 3: QUANTITAT/PREU -->
+              <div class="col-12 col-sm-3 col-md-3 text-center text-sm-end">
+                @if (drink.num_drinks<=1) {
+                <span class="fw-bold fs-5 d-block">
+                  {{ drink.quantity }} <small>L</small>
+                </span>
+                } @else {
+                <span class="fw-bold fs-5 d-block">
+                  {{ drink.num_drinks }}<small>x</small
+                  >{{ drink.quantity / drink.num_drinks | number : "1.0-2"
+                  }}<small>L</small>
+                </span>
+                }
+                <span class="fw-bold fs-5 d-block mt-1"
+                  >{{ drink.price | number : "1.2-2" }} €</span
+                >
+              </div>
+            </div>
+            <!-- Fi de la fila interna -->
+          </div>
+          <!-- Fi card-body -->
         </div>
+        <!-- Fi card -->
+      </div>
+      <!-- Fi col -->
+      } @else {
+      <!-- Si no hi ha begudes -->
+      <div class="col-12 text-center">
+        <p class="text-white">Encara no hi ha registres.</p>
+      </div>
       }
 
       <!-- Indicadors -->
-      @if (loading) { No hi ha mes resultats }
-      @if (allInsertsLoaded && !loading && InfiniteDrinks.length > 0) { No hi ha mes resultats }
-
-    </div> <!-- Fi row principal -->
-  </div> <!-- Fi container -->
+      @if (loading) { No hi ha mes resultats } @if (allInsertsLoaded && !loading
+      && InfiniteDrinks.length > 0) { No hi ha mes resultats }
+    </div>
+    <!-- Fi row principal -->
+  </div>
+  <!-- Fi container -->
 </section>
 
 <!-- VISOR DE STORIES (Es manté igual al final) -->
 <app-stories
-    *ngIf="showStoriesViewer"
-    [stories]="storyDataForViewer"
-    [initialUserIndex]="initialStoryIndexForViewer"
-    (close)="closeStoriesViewer()">
+  *ngIf="showStoriesViewer"
+  [stories]="storyDataForViewer"
+  [initialUserIndex]="initialStoryIndexForViewer"
+  (close)="closeStoriesViewer()"
+>
 </app-stories>

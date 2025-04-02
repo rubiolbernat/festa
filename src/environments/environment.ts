@@ -3,14 +3,16 @@
 export const environment = {
   production: false,
   // //MSI
-  apiUrl: 'http://localhost/festa/backend',
+  //apiUrl: 'http://localhost/festa/backend',
   //PC
-  //apiUrl: 'http://localhost:8012/festa/backend',
+  apiUrl: 'http://localhost:8012/festa/backend',
 
   //Assets
-  //assetsUrl: 'http://localhost:8012/festa/assets/uploads/'
+  assetsUrl: 'http://localhost:8012/festa/assets/uploads/',
   //MSI
-  assetsUrl: 'http://localhost/festa/assets/uploads/'
+  //assetsUrl: 'http://localhost/festa/assets/uploads/',
+
+  storyExpirationHours: 24*15 //(15 dies)
 };
 
 //WEB
@@ -21,6 +23,8 @@ export const environment = {
   apiUrl: 'https://joc.feritja.cat/backend',
 
   //Assets
-  assetsUrl: 'https://joc.feritja.cat/backend/assets/uploads/'
+  assetsUrl: 'https://joc.feritja.cat/backend/assets/uploads/',
+
+  storyExpirationHours: 24*15 //(15 dies)
 };
 */
