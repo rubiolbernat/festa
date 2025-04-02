@@ -24,28 +24,36 @@
       </div>
     </div>
 
-    <!-- Lloc -->
-    <div class="mb-3">
-      <label for="location" class="form-label">Lloc:</label>
-      <input
-        type="text"
-        class="form-control"
-        id="location"
-        name="location"
-        [(ngModel)]="drinkData.location"
-        (input)="filterLocations()"
-        required
-      />
-      <ul class="list-group" *ngIf="locationSuggestions.length > 0">
-        <li
-          class="list-group-item"
-          *ngFor="let suggestion of locationSuggestions"
-          (click)="drinkData.location = suggestion; locationSuggestions = []"
-        >
-          {{ suggestion }}
-        </li>
-      </ul>
-    </div>
+        <!-- Lloc -->
+        <div class="mb-3">
+          <label for="location" class="form-label">Lloc:</label>
+          <input
+            type="text"
+            class="form-control"
+            id="location"
+            name="location"
+            [(ngModel)]="drinkData.location"
+            (input)="filterLocations()"
+            required
+            #locationInput="ngModel"
+          />
+          <ul class="list-group" *ngIf="locationSuggestions.length > 0">
+            <li
+              class="list-group-item"
+              *ngFor="let suggestion of locationSuggestions"
+              (click)="drinkData.location = suggestion; locationSuggestions = []"
+            >
+              {{ suggestion }}
+            </li>
+          </ul>
+          <!-- NOU: Missatge d'error -->
+          <div
+            *ngIf="locationInput.invalid && (locationInput.dirty || locationInput.touched)"
+            class="text-danger form-text small mt-1"
+          >
+            <i class="bi bi-exclamation-triangle"></i> El lloc és obligatori.
+          </div>
+        </div>
 
     <!-- Latitud i Longitud -->
     <div class="mb-3 shadow p-3 rounded border">
@@ -124,6 +132,7 @@
         "
         (ngModelChange)="onDrinkInputChange($event)"
         required
+        #drinkInput="ngModel"
       />
       <ul class="list-group" *ngIf="drinkSuggestions.length > 0">
         <li
@@ -134,6 +143,13 @@
           {{ suggestion }}
         </li>
       </ul>
+      <!-- NOU: Missatge d'error -->
+      <div
+        *ngIf="drinkInput.invalid && (drinkInput.dirty || drinkInput.touched)"
+        class="text-danger form-text small mt-1"
+      >
+         <i class="bi bi-exclamation-triangle"></i> La beguda és obligatòria.
+      </div>
     </div>
 
     <!-- Quantitat -->
@@ -263,7 +279,6 @@
 
     <!-- Preu -->
     <div class="mb-3 shadow p-3 rounded border">
-      <!-- Agrupat visualment -->
       <h5 class="mb-3">Preu</h5>
       <div class="row g-3 align-items-end">
         <!-- Preu Total Calculat (Responsive) -->
@@ -286,17 +301,15 @@
         <div class="col-lg-3 col-md-4 col-6 order-lg-2 order-md-3 order-3">
           <label for="price" class="form-label">Preu:</label>
           <div class="input-group">
-            <!-- canviat min a 0 -->
             <input
               type="number"
               class="form-control"
               id="price"
               name="price"
               [(ngModel)]="drinkData.price"
-              required
-              min="0"
-              step="0.01"
-              #priceInput="ngModel"
+              (ngModelChange)="onPriceChange($event)"
+              required min="0" step="0.01" #priceInput="ngModel"
+
             />
             <span class="input-group-text"
               ><i class="bi bi-currency-euro"></i
@@ -315,9 +328,7 @@
         <!-- Tipus de Preu (Radios) -->
         <div class="col-lg-4 col-md-5 col-12 order-lg-3 order-md-2 order-2">
           <label class="form-label d-block mb-2">El preu introduït és:</label>
-          <!-- d-block per espaiat -->
           <div class="form-check form-check-inline">
-            <!-- Corregit [value] i [(ngModel)] -->
             <input
               class="form-check-input"
               type="radio"
@@ -325,13 +336,13 @@
               name="priceType"
               [(ngModel)]="priceindividual"
               [value]="true"
+              (change)="onPriceTypeChange()"
             />
             <label class="form-check-label" for="individualPriceRadio"
               >Per Unitat</label
             >
           </div>
           <div class="form-check form-check-inline">
-            <!-- Corregit [value] i [(ngModel)] -->
             <input
               class="form-check-input"
               type="radio"
@@ -339,14 +350,13 @@
               name="priceType"
               [(ngModel)]="priceindividual"
               [value]="false"
+              (change)="onPriceTypeChange()"
             />
             <label class="form-check-label" for="totalPriceRadio"
               >El Total</label
             >
           </div>
         </div>
-        <!-- Espai buit per alinear (opcional) -->
-        <!-- <div class="col-lg-3 col-md-0 col-0 order-lg-4"></div> -->
       </div>
     </div>
 
@@ -446,7 +456,7 @@
         class="btn btn-primary"
         data-bs-toggle="modal"
         data-bs-target="#confirmationModal"
-        [disabled]="drinkData.price < 0 || !drinkData.quantity"
+        [disabled]="drinkData.price < 0 || !drinkData.quantity || !drinkData.location || drinkData.location.trim() === '' || !drinkData.drink || drinkData.drink.trim() === ''"
       >
         <i class="bi bi-plus-circle-fill"></i> Afegir
       </button>
@@ -457,103 +467,103 @@
   </form>
   <!-- Modal de confirmació -->
   <div
-  class="modal fade"
-  id="confirmationModal"
-  tabindex="-1"
-  aria-labelledby="confirmationModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog modal-dialog-centered">
-    <!-- Centrat verticalment -->
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="confirmationModalLabel">
-          <i class="bi bi-check2-circle"></i> Confirmar Dades
-        </h5>
-        <button
-          type="button"
-          class="btn-close btn-close-white"
-          data-bs-dismiss="modal"
-          aria-label="Tancar"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <p class="mb-3">Si us plau, revisa les dades abans d'enviar:</p>
-        <ul class="list-group list-group-flush">
-          <!-- Llista per millor format -->
-          <li class="list-group-item d-flex justify-content-between">
-            <strong>Data:</strong> {{ drinkData.date | date : "dd/MM/yyyy" }}
-          </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <strong>Lloc:</strong> {{ drinkData.location || "-" }}
-          </li>
-          @if (hasGpsData) {
-          <li class="list-group-item d-flex justify-content-between">
-            <strong>GPS:</strong> Lat:
-            {{ drinkData.latitude | number : "1.4-4" }}, Lon:
-            {{ drinkData.longitude | number : "1.4-4" }}
-          </li>
-          }
-          <li class="list-group-item d-flex justify-content-between">
-            <strong>Beguda:</strong> {{ drinkData.drink }}
-          </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <strong>Unitats:</strong> {{ drinkData.num_drinks }}
-          </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <strong>Quantitat Total:</strong>
-            {{ drinkData.quantity | number : "1.2-2" }} L
-          </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <strong>Preu Introduït:</strong>
-            <span
-              >{{ drinkData.price | number : "1.2-2" }} €
-              {{ priceindividual ? "(per unitat)" : "(total)" }}</span
+    class="modal fade"
+    id="confirmationModal"
+    tabindex="-1"
+    aria-labelledby="confirmationModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <!-- Centrat verticalment -->
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="confirmationModalLabel">
+            <i class="bi bi-check2-circle"></i> Confirmar Dades
+          </h5>
+          <button
+            type="button"
+            class="btn-close btn-close-white"
+            data-bs-dismiss="modal"
+            aria-label="Tancar"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-3">Si us plau, revisa les dades abans d'enviar:</p>
+          <ul class="list-group list-group-flush">
+            <!-- Llista per millor format -->
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Data:</strong> {{ drinkData.date | date : "dd/MM/yyyy" }}
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Lloc:</strong> {{ drinkData.location || "-" }}
+            </li>
+            @if (hasGpsData) {
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>GPS:</strong> Lat:
+              {{ drinkData.latitude | number : "1.4-4" }}, Lon:
+              {{ drinkData.longitude | number : "1.4-4" }}
+            </li>
+            }
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Beguda:</strong> {{ drinkData.drink }}
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Unitats:</strong> {{ drinkData.num_drinks }}
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Quantitat Total:</strong>
+              {{ drinkData.quantity | number : "1.2-2" }} L
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Preu Introduït:</strong>
+              <span
+                >{{ drinkData.price | number : "1.2-2" }} €
+                {{ priceindividual ? "(per unitat)" : "(total)" }}</span
+              >
+              <!-- Mostra tipus de preu -->
+            </li>
+            <li class="list-group-item d-flex justify-content-between fw-bold">
+              <strong>Preu Total Calculat:</strong>
+              <span>{{ totalPrice | number : "1.2-2" }} €</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Notes:</strong> {{ drinkData.others || "-" }}
+            </li>
+            @if (imageFile) {
+            <li
+              class="list-group-item d-flex justify-content-between text-success"
             >
-            <!-- Mostra tipus de preu -->
-          </li>
-          <li class="list-group-item d-flex justify-content-between fw-bold">
-            <strong>Preu Total Calculat:</strong>
-            <span>{{ totalPrice | number : "1.2-2" }} €</span>
-          </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <strong>Notes:</strong> {{ drinkData.others || "-" }}
-          </li>
-          @if (imageFile) {
-          <li
-            class="list-group-item d-flex justify-content-between text-success"
+              <strong>Imatge:</strong>
+              <span>Fitxer seleccionat ({{ imageFile.name }})</span>
+            </li>
+            } @else {
+            <li
+              class="list-group-item d-flex justify-content-between text-muted"
+            >
+              <strong>Imatge:</strong> <span>No seleccionada</span>
+            </li>
+            }
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
           >
-            <strong>Imatge:</strong>
-            <span>Fitxer seleccionat ({{ imageFile.name }})</span>
-          </li>
-          } @else {
-          <li
-            class="list-group-item d-flex justify-content-between text-muted"
+            <i class="bi bi-x-lg"></i> Cancel·lar
+          </button>
+          <!-- Crida a prepareAndSendData (o el nom final al teu component) -->
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="submitData()"
+            data-bs-dismiss="modal"
           >
-            <strong>Imatge:</strong> <span>No seleccionada</span>
-          </li>
-          }
-        </ul>
-      </div>
-      <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          data-bs-dismiss="modal"
-        >
-          <i class="bi bi-x-lg"></i> Cancel·lar
-        </button>
-        <!-- Crida a prepareAndSendData (o el nom final al teu component) -->
-        <button
-          type="button"
-          class="btn btn-primary"
-          (click)="submitData()"
-          data-bs-dismiss="modal"
-        >
-          <i class="bi bi-send-check-fill"></i> Confirmar i Enviar
-        </button>
+            <i class="bi bi-send-check-fill"></i> Confirmar i Enviar
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 </div>
