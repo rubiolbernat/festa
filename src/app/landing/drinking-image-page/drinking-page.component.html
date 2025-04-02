@@ -14,10 +14,17 @@
         [(ngModel)]="drinkData.date"
         (change)="updateDayOfWeek()"
         required
+        #dateInput="ngModel"
       />
-      <!-- AFEGIT (change)="updateDayOfWeek()" -->
+      <div
+        *ngIf="dateInput.invalid && (dateInput.dirty || dateInput.touched)"
+        class="text-danger form-text"
+      >
+        La data és obligatòria.
+      </div>
     </div>
 
+    <!-- Lloc -->
     <div class="mb-3">
       <label for="location" class="form-label">Lloc:</label>
       <input
@@ -41,50 +48,61 @@
     </div>
 
     <!-- Latitud i Longitud -->
-    <div class="mb-3 row">
-      <div class="col-3">
-        <label for="latitude" class="form-label">Latitud:</label>
-        <div class="input-group">
-          <input
-            type="text"
-            class="form-control"
-            id="latitude"
-            name="latitude"
-            [value]="drinkData.latitude"
-            readonly
-            [ngClass]="{ 'bg-danger': !hasGpsData }"
-            style="color: white"
-          />
-          <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+    <div class="mb-3 shadow p-3 rounded border">
+      <div class="row g-2 align-items-center">
+        <!-- Contenidor per a les coordenades -->
+        <div class="col-12 col-lg-10 d-flex flex-wrap gap-2">
+          <div class="input-group flex-grow-1">
+            <span class="input-group-text">
+              <i class="bi bi-geo-alt-fill"></i> Lat
+            </span>
+            <input
+              type="text"
+              class="form-control"
+              id="latitude"
+              name="latitude"
+              [value]="drinkData.latitude | number : '1.0-6'"
+              readonly
+              [ngClass]="{
+                'bg-light-subtle': hasGpsData,
+                'bg-danger-subtle': !hasGpsData
+              }"
+            />
+          </div>
+          <div class="input-group flex-grow-1">
+            <span class="input-group-text">
+              <i class="bi bi-geo-alt-fill"></i> Lon
+            </span>
+            <input
+              type="text"
+              class="form-control"
+              id="longitude"
+              name="longitude"
+              [value]="drinkData.longitude | number : '1.0-6'"
+              readonly
+              [ngClass]="{
+                'bg-light-subtle': hasGpsData,
+                'bg-danger-subtle': !hasGpsData
+              }"
+            />
+          </div>
+        </div>
+        <!-- Botó d'actualitzar -->
+        <div class="col-12 col-lg-2 text-center text-lg-end mt-2 mt-lg-0">
+          <button
+            type="button"
+            class="btn btn-outline-primary btn-sm"
+            (click)="getCurrentLocation()"
+            title="Obtenir Ubicació Actual"
+          >
+            <i class="bi bi-arrow-clockwise"></i>
+            <span class="d-none d-lg-inline">Actualitzar</span>
+          </button>
         </div>
       </div>
-      <div class="col-3">
-        <label for="longitude" class="form-label">Longitud:</label>
-        <div class="input-group">
-          <input
-            type="text"
-            class="form-control"
-            id="longitude"
-            name="longitude"
-            [value]="drinkData.longitude"
-            readonly
-            [ngClass]="{ 'bg-danger': !hasGpsData }"
-            style="color: white"
-          />
-          <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-        </div>
-      </div>
-      <div class="col-6 d-flex flex-column-reverse">
-        <div *ngIf="!hasGpsData" class="form-text text-danger">
-          No s'ha pogut accedir a la ubicació.
-        </div>
-        <button
-          type="button"
-          class="btn btn-outline-secondary mt-2"
-          (click)="getCurrentLocation()"
-        >
-          <i class="bi bi-geo-fill"></i> Obtenir Ubicació
-        </button>
+      <div *ngIf="!hasGpsData" class="form-text text-warning mt-2">
+        <i class="bi bi-exclamation-triangle"></i> No s'ha pogut accedir a la
+        ubicació GPS. Pots introduir el lloc manualment.
       </div>
     </div>
 
@@ -119,238 +137,307 @@
     </div>
 
     <!-- Quantitat -->
-    <div class="mb-3 row g-2">
-      <div class="col-4 col-md-2">
-        <!-- Pantalla gran i mitjana: Input -->
-        <div class="d-none d-md-flex">
-          <label for="totalliters" class="form-label">Total liters:</label>
+    <div class="mb-3 shadow p-3 rounded border">
+      <!-- Agrupat visualment -->
+      <h5 class="mb-3">Quantitat</h5>
+      <div class="row g-3 align-items-end">
+        <!-- align-items-end per alinear bé els labels i inputs -->
+        <!-- Total Litres (Responsive) -->
+        <div class="col-lg-2 col-md-3 col-6 order-lg-1 order-md-1 order-1">
+          <label for="totalliters" class="form-label fw-bold">Total:</label>
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control bg-dark text-white"
+              id="totalliters"
+              name="totalliters"
+              [value]="drinkData.quantity | number : '1.2-2'"
+              readonly
+            />
+            <span class="input-group-text">L</span>
+          </div>
         </div>
-        <div class="input-group d-none d-md-flex">
-          <input
-            type="text"
-            class="form-control text-white bg-dark"
-            id="totalliters"
-            name="totalliters"
-            [value]="drinkData.quantity | number : '1.2-2'"
-            readonly
-          />
-          <span class="input-group-text">L</span>
-        </div>
-        <!-- Pantalla petita: Text -->
-        <div class="d-md-none">
-          <p class="form-control-plaintext">
-            <strong
-              >Total liters:
-              {{ drinkData.quantity | number : "1.2-2" }} L</strong
-            >
-          </p>
-        </div>
-      </div>
 
-      @if (manualQuantity) {
-      <div class="col-8 col-md-3">
-        <label for="quantity" class="form-label">Quantitat (en litres):</label>
-        <div class="input-group">
+        <!-- Input Manual (Condicional) -->
+        @if (manualQuantity) {
+        <div class="col-lg-3 col-md-4 col-6 order-lg-2 order-md-3 order-3">
+          <label for="manualQuantity" class="form-label"
+            >Quantitat Manual (L):</label
+          >
+          <div class="input-group">
+            <input
+              type="number"
+              class="form-control"
+              id="manualQuantity"
+              name="manualQuantity"
+              [(ngModel)]="manualQuantityValue"
+              required
+              step="0.01"
+              min="0.01"
+              (ngModelChange)="onQuantityChange($event)"
+              #manualQtyInput="ngModel"
+            />
+            <span class="input-group-text">L</span>
+          </div>
+          <div
+            *ngIf="manualQuantityValue > 1.5"
+            class="form-text text-warning small mt-1"
+          >
+            <i class="bi bi-info-circle"></i> Quantitat elevada, assegura't que
+            són litres.
+          </div>
+          <div
+            *ngIf="
+              manualQtyInput.invalid &&
+              (manualQtyInput.dirty || manualQtyInput.touched)
+            "
+            class="text-danger form-text small mt-1"
+          >
+            Quantitat invàlida (mín 0.01 L).
+          </div>
+        </div>
+        }
+
+        <!-- Selector Predefinit -->
+        <div class="col-lg-4 col-md-5 col-12 order-lg-3 order-md-2 order-2">
+          <label for="drinkSelect" class="form-label">Selecció Ràpida:</label>
+          <div class="input-group">
+            <select
+              id="drinkSelect"
+              class="form-select"
+              (change)="onDrinkQuantityChange($event)"
+              [ngModel]="selectedDrink.name"
+              name="drinkSelector"
+              [ngClass]="{ 'bg-warning text-dark fw-bold': manualQuantity }"
+            >
+              @for (drink of drinks; track drink.name) {
+              <option
+                [value]="drink.name"
+                [selected]="drink.name === selectedDrink.name"
+                [ngClass]="{
+                  'bg-warning text-dark fw-bold': drink.name === 'Manual',
+                  'text-muted': drink.name === 'Selecciona'
+                }"
+              >
+                {{ drink.name }}
+                @if (drink.name !== 'Manual' && drink.name !== 'Selecciona') {
+                <span class="text-muted small"> ({{ drink.descr }})</span>
+                }
+              </option>
+              }
+            </select>
+            @if (selectedDrink.name !== 'Manual' && selectedDrink.name !==
+            'Selecciona') {
+            <span class="input-group-text">{{ selectedDrink.quantity }} L</span>
+            }
+          </div>
+        </div>
+
+        <!-- Nombre de Begudes -->
+        <div class="col-lg-3 col-md-4 col-6 order-lg-4 order-md-4 order-4">
+          <label for="num_drinks" class="form-label">Unitats:</label>
           <input
             type="number"
             class="form-control"
-            id="quantity"
-            name="quantity"
-            [(ngModel)]="manualQuantityValue"
+            id="num_drinks"
+            name="num_drinks"
+            [(ngModel)]="drinkData.num_drinks"
             required
-            step="0.01"
-            min="0.1"
-            (ngModelChange)="onQuantityChange($event)"
+            step="1"
+            min="1"
+            (ngModelChange)="onNumDrinksChange($event)"
+            #numDrinksInput="ngModel"
           />
-          <span class="input-group-text">L</span>
-        </div>
-        <div *ngIf="manualQuantityValue > 1.5" class="form-text text-warning">
-          <i class="bi bi-info-circle"></i>
-          Si us plau, assegura't que la quantitat està en litres.
-        </div>
-      </div>
-      }
-
-      <div class="col-12 col-md-5">
-        <label for="drinkSelect" class="form-label">Sel. una quantitat:</label>
-        <div class="input-group">
-          <select
-            id="drinkSelect"
-            class="form-select"
-            (change)="onDrinkQuantityChange($event)"
-            [ngClass]="{ 'bg-warning text-black fw-bold': manualQuantity }"
+          <div
+            *ngIf="
+              numDrinksInput.invalid &&
+              (numDrinksInput.dirty || numDrinksInput.touched)
+            "
+            class="text-danger form-text small mt-1"
           >
-            @for (drink of drinks; track $index) { @if (drink.name === "Manual")
-            {
-            <option
-              [value]="drink.name"
-              [selected]="drink.name === selectedDrink.name"
-              class="bg-warning text-black fw-bold"
-            >
-              {{ drink.name }}
-            </option>
-            } @else if (drink.name === "Selecciona") {
-            <option
-              class="bg-dark text-white"
-              [value]="drink.name"
-              [selected]="drink.name === selectedDrink.name"
-            >
-              {{ drink.name }}
-            </option>
-            } @else {
-            <option
-              class="bg-dark text-white"
-              [value]="drink.name"
-              [selected]="drink.name === selectedDrink.name"
-            >
-              {{ drink.name }} {{ drink.descr }}
-            </option>
-            } }
-          </select>
-          @if (selectedDrink.name !== "Manual" && selectedDrink.name !==
-          "Selecciona") {
-          <span class="input-group-text">{{ selectedDrink.quantity }}L</span>
-          }
+            Ha de ser 1 o més.
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Preu -->
-    <div class="mb-3 row">
-      <div class="col-4 col-md-2">
-        <div class="d-none d-md-flex">
-          <label for="totalprice" class="form-label">Total €:</label>
-        </div>
-        <!-- Pantalla gran i mitjana: Input -->
-        <div class="input-group d-none d-md-flex">
-          <input
-            type="text"
-            class="form-control text-white bg-dark"
-            id="totalprice"
-            name="totalprice"
-            [value]="totalPrice | number : '1.2-2'"
-            readonly
-          />
-          <span class="input-group-text">€</span>
-        </div>
-        <!-- Pantalla petita: Text -->
-        <div class="d-md-none">
-          <p class="form-control-plaintext">
-            <strong>Total: {{ totalPrice | number : "1.2-2" }} €</strong>
-          </p>
-        </div>
-      </div>
-
-      <div class="col-8 col-md-4">
-        <label for="price" class="form-label">Preu:</label>
-        <div class="input-group">
-          <input
-            type="number"
-            class="form-control"
-            id="price"
-            name="price"
-            [(ngModel)]="drinkData.price"
-            required
-            min="0"
-          />
-          <span class="input-group-text"
-            ><i class="bi bi-currency-euro"></i
-          ></span>
-        </div>
-      </div>
-
-      <!-- Checkbox Preu Individual -->
-      <div class="col-6 col-md-3 d-flex align-items-end">
-        <div class="d-flex flex-column">
-          <label class="form-label">Tipus de preu:</label>
-          <!-- Radio Preu Individual -->
-          <div class="form-check mb-2">
+    <div class="mb-3 shadow p-3 rounded border">
+      <!-- Agrupat visualment -->
+      <h5 class="mb-3">Preu</h5>
+      <div class="row g-3 align-items-end">
+        <!-- Preu Total Calculat (Responsive) -->
+        <div class="col-lg-2 col-md-3 col-6 order-lg-1 order-md-1 order-1">
+          <label for="totalprice" class="form-label fw-bold">Total:</label>
+          <div class="input-group">
             <input
-              class="form-check-input"
-              type="radio"
-              id="totalpriceRadio"
-              name="priceType"
-              [(ngModel)]="priceindividual"
-              [value]="false"
+              type="text"
+              class="form-control bg-dark text-white"
+              id="totalprice"
+              name="totalprice"
+              [value]="totalPrice | number : '1.2-2'"
+              readonly
             />
-            <label class="form-check-label" for="totalpriceRadio"
-              >Preu Individual</label
-            >
+            <span class="input-group-text">€</span>
           </div>
-          <!-- Radio Preu Total -->
-          <div class="form-check">
+        </div>
+
+        <!-- Input Preu -->
+        <div class="col-lg-3 col-md-4 col-6 order-lg-2 order-md-3 order-3">
+          <label for="price" class="form-label">Preu:</label>
+          <div class="input-group">
+            <!-- canviat min a 0 -->
+            <input
+              type="number"
+              class="form-control"
+              id="price"
+              name="price"
+              [(ngModel)]="drinkData.price"
+              required
+              min="0"
+              step="0.01"
+              #priceInput="ngModel"
+            />
+            <span class="input-group-text"
+              ><i class="bi bi-currency-euro"></i
+            ></span>
+          </div>
+          <div
+            *ngIf="
+              priceInput.invalid && (priceInput.dirty || priceInput.touched)
+            "
+            class="text-danger form-text small mt-1"
+          >
+            El preu és obligatori i no pot ser negatiu.
+          </div>
+        </div>
+
+        <!-- Tipus de Preu (Radios) -->
+        <div class="col-lg-4 col-md-5 col-12 order-lg-3 order-md-2 order-2">
+          <label class="form-label d-block mb-2">El preu introduït és:</label>
+          <!-- d-block per espaiat -->
+          <div class="form-check form-check-inline">
+            <!-- Corregit [value] i [(ngModel)] -->
             <input
               class="form-check-input"
               type="radio"
-              id="individualpriceRadio"
+              id="individualPriceRadio"
               name="priceType"
               [(ngModel)]="priceindividual"
               [value]="true"
             />
-            <label class="form-check-label" for="individualpriceRadio"
-              >Preu Total</label
+            <label class="form-check-label" for="individualPriceRadio"
+              >Per Unitat</label
+            >
+          </div>
+          <div class="form-check form-check-inline">
+            <!-- Corregit [value] i [(ngModel)] -->
+            <input
+              class="form-check-input"
+              type="radio"
+              id="totalPriceRadio"
+              name="priceType"
+              [(ngModel)]="priceindividual"
+              [value]="false"
+            />
+            <label class="form-check-label" for="totalPriceRadio"
+              >El Total</label
             >
           </div>
         </div>
-      </div>
-
-      <!-- Input Num Drinks -->
-      <div class="col-6 col-md-2">
-        <label for="num_drinks" class="form-label"
-          >Quantitat <i class="bi bi-cup-straw"></i
-        ></label>
-        <input
-          type="number"
-          class="form-control"
-          id="num_drinks"
-          name="num_drinks"
-          [(ngModel)]="drinkData.num_drinks"
-          required
-          step="1"
-          min="1"
-          (ngModelChange)="onNumDrinksChange($event)"
-        />
+        <!-- Espai buit per alinear (opcional) -->
+        <!-- <div class="col-lg-3 col-md-0 col-0 order-lg-4"></div> -->
       </div>
     </div>
 
+    <!-- Altres -->
     <div class="mb-3">
-      <label for="others" class="form-label">Altres:</label>
+      <label for="others" class="form-label">Notes / Altres:</label>
       <textarea
         class="form-control"
         id="others"
         name="others"
+        rows="2"
         [(ngModel)]="drinkData.others"
       ></textarea>
     </div>
 
-    <!-- Input per la imatge -->
-    <div class="mb-3">
-      <label class="form-label"
-        ><i class="bi bi-camera"></i> Imatge (opcional):</label
-      >
-      <br />
+    <!-- Secció Imatge (NOVA) -->
+    <div class="mb-4 shadow p-3 rounded border">
+      <h5 class="mb-3">
+        <i class="bi bi-camera"></i> Imatge
+        <span class="text-muted fw-normal">(Opcional)</span>
+      </h5>
 
-      <!-- Input ocult que obre la càmera en mòbils -->
-      <input
-        type="file"
-        #fileInput
-        accept="image/*"
-        capture="environment"
-        (change)="onFileSelected($event)"
-        hidden
-      />
-
-      <button class="btn btn-outline-success me-2" (click)="fileInput.click()">
-        <i class="bi bi-camera"></i> Fer Foto
-      </button>
-
-      <button class="btn btn-outline-secondary" (click)="openGallery()">
-        <i class="bi bi-image"></i> Seleccionar de la Galeria
-      </button>
-
-      <div *ngIf="imageUrl">
-        <img [src]="imageUrl" class="img-thumbnail" style="max-width: 200px" />
+      <!-- Previsualització -->
+      @if (imageUrl) {
+      <div class="mb-3 text-center">
+        <img
+          [src]="imageUrl"
+          alt="Previsualització de la imatge"
+          class="img-thumbnail"
+          style="max-width: 250px; max-height: 250px; object-fit: contain"
+        />
+        <div>
+          <!-- Botó eliminar sota la imatge -->
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-danger mt-2"
+            (click)="imageUrl = null; imageFile = null"
+            title="Eliminar imatge seleccionada"
+          >
+            <i class="bi bi-trash"></i> Eliminar Imatge
+          </button>
+        </div>
       </div>
+      }
+
+      <!-- Botons d'acció imatge -->
+      <div class="d-flex flex-wrap gap-2 justify-content-center mb-3">
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          (click)="openCamera()"
+        >
+          <i class="bi bi-camera-fill"></i> Fer Foto
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="openGallery()"
+        >
+          <i class="bi bi-image"></i> Obrir Galeria
+        </button>
+      </div>
+
+      <!-- Progrés de la Pujada -->
+      @if (uploadProgress !== undefined) {
+      <div
+        class="progress mt-2"
+        role="progressbar"
+        [attr.aria-valuenow]="uploadProgress"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        style="height: 25px"
+      >
+        <div
+          class="progress-bar progress-bar-striped progress-bar-animated"
+          [style.width]="uploadProgress + '%'"
+        >
+          {{ uploadProgress }}%
+        </div>
+      </div>
+      @if (uploadProgress < 100) {
+      <div class="text-center mt-1">
+        <button
+          type="button"
+          class="btn btn-sm btn-danger"
+          (click)="cancelUpload()"
+        >
+          Cancel·lar Pujada
+        </button>
+      </div>
+      } }
     </div>
 
     <div class="d-flex justify-content-center gap-2">
@@ -361,7 +448,7 @@
         data-bs-target="#confirmationModal"
         [disabled]="drinkData.price < 0 || !drinkData.quantity"
       >
-        Afegir
+        <i class="bi bi-plus-circle-fill"></i> Afegir
       </button>
       <a routerLink="/la_gran_aventura-list" class="btn btn-warning"
         >Editar dades</a
@@ -370,55 +457,103 @@
   </form>
   <!-- Modal de confirmació -->
   <div
-    class="modal fade"
-    id="confirmationModal"
-    tabindex="-1"
-    aria-labelledby="confirmationModalLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="confirmationModalLabel">
-            Confirmació de dades
-          </h5>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          ></button>
-        </div>
-        <div class="modal-body">
-          <p>Si us plau, confirma que les dades són correctes:</p>
-          <p><b>Data:</b> {{ drinkData.date }}</p>
-          <p><b>Lloc:</b> {{ drinkData.location }}</p>
-          <p><b>Latitud:</b> {{ drinkData.latitude }}</p>
-          <p><b>Longitud:</b> {{ drinkData.longitude }}</p>
-          <p><b>Beguda:</b> {{ drinkData.drink }}</p>
-          <p><b>Quantitat:</b> {{ drinkData.quantity }}</p>
-          <p><b>Num de items:</b> {{ drinkData.num_drinks }}</p>
-          <p><b>Preu:</b> {{ drinkData.price }}</p>
-          <p><b>Altres:</b> {{ drinkData.others }}</p>
-        </div>
-        <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            data-bs-dismiss="modal"
+  class="modal fade"
+  id="confirmationModal"
+  tabindex="-1"
+  aria-labelledby="confirmationModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <!-- Centrat verticalment -->
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="confirmationModalLabel">
+          <i class="bi bi-check2-circle"></i> Confirmar Dades
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+          aria-label="Tancar"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3">Si us plau, revisa les dades abans d'enviar:</p>
+        <ul class="list-group list-group-flush">
+          <!-- Llista per millor format -->
+          <li class="list-group-item d-flex justify-content-between">
+            <strong>Data:</strong> {{ drinkData.date | date : "dd/MM/yyyy" }}
+          </li>
+          <li class="list-group-item d-flex justify-content-between">
+            <strong>Lloc:</strong> {{ drinkData.location || "-" }}
+          </li>
+          @if (hasGpsData) {
+          <li class="list-group-item d-flex justify-content-between">
+            <strong>GPS:</strong> Lat:
+            {{ drinkData.latitude | number : "1.4-4" }}, Lon:
+            {{ drinkData.longitude | number : "1.4-4" }}
+          </li>
+          }
+          <li class="list-group-item d-flex justify-content-between">
+            <strong>Beguda:</strong> {{ drinkData.drink }}
+          </li>
+          <li class="list-group-item d-flex justify-content-between">
+            <strong>Unitats:</strong> {{ drinkData.num_drinks }}
+          </li>
+          <li class="list-group-item d-flex justify-content-between">
+            <strong>Quantitat Total:</strong>
+            {{ drinkData.quantity | number : "1.2-2" }} L
+          </li>
+          <li class="list-group-item d-flex justify-content-between">
+            <strong>Preu Introduït:</strong>
+            <span
+              >{{ drinkData.price | number : "1.2-2" }} €
+              {{ priceindividual ? "(per unitat)" : "(total)" }}</span
+            >
+            <!-- Mostra tipus de preu -->
+          </li>
+          <li class="list-group-item d-flex justify-content-between fw-bold">
+            <strong>Preu Total Calculat:</strong>
+            <span>{{ totalPrice | number : "1.2-2" }} €</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between">
+            <strong>Notes:</strong> {{ drinkData.others || "-" }}
+          </li>
+          @if (imageFile) {
+          <li
+            class="list-group-item d-flex justify-content-between text-success"
           >
-            Cancel·lar
-          </button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            (click)="submitData()"
-            data-bs-dismiss="modal"
+            <strong>Imatge:</strong>
+            <span>Fitxer seleccionat ({{ imageFile.name }})</span>
+          </li>
+          } @else {
+          <li
+            class="list-group-item d-flex justify-content-between text-muted"
           >
-            Confirmar i Afegir
-          </button>
-        </div>
+            <strong>Imatge:</strong> <span>No seleccionada</span>
+          </li>
+          }
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+        >
+          <i class="bi bi-x-lg"></i> Cancel·lar
+        </button>
+        <!-- Crida a prepareAndSendData (o el nom final al teu component) -->
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="submitData()"
+          data-bs-dismiss="modal"
+        >
+          <i class="bi bi-send-check-fill"></i> Confirmar i Enviar
+        </button>
       </div>
     </div>
   </div>
+</div>
 </div>

@@ -1,0 +1,112 @@
+/* Contenidor principal de la barra d'històries */
+.stories-bar-container {
+  padding: 10px 0; /* Espaiat vertical */
+  background-color: #f8f9fa; /* Un fons clar (opcional, pots adaptar-lo) */
+  border-bottom: 1px solid #dbdbdb; /* Línia divisòria com a Instagram */
+  width: 100%;
+  overflow: hidden; /* Evita desbordaments no desitjats */
+}
+
+/* Llista que contindrà les miniatures i permetrà scroll horitzontal */
+.stories-list {
+  display: flex; /* Alinea els elements horitzontalment */
+  align-items: flex-start; /* Alinea els elements a la part superior */
+  overflow-x: auto; /* Permet scroll horitzontal SI és necessari */
+  overflow-y: hidden; /* Amaga l'scroll vertical */
+  padding: 5px 15px; /* Una mica d'espai intern (horizontal per als extrems) */
+  gap: 15px; /* Espai entre cada element de story */
+
+  /* Amagar la barra de scroll (estàndard i per WebKit/Blink) */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+.stories-list::-webkit-scrollbar {
+  display: none; /* Safari i Chrome */
+}
+
+/* Contenidor per a cada story individual (miniatura + nom) */
+.story-item {
+  display: flex;
+  flex-direction: column; /* Apila la miniatura i el nom verticalment */
+  align-items: center; /* Centra els elements horitzontalment */
+  text-align: center;
+  flex-shrink: 0; /* Evita que els elements s'encongeixin per encaixar */
+  width: 70px; /* Amplada estimada per l'element (miniatura + espai nom) */
+}
+
+/* === Estils per a la Miniatura Rodona (Adaptats del teu CSS) === */
+.story-thumbnail {
+  width: 60px; /* Amplada de la miniatura */
+  height: 60px; /* Alçada de la miniatura */
+  border-radius: 50%; /* Fa el cercle */
+  overflow: hidden; /* Amaga el que sobri de la imatge */
+  cursor: pointer;
+  /* Vora tipus gradient com Instagram (més complexa) o sòlida */
+  border: 2px solid transparent; /* Base transparent */
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); /* Gradient Instagram */
+  background-clip: padding-box; /* Important per a la vora */
+  padding: 2px; /* Espai entre el gradient i la imatge */
+
+  display: flex; /* Per centrar imatge/placeholder */
+  justify-content: center;
+  align-items: center;
+  /* background-color: #ccc; */ /* Fons de fallback si el gradient no funciona o mentre carrega */
+  transition: transform 0.2s ease;
+  position: relative; /* Necessari per a pseudo-elements si vols afegir marcadors */
+}
+
+.story-thumbnail:hover {
+  transform: scale(1.05); /* Efecte zoom lleuger al passar per sobre */
+  /* Podries canviar la vora o afegir una ombra aquí si no uses gradient */
+}
+
+/* Estil per a les stories ja vistes */
+.story-thumbnail.seen {
+   /* Vora grisa quan ja s'ha vist */
+  background: #dbdbdb;
+  /* O si prefereixes mantenir el gradient però atenuat:
+  background: radial-gradient(circle at 30% 107%, #e0e0e0 0%, #e0e0e0 5%, #bdbdbd 45%, #ababab 60%, #9e9e9e 90%);
+  */
+}
+
+
+.story-thumbnail img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Assegura que la imatge ompli el cercle */
+  border-radius: 50%; /* Assegura que la imatge interna també sigui rodona */
+  background-color: #fff; /* Fons blanc darrere la imatge per si no carrega bé */
+}
+
+/* Gestionar error de càrrega (manté el cercle) */
+.story-thumbnail.error img {
+    display: none; /* Amaga la imatge trencada */
+}
+.story-thumbnail.error {
+    border: 2px solid #dc3545; /* Vora vermella */
+    background: #eee; /* Fons clar d'error */
+}
+.story-thumbnail.error::after { /* Mostra una 'X' si falla */
+    content: '✕';
+    color: #dc3545;
+    font-size: 1.8em;
+    font-weight: bold;
+    position: absolute; /* Centrat dins del cercle */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+/* === Fi Estils Miniatura === */
+
+
+/* Estil per al nom de l'usuari sota la miniatura */
+.story-user-name {
+  font-size: 12px; /* Mida petita */
+  color: #262626; /* Color de text fosc */
+  margin-top: 5px; /* Espai respecte la miniatura */
+  max-width: 65px; /* Amplada màxima per evitar que sigui massa llarg */
+  overflow: hidden; /* Amaga el que sobrepassi */
+  text-overflow: ellipsis; /* Afegeix "..." si el text és massa llarg */
+  white-space: nowrap; /* Evita salts de línia */
+}

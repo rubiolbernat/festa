@@ -92,7 +92,7 @@
 <!-- VISOR DE STORIES (Es manté igual al final) -->
 <app-stories
     *ngIf="showStoriesViewer"
-    [stories]="allStoriesForViewer"
+    [stories]="storyDataForViewer"
     [initialUserIndex]="initialStoryIndexForViewer"
     (close)="closeStoriesViewer()">
 </app-stories>

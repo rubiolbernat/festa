@@ -1,95 +1,119 @@
-<!-- Ultima beguda -->
+<!-- ===== Secció Última Beguda ===== -->
 <section id="last-drink" class="py-5" style="background-color:#732056; color: white;">
   <div class="container px-4 px-lg-5 text-center">
-      <canvas id="confetti-canvas"
-          style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100;">
-      </canvas>
+
+    <!-- Canvas per a Confetti (posicionat fix) -->
+    <canvas id="confetti-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;"></canvas>
+
+    <!-- Indicador de Càrrega -->
+    <div *ngIf="isLoading" class="loading-indicator my-5">
+      <p style="font-size: 1.5em;">Carregant última aventura...</p>
+      <!-- Spinner opcional -->
+      <!-- <div class="spinner-border text-light" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div> -->
+    </div>
+
+    <!-- Missatge d'Error -->
+    <div *ngIf="errorMsg && !isLoading" class="alert alert-warning mx-auto my-5" style="max-width: 600px;">
+      <p>{{ errorMsg }}</p>
+      <button class="btn btn-sm btn-secondary" (click)="loadlastinserted()">Reintentar</button>
+    </div>
+
+    <!-- Contingut Principal (Només si tenim dades i no hi ha error/càrrega) -->
+    <div *ngIf="!isLoading && !errorMsg && lastDrink">
+
       <!-- Títol -->
       <div class="row justify-content-center mb-4">
-          <div class="col-12">
-              <h2 class="mt-0"
-                  style="font-size: 2em; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                  ÚLTIMA
-                  AVENTURA ETÍLICA!</h2>
-          </div>
-      </div>
-
-      <!-- Imatge (Opcional - Pots afegir una imatge divertida relacionada amb la beguda) -->
-      <div class="row justify-content-center mb-4">
-          <div class="col-md-4">
-              <!-- <img src="url_a_la_teva_imatge_divertida" alt="Última Beguda" class="img-fluid rounded-circle" style="max-width: 200px;"> -->
-          </div>
+        <div class="col-12">
+          <h2 class="mt-0" style="font-size: 2em; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+            ÚLTIMA AVENTURA ETÍLICA!
+          </h2>
+        </div>
       </div>
 
       <!-- Dades de la Beguda -->
       <div class="row gx-4 gx-lg-5 justify-content-center">
-          <div class="col-lg-8 col-md-10">
-              <div class="card"
-                  style="background-color: rgba(255,255,255,0.1); border: none; backdrop-filter: blur(5px); border-radius: 15px; padding: 20px;">
-                  <div class="card-body">
-                      <h5 class="card-title"
-                          style="font-size: 1.8em; font-weight: bold; color: #FFD700; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
-                          @if (lastDrink.num_drinks > 1) {
-                          Algú va tastar uns/unes <span style="color: #FFFFFF;">{{ lastDrink?.num_drinks }} x {{
-                              lastDrink?.drink }}</span>
-                          } @else {
-                          Algú va tastar un/una <span style="color: #FFFFFF;">{{ lastDrink?.drink }}</span>
-                          }
-                      </h5>
-                      <p class="card-text" style="font-size: 1.2em;">
-                          El <span style="font-weight: bold; color: #FFFFFF;">{{ lastDrink?.date |
-                              date:'dd/MM/yyyy' }}</span>
-                          @if (lastDrink && lastDrink.location.length >= 1) {
-                          a
-                          <span style="font-weight: bold; color: #FFFFFF;">{{ lastDrink?.location }}</span>!
-                          }
-                      </p>
+        <div class="col-lg-8 col-md-10">
+          <div class="card" style="background-color: rgba(255,255,255,0.1); border: none; backdrop-filter: blur(5px); border-radius: 15px; padding: 20px;">
+            <div class="card-body">
 
-                      <p class="card-text" style="font-size: 1.1em;">
-                          I va pagar <span style="font-weight: bold; color: #FFFFFF;">{{ lastDrink?.price }}€</span>
-                          per aquesta
-                          delícia!
-                      </p>
+              <!-- Nom de la Beguda -->
+              <h5 class="card-title" style="font-size: 1.8em; font-weight: bold; color: #FFD700; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                <!-- Frase dinàmica segons el número de begudes -->
+                @if (lastDrink.num_drinks > 1) {
+                  Algú va tastar uns/unes <span style="color: #FFFFFF;">{{ lastDrink.num_drinks }} x {{ lastDrink.drink }}</span>
+                } @else {
+                  Algú va tastar un/una <span style="color: #FFFFFF;">{{ lastDrink.drink }}</span>
+                }
+              </h5>
 
-                      <!-- Dades de l'Usuari (Opcional - Si vols mostrar-les) -->
-                      <div *ngIf="lastDrink?.user_name">
-                          <p class="card-text" style="font-size: 1em;">
-                              Cortesia de <span style="font-style: italic; color: #FFFFFF;">{{
-                                  lastDrink?.user_name }}</span>!
-                          </p>
-                      </div>
-                      <br>
-                      <!-- Botó "Salut!" (Opcional) -->
-                      <button class="btn btn-primary"
-                          style="background-color: #FFD700; border: none; color: #333; font-weight: bold;"
-                          (click)="lancarConfetti()">Salut!</button>
+              <!-- Data i Lloc -->
+              <p class="card-text" style="font-size: 1.2em;">
+                El <span style="font-weight: bold; color: #FFFFFF;">{{ lastDrink.date | date:'dd/MM/yyyy' }}</span>
+                <!-- Mostra el lloc només si existeix -->
+                @if (lastDrink.location && lastDrink.location.length >= 1) {
+                  a <span style="font-weight: bold; color: #FFFFFF;">{{ lastDrink.location }}</span>!
+                } @else {
+                  ! <!-- Exclamació final si no hi ha lloc -->
+                }
+              </p>
 
-                      <!-- Botó per veure la imatge (si existeix) -->
-                      <button *ngIf="lastDrink.image_url" class="btn btn-info ms-2"
-                          (click)="openImage()"
-                          style="background-color: #007bff; border: none; color: #fff; font-weight: bold;">
-                          Veure foto
-                      </button>
-                  </div>
+              <!-- Preu -->
+              <p class="card-text" style="font-size: 1.1em;">
+                I va pagar <span style="font-weight: bold; color: #FFFFFF;">{{ lastDrink.price | number:'1.2-2' }}€</span> <!-- Format de moneda -->
+                 per aquesta delícia!
+                 <!-- Opcional: Mostrar preu per unitat si num_drinks > 1 -->
+                 @if (lastDrink.num_drinks > 1) {
+                    <span style="font-size: 0.9em; opacity: 0.8;"> ({{ (lastDrink.price / lastDrink.num_drinks) | number:'1.2-2' }}€/unitat)</span>
+                 }
+              </p>
+
+              <!-- Nom de l'Usuari -->
+              <div *ngIf="lastDrink.user_name">
+                <p class="card-text" style="font-size: 1em;">
+                  Cortesia de <span style="font-style: italic; color: #FFFFFF;">{{ lastDrink.user_name }}</span>!
+                </p>
               </div>
-          </div>
-      </div>
-  </div>
-</section>
 
-<!-- Si no hi ha begudes -->
-<p class="text-center text-white" *ngIf="!lastDrink">Encara no ha començat la festa! 🍹</p>
+              <br>
 
+              <!-- Botons d'Acció -->
+              <div class="action-buttons">
+                <!-- Botó Confetti "Salut!" -->
+                <button class="btn btn-primary" style="background-color: #FFD700; border: none; color: #333; font-weight: bold;" (click)="lancarConfetti()">
+                  Salut! 🎉
+                </button>
+
+                <!-- Botó "Veure Foto" (només si hi ha imatge i dades preparades per al visor) -->
+                <button *ngIf="lastDrink.image_url && storyDataForViewer.length > 0" class="btn btn-info ms-2" (click)="openImage()" style="background-color: #17a2b8; border: none; color: #fff; font-weight: bold;">
+                  Veure Foto <i class="bi bi-camera"></i> <!-- Icona opcional -->
+                </button>
+              </div>
+
+            </div> <!-- Fi card-body -->
+          </div> <!-- Fi card -->
+        </div> <!-- Fi col -->
+      </div> <!-- Fi row dades -->
+
+    </div> <!-- Fi del contenidor principal *ngIf -->
+
+    <!-- Missatge si no hi ha dades després de carregar -->
+    <div *ngIf="!isLoading && !errorMsg && !lastDrink" class="text-center mt-5">
+        <p style="font-size: 1.5em; opacity: 0.8;">Encara no ha començat la festa! 🍹</p>
+    </div>
+
+  </div> <!-- Fi container -->
+</section> <!-- Fi section -->
+
+
+<!-- ===== Component Visor de Stories ===== -->
+<!-- Es mostra condicionalment amb *ngIf="showStory" -->
+<!-- Rep les dades preparades a storyDataForViewer -->
+<!-- L'índex inicial sempre és 0 per a aquest component -->
 <app-stories
     *ngIf="showStory"
-    [stories]="storyDataForComponent"
+    [stories]="storyDataForViewer"
+    [initialUserIndex]="0"
     (close)="closeImage()">
 </app-stories>
-
-<!--<app-stories
-  [stories]="[0,1]"
-  [initialUserIndex]="0">
-  (close)="onStoriesClosed()"
-  (navigateToStory)="onNavigateToStory($event)">
-</app-stories>-->
-

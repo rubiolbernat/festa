@@ -1,0 +1,147 @@
+<!-- Embolcall Principal: Només es mostra si hi ha dades vàlides i els getters retornen valors -->
+<div
+  class="stories-container"
+  *ngIf="hasData && currentUserHeaderData && currentStorySlide"
+>
+  <!-- ===== Capçalera (Header) ===== -->
+  <div class="header">
+    <!-- Imatge de perfil (Estil original amb inicials) -->
+    <div class="profile-image" style="background: purple">
+      <!-- Accedeix al nom via el getter correcte i obté la inicial -->
+      {{ currentUserHeaderData.userName ? currentUserHeaderData.userName[0] :
+      "?" }}
+    </div>
+
+    <!-- Nom d'usuari i temps -->
+    <span class="user-name">
+      <!-- Accedeix al nom via el getter correcte -->
+      {{ currentUserHeaderData.userName }}
+      <!-- Temps relatiu de la slide actual -->
+      <small
+        class="story-time"
+        style="font-size: 10px"
+        *ngIf="currentStorySlide.uploadedAt"
+      >
+        <!-- Accedeix a la data via el getter correcte -->
+        {{ currentStorySlide.uploadedAt | relativeTime }}
+      </small>
+    </span>
+
+    <!-- Barres de Progrés -->
+    <div class="progress-bars">
+      <!-- Itera sobre les slides de l'usuari actual usant el getter correcte -->
+      <div
+        *ngFor="let slide of currentUserSlidesForProgress; let i = index"
+        class="progress-bar-wrapper"
+      >
+        <div class="progress-bar-background">
+          <!-- La lògica de l'amplada és correcta, utilitza 'progress', 'currentStoryIndex' i l'índex 'i' -->
+          <div
+            class="progress-bar-foreground"
+            [style.width.%]="i === currentStoryIndex ? progress : (i < currentStoryIndex ? 100 : 0)"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botó de tancar (Sense canvis de lògica) -->
+    <button
+      (click)="closeStories()"
+      class="close-button"
+      aria-label="Tancar històries"
+    >
+      ×
+      <!-- Caràcter 'times' (X) -->
+    </button>
+  </div>
+
+  <!-- ===== Contingut de la història (Gestors d'events i navegació no canvien) ===== -->
+  <div
+    class="story-content"
+    (panstart)="pauseTimerOnPress($any($event))"
+    (panend)="resumeTimerOnRelease()"
+    (pancancel)="resumeTimerOnRelease()"
+    (swipeleft)="handleSwipe($any($event))"
+    (swiperight)="handleSwipe($any($event))"
+    (swipedown)="handleSwipe($any($event))"
+    role="region"
+    aria-label="Contingut de la història"
+    (mousedown)="pauseTimerOnPress($event)"
+    (touchstart)="pauseTimerOnPress($event)"
+    (mouseup)="resumeTimerOnRelease()"
+    (touchend)="resumeTimerOnRelease()"
+    (mouseleave)="resumeTimerOnRelease()"
+  >
+    <!-- Navegació per clic/tap (Sense canvis de lògica) -->
+    <div
+      class="navigation-overlay left"
+      (click)="prevStory(); $event.stopPropagation()"
+      aria-label="Història anterior"
+    ></div>
+    <div
+      class="navigation-overlay right"
+      (click)="nextStory(); $event.stopPropagation()"
+      aria-label="Història següent"
+    ></div>
+
+    <!-- Imatge de la història -->
+    <div class="story-image-container">
+      <!-- Utilitza la URL de la slide actual via el getter correcte -->
+      <img
+        *ngIf="currentStorySlide.imageUrl"
+        [src]="currentStorySlide.imageUrl"
+        [alt]="'Història de ' + (currentUserHeaderData?.userName || 'usuari')"
+        class="story-image"
+        draggable="false"
+      />
+      <!-- Placeholder si la slide actual no té imatge -->
+      <div *ngIf="!currentStorySlide.imageUrl" class="no-image-placeholder">
+        Imatge no disponible
+      </div>
+    </div>
+  </div>
+  <!-- Fi story-content -->
+
+  <!-- ===== Vots (Adaptat al model actual) ===== -->
+  <!-- Col·locat fora de .story-content si vols que estigui a sota -->
+  <div class="votes">
+    <button
+      (click)="voteUp()"
+      class="vote-button positive"
+      aria-label="Vot positiu"
+    >
+      👍
+    </button>
+    <!-- Afegeix botó de vot negatiu si el tens -->
+    <!-- <button (click)="voteDown()" class="vote-button negative" aria-label="Vot negatiu">👎</button> -->
+    <span class="vote-count">
+      Vots positius:
+      <!-- Accedeix als vots de la SLIDE actual via el getter correcte -->
+      {{ currentStorySlide.votes || 0 }} {{ currentStorySlide.drink.name }}
+    </span>
+    <!-- Opcional: Informació de la beguda (Si la vols mantenir) -->
+    <div class="story-drink-info" *ngIf="currentStorySlide.drink">
+      <span class="drink-name">{{ currentStorySlide.drink.name }}</span>
+      <span class="drink-location" *ngIf="currentStorySlide.drink.location"
+        ><i class="bi bi-geo-alt-fill"></i> {{ currentStorySlide.drink.location
+        }}</span
+      >
+    </div>
+  </div>
+
+  <!-- Controls inferiors comentats (com a l'original) -->
+  <!--
+  <div class="controls">
+    <button (click)="prevStory()" class="nav-button" [disabled]="currentUserIndex === 0 && currentStoryIndex === 0"> < Anterior</button>
+    <button (click)="nextStory()" class="nav-button" [disabled]="currentUserIndex === stories.length - 1 && currentStoryIndex === ???">Següent ></button> -->
+  <!-- Hauries d'usar currentUserSlidesForProgress.length aquí -->
+  <!--</div>
+  -->
+</div>
+<!-- Fi de stories-container *ngIf -->
+
+<!-- Indicador de càrrega (Sense canvis) -->
+<div class="loading-indicator" *ngIf="!hasData">
+  <p>Carregant...</p>
+  <!-- Podries posar un spinner aquí -->
+</div>
