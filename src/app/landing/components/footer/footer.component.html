@@ -1,15 +1,30 @@
 <!-- Footer-->
+<!-- El divider pot seguir sent útil visualment -->
 <div class="b-example-divider"></div>
 
-<div class="container">
-  <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-    <div class="col-md-4 d-flex flex-column">
-      <span class="mb-3 mb-md-0 text-body-secondary">
-        <a routerLink="/legal" class="text-body-secondary text-decoration-none">Informació legal</a></span>
-      <span class="mb-3 mb-md-0 text-body-secondary">&copy;
-        2025
-      </span>
-      <span class="mb-3 mb-md-0 text-body-secondary">Developed by &#64; rubiolbernat</span>
+<!-- Afegim la classe app-footer per estils personalitzats -->
+<div class="container app-footer">
+  <!-- Simplifiquem classes: centrem el contingut -->
+  <footer class="d-flex flex-column flex-md-row justify-content-center align-items-center text-center py-3 my-4 border-top">
+
+    <!-- Contenidor principal del text, centrat -->
+    <div class="footer-content">
+      <!-- Enllaç Informació Legal -->
+      <div class="mb-2"> <!-- Afegim espaiat inferior -->
+        <a routerLink="/legal" class="text-body-secondary text-decoration-none footer-link">Informació legal</a>
+      </div>
+
+      <!-- Copyright -->
+      <div class="mb-2 text-body-secondary small"> <!-- Espaiat i text més petit -->
+        © 2025 <!-- Data dinàmica és millor -->
+      </div>
+
+      <!-- Desenvolupador i Suport (Agrupats) -->
+      <div class="developer-info text-body-secondary small"> <!-- Espaiat i text més petit -->
+        <span>Developed by &#64;rubiolbernat </span>
+        <span class="d-block d-md-inline support-text"> | Amb el suport de Francesc Eritja <i class="bi bi-person-hearts text-warning"></i></span> <!-- Separador i inline en pantalles grans -->
+      </div>
     </div>
+
   </footer>
 </div>
