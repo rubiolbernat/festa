@@ -125,7 +125,8 @@ function getUsersWithActiveStoriesAction($conn) {
               dd.drink AS drinkName,
               dd.quantity AS drinkQuantity,
               dd.price AS drinkPrice,
-              dd.num_drinks AS drinkCount
+              dd.num_drinks AS drinkCount,
+              dd.others AS others
           FROM festa_users u
           JOIN drink_stories ds ON u.user_id = ds.user_id
           JOIN drink_data dd ON ds.drink_id = dd.id
@@ -165,7 +166,8 @@ function getUsersWithActiveStoriesAction($conn) {
                   "name" => $story['drinkName'],
                   "quantity" => $story['drinkQuantity'],
                   "price" => $story['drinkPrice'],
-                  "count" => $story['drinkCount']
+                  "count" => $story['drinkCount'],
+                  "others"=>$story['others']
               ]
           ];
       }
