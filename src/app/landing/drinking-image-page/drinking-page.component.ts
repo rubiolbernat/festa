@@ -79,13 +79,13 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
 
     // Estableix valors inicials basats en la selecció per defecte (ex: Cervesa)
     if (this.selectedDrink.name !== 'Selecciona' && this.selectedDrink.name !== 'Manual') {
-        this.drinkData.drink = this.selectedDrink.name;
-        this.drinkData.quantity = this.selectedDrink.quantity; // Quantitat inicial per 1 unitat
+      this.drinkData.drink = this.selectedDrink.name;
+      this.drinkData.quantity = this.selectedDrink.quantity; // Quantitat inicial per 1 unitat
     } else if (this.selectedDrink.name === 'Manual') {
-        this.manualQuantity = true;
-        this.drinkData.quantity = this.manualQuantityValue; // Quantitat inicial manual
+      this.manualQuantity = true;
+      this.drinkData.quantity = this.manualQuantityValue; // Quantitat inicial manual
     } else {
-        this.drinkData.quantity = 0; // Si és 'Selecciona'
+      this.drinkData.quantity = 0; // Si és 'Selecciona'
     }
     this.drinkData.num_drinks = 1; // Sempre comença amb 1 unitat
     this.updateTotalPrice(); // Calcula preu inicial (probablement 0)
@@ -106,7 +106,7 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
     if (!this.manualQuantity && this.selectedDrink.name !== 'Selecciona') {
       // Si no és manual ni 'Selecciona', actualitza el nom de la beguda si estava buit o era diferent
       if (!this.drinkData.drink || this.drinks.some(d => d.name === this.drinkData.drink && d.name !== this.selectedDrink.name)) {
-           this.drinkData.drink = this.selectedDrink.name;
+        this.drinkData.drink = this.selectedDrink.name;
       }
     } else if (this.manualQuantity) {
       // Si es canvia a manual, potser mantenir el nom si ja hi havia un? O netejar-lo? Depèn del que vulguis
@@ -121,7 +121,7 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
     const num = Number(newValue); // Converteix a número
     if (Number.isInteger(num) && num > 0) {
       this.drinkData.num_drinks = num;
-       console.log('Num drinks changed:', this.drinkData.num_drinks);
+      console.log('Num drinks changed:', this.drinkData.num_drinks);
       this.updateQuantity(); // Recalcula quantitat i preu
     } else {
       // Opcional: resetejar a 1 si el valor no és vàlid?
@@ -135,16 +135,16 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
     const numDrinks = Number(this.drinkData.num_drinks) || 1; // Mínim 1
 
     if (this.manualQuantity) {
-        const manualQty = Number(this.manualQuantityValue) || 0;
-        this.drinkData.quantity = parseFloat((manualQty * numDrinks).toFixed(2));
-        console.log(`Quantity updated (Manual): ${manualQty} L/unit * ${numDrinks} units = ${this.drinkData.quantity} L`);
+      const manualQty = Number(this.manualQuantityValue) || 0;
+      this.drinkData.quantity = parseFloat((manualQty * numDrinks).toFixed(2));
+      console.log(`Quantity updated (Manual): ${manualQty} L/unit * ${numDrinks} units = ${this.drinkData.quantity} L`);
     } else if (this.selectedDrink.name !== 'Selecciona') {
-        const drinkQty = Number(this.selectedDrink.quantity) || 0;
-        this.drinkData.quantity = parseFloat((drinkQty * numDrinks).toFixed(2));
-         console.log(`Quantity updated (Selected: ${this.selectedDrink.name}): ${drinkQty} L/unit * ${numDrinks} units = ${this.drinkData.quantity} L`);
+      const drinkQty = Number(this.selectedDrink.quantity) || 0;
+      this.drinkData.quantity = parseFloat((drinkQty * numDrinks).toFixed(2));
+      console.log(`Quantity updated (Selected: ${this.selectedDrink.name}): ${drinkQty} L/unit * ${numDrinks} units = ${this.drinkData.quantity} L`);
     } else {
-        this.drinkData.quantity = 0; // Si és 'Selecciona'
-        console.log(`Quantity updated (Selecciona): 0 L`);
+      this.drinkData.quantity = 0; // Si és 'Selecciona'
+      console.log(`Quantity updated (Selecciona): 0 L`);
     }
 
     // Sempre recalcula el preu total després d'actualitzar la quantitat
@@ -153,7 +153,7 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
 
   // S'activa quan canvia el contingut de l'input de preu
   onPriceChange(newValue: number | string) {
-     console.log('Price input changed:', newValue);
+    console.log('Price input changed:', newValue);
     // ngModel ja ha actualitzat this.drinkData.price
     // Només necessitem recalcular el total
     this.updateTotalPrice();
@@ -225,15 +225,15 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
 
   filterDrinks() {
     if (this.drinkData.drink) {
-        this.drinkSuggestions = [
-            ...this.drinks.map(d => d.name).filter(name => name !== 'Selecciona' && name.toLowerCase().includes(this.drinkData.drink.toLowerCase())),
-            ...this.lastDrinks.filter(drink => drink.toLowerCase().includes(this.drinkData.drink.toLowerCase()))
-        ]
+      this.drinkSuggestions = [
+        ...this.drinks.map(d => d.name).filter(name => name !== 'Selecciona' && name.toLowerCase().includes(this.drinkData.drink.toLowerCase())),
+        ...this.lastDrinks.filter(drink => drink.toLowerCase().includes(this.drinkData.drink.toLowerCase()))
+      ]
         // Elimina duplicats i limita
         .filter((value, index, self) => self.indexOf(value) === index)
         .slice(0, 5);
     } else {
-        this.drinkSuggestions = [];
+      this.drinkSuggestions = [];
     }
   }
 
@@ -267,11 +267,11 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
       // Afegeix 'T00:00:00' per evitar problemes de zona horària al crear Date
       const date = new Date(this.drinkData.date + 'T00:00:00');
       if (!isNaN(date.getTime())) { // Comprova si la data és vàlida
-          this.drinkData.day_of_week = this.getDayOfWeek(date);
-          console.log('Day of week updated:', this.drinkData.day_of_week);
+        this.drinkData.day_of_week = this.getDayOfWeek(date);
+        console.log('Day of week updated:', this.drinkData.day_of_week);
       } else {
-          console.error('Invalid date format for day of week calculation:', this.drinkData.date);
-          this.drinkData.day_of_week = 0; // O un valor per defecte
+        console.error('Invalid date format for day of week calculation:', this.drinkData.date);
+        this.drinkData.day_of_week = 0; // O un valor per defecte
       }
     }
   }
@@ -289,9 +289,9 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
       console.log('Manual quantity value changed:', this.manualQuantityValue);
       this.updateQuantity(); // Recalcula la quantitat total i el preu
     } else {
-        // Opcional: gestionar valor invàlid (p.ex., posar 0 o mantenir l'anterior)
-        // this.manualQuantityValue = 0;
-        // this.updateQuantity();
+      // Opcional: gestionar valor invàlid (p.ex., posar 0 o mantenir l'anterior)
+      // this.manualQuantityValue = 0;
+      // this.updateQuantity();
     }
   }
 
@@ -320,50 +320,37 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
 
   // --- Funcions d'Imatge ---
   openCamera() {
-    // Comprova si estem en un entorn segur (HTTPS o localhost)
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        this.alertService.showAlert('La funcionalitat de càmera només està disponible en contexts segurs (HTTPS) o localhost.', 'warning', 7000);
-        console.error('getUserMedia not supported or context insecure.');
-        return;
-    }
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment'; // Prioritza la càmera posterior en mòbils
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }) // Prioritza càmera trasera
-        .then(stream => {
-          // Gestionar stream (p. ex., mostrar en un element <video> i capturar frame)
-          // Aquesta part requereix més lògica per mostrar preview i capturar
-          console.log("Camera stream obtained:", stream);
-          this.alertService.showAlert('Accés a càmera concedit. Implementació de captura pendent.', 'info');
-          // Aquí hauries de crear un element video, mostrar el stream,
-          // afegir un botó per capturar, dibuixar en canvas i obtenir el File.
-          // Simplificació: per ara només log i alerta.
-          // Hauries de tancar el stream quan ja no es necessiti: stream.getTracks().forEach(track => track.stop());
-        })
-        .catch(err => {
-          console.error("Error accessing camera:", err);
-          let message = 'No s\'ha pogut accedir a la càmera.';
-          if (err.name === 'NotAllowedError') {
-            message = 'Permís per accedir a la càmera denegat.';
-          } else if (err.name === 'NotFoundError') {
-            message = 'No s\'ha trobat cap càmera compatible.';
-          }
-          this.alertService.showAlert(message, 'danger', 5000);
-        });
-    }
+    input.onchange = (event: Event) => {
+      const fileInput = event.target as HTMLInputElement;
+      if (fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        console.log("Foto capturada:", file);
+        this.alertService.showAlert('Foto capturada correctament!', 'success');
+      }
+    };
+
+    input.click();
+  }
 
 
   // Funció auxiliar per convertir Data URL a File (necessària si uses canvas per captura/modificació)
   dataURLtoFile(dataurl: string, filename: string): File | null {
     try {
       let arr = dataurl.split(','),
-          mimeMatch = arr[0].match(/:(.*?);/);
+        mimeMatch = arr[0].match(/:(.*?);/);
       if (!mimeMatch) return null;
 
       let mime = mimeMatch[1],
-          bstr = atob(arr[1]),
-          n = bstr.length,
-          u8arr = new Uint8Array(n);
+        bstr = atob(arr[1]),
+        n = bstr.length,
+        u8arr = new Uint8Array(n);
       while (n--) {
-          u8arr[n] = bstr.charCodeAt(n);
+        u8arr[n] = bstr.charCodeAt(n);
       }
       return new File([u8arr], filename, { type: mime });
     } catch (e) {
@@ -379,13 +366,13 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
 
     if (fileList && fileList[0]) {
       const file = fileList[0];
-       console.log('File selected from gallery:', file.name, file.type);
+      console.log('File selected from gallery:', file.name, file.type);
       // Comprova tipus MIME bàsic
       if (!file.type.startsWith('image/')) {
-           this.alertService.showAlert('Si us plau, selecciona un fitxer d\'imatge.', 'warning');
-           this.imageFile = null;
-           this.imageUrl = null;
-           return;
+        this.alertService.showAlert('Si us plau, selecciona un fitxer d\'imatge.', 'warning');
+        this.imageFile = null;
+        this.imageUrl = null;
+        return;
       }
       this.imageFile = file;
       this.loadImagePreview(file); // Carrega previsualització
@@ -410,17 +397,17 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
     reader.onload = (e: ProgressEvent<FileReader>) => {
       // Comprova si el resultat existeix i és string (Data URL)
       if (e.target?.result && typeof e.target.result === 'string') {
-           this.imageUrl = e.target.result;
-           console.log('Image preview loaded.');
+        this.imageUrl = e.target.result;
+        console.log('Image preview loaded.');
       } else {
-           console.error('Error reading file for preview.');
-           this.imageUrl = null;
+        console.error('Error reading file for preview.');
+        this.imageUrl = null;
       }
     };
     reader.onerror = (error) => {
-        console.error('FileReader error:', error);
-        this.imageUrl = null;
-        this.alertService.showAlert('Error al llegir el fitxer d\'imatge.', 'danger');
+      console.error('FileReader error:', error);
+      this.imageUrl = null;
+      this.alertService.showAlert('Error al llegir el fitxer d\'imatge.', 'danger');
     };
     reader.readAsDataURL(file); // Llegeix com a Data URL
   }
@@ -436,27 +423,27 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
   async submitData() {
     // Validacions bàsiques abans d'enviar
     if (!this.drinkData.date) {
-        this.alertService.showAlert('La data és obligatòria.', 'warning'); return;
+      this.alertService.showAlert('La data és obligatòria.', 'warning'); return;
     }
     if (!this.drinkData.location) {
-        this.alertService.showAlert('El lloc és obligatori.', 'warning'); return;
+      this.alertService.showAlert('El lloc és obligatori.', 'warning'); return;
     }
-     if (!this.drinkData.drink) {
-        this.alertService.showAlert('La beguda és obligatòria.', 'warning'); return;
+    if (!this.drinkData.drink) {
+      this.alertService.showAlert('La beguda és obligatòria.', 'warning'); return;
     }
     if (this.drinkData.quantity <= 0) {
-        this.alertService.showAlert('La quantitat total ha de ser superior a 0.', 'warning'); return;
+      this.alertService.showAlert('La quantitat total ha de ser superior a 0.', 'warning'); return;
     }
-     if (this.drinkData.num_drinks <= 0) {
-        this.alertService.showAlert('El nombre d\'unitats ha de ser 1 o més.', 'warning'); return;
+    if (this.drinkData.num_drinks <= 0) {
+      this.alertService.showAlert('El nombre d\'unitats ha de ser 1 o més.', 'warning'); return;
     }
     if (this.drinkData.price < 0) {
-        this.alertService.showAlert('El preu no pot ser negatiu.', 'warning'); return;
+      this.alertService.showAlert('El preu no pot ser negatiu.', 'warning'); return;
     }
-     // Si el preu és 0, podria ser una alerta opcional?
-     // if (this.totalPrice === 0) {
-     //    this.alertService.showAlert('El preu total calculat és 0. Segur que vols continuar?', 'info');
-     // }
+    // Si el preu és 0, podria ser una alerta opcional?
+    // if (this.totalPrice === 0) {
+    //    this.alertService.showAlert('El preu total calculat és 0. Segur que vols continuar?', 'info');
+    // }
 
 
     console.log('Data validation passed. Preparing FormData...');
@@ -498,9 +485,9 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
     // Afegeix la imatge (processada o original si no hi ha processament)
     if (fileToUpload) {
       formData.append("image", fileToUpload, fileToUpload.name);
-       console.log('Appending image to FormData');
+      console.log('Appending image to FormData');
     } else {
-       console.log('No image to append.');
+      console.log('No image to append.');
     }
 
     console.log('FormData prepared. Starting upload...');
@@ -509,8 +496,8 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
 
   // Funció per capitalitzar la primera lletra
   capitalizeFirstLetter(text: string): string {
-      if (!text) return '';
-      return text.charAt(0).toUpperCase() + text.slice(1);
+    if (!text) return '';
+    return text.charAt(0).toUpperCase() + text.slice(1);
   }
 
   // Gestiona la pujada amb el servei
@@ -573,17 +560,17 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
     const currentDate = this.formatDate(new Date());
 
     this.drinkData = {
-        user_id: 0, // Mantenir o obtenir de nou si cal
-        date: currentDate, // Restableix a la data actual
-        day_of_week: this.getDayOfWeek(new Date(currentDate + 'T00:00:00')), // Recalcula dia
-        location: '',
-        latitude: this.drinkData.latitude, // Mantenir la última posició GPS obtinguda?
-        longitude: this.drinkData.longitude, // O cridar getCurrentLocation() de nou?
-        drink: '',
-        quantity: 0.33, // Restablir valor inicial per quantitat
-        num_drinks: 1,
-        others: '',
-        price: 0
+      user_id: 0, // Mantenir o obtenir de nou si cal
+      date: currentDate, // Restableix a la data actual
+      day_of_week: this.getDayOfWeek(new Date(currentDate + 'T00:00:00')), // Recalcula dia
+      location: '',
+      latitude: this.drinkData.latitude, // Mantenir la última posició GPS obtinguda?
+      longitude: this.drinkData.longitude, // O cridar getCurrentLocation() de nou?
+      drink: '',
+      quantity: 0.33, // Restablir valor inicial per quantitat
+      num_drinks: 1,
+      others: '',
+      price: 0
     };
 
     // Restableix estats auxiliars
@@ -624,7 +611,7 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
       const reader = new FileReader();
       reader.onload = (event: ProgressEvent<FileReader>) => {
         if (!event.target?.result || typeof event.target.result !== 'string') {
-            return reject(new Error('Error reading file for modification.'));
+          return reject(new Error('Error reading file for modification.'));
         }
 
         const img = new Image();
