@@ -335,7 +335,9 @@ function addDrinkData($conn)
       error_log("Error crític: No s'ha pogut moure el fitxer pujat a " . $target_file); // Log més detallat
       http_response_code(500);
       // Podria ser un problema de permisos a la carpeta $target_dir
-      echo json_encode(array("message" => "Error intern del servidor al processar la imatge."));
+      error_log("Intentant moure el fitxer des de " . $_FILES["image"]["tmp_name"] . " a " . $target_file);
+
+      echo json_encode(array("message" => "Error intern del servidor al processar la imatge."."Intentant moure el fitxer des de " . $_FILES["image"]["tmp_name"] . " a " . $target_file));
       exit;
     }
   } else {
