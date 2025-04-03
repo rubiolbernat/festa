@@ -297,6 +297,13 @@ function addDrinkData($conn)
   $target_file = null;
   $imageUploadedSuccessfully = false; // Flag per saber si hem mogut l'arxiu
 
+  // Comprovem si la carpeta existeix, si no, intentem crear-la
+  if (!is_dir($target_dir) && !mkdir($target_dir, 0777, true)) {
+    http_response_code(500);
+    echo json_encode(array("message" => "No s'ha pogut crear la carpeta de destinació per a les imatges."));
+    exit;
+  }
+
   if (isset($_FILES["image"]) && $_FILES["image"]["error"] == 0 && $_FILES["image"]["size"] > 0) {
     // Nom de fitxer original
     $original_filename = basename($_FILES["image"]["name"]);
@@ -334,123 +341,67 @@ function addDrinkData($conn)
       // Si falla el move_uploaded_file, no continuem amb la BD
       error_log("Error crític: No s'ha pogut moure el fitxer pujat a " . $target_file); // Log més detallat
       http_response_code(500);
-      // Podria ser un problema de permisos a la carpeta $target_dir
-      error_log("Intentant moure el fitxer des de " . $_FILES["image"]["tmp_name"] . " a " . $target_file);
-
-      echo json_encode(array("message" => "Error intern del servidor al processar la imatge."."Intentant moure el fitxer des de " . $_FILES["image"]["tmp_name"] . " a " . $target_file));
+      echo json_encode(array("message" => "Error intern del servidor al processar la imatge."));
       exit;
     }
-  } else {
-    error_log("No s'ha rebut cap imatge o hi ha hagut un error en la pujada inicial. Codi Error: " . ($_FILES["image"]["error"] ?? 'N/A'));
-    // Si no hi ha imatge, $image_name es manté null
   }
 
   // --- Obtenció i Validació de Dades del Formulari ---
-  // (Asegura't que sanitize() existeix i funciona com esperes)
   $user_id = isset($_POST['user_id']) ? sanitize($_POST['user_id']) : null;
   $date = isset($_POST['date']) ? sanitize($_POST['date']) : null;
   $location = isset($_POST['location']) ? sanitize($_POST['location']) : null;
   $drink = isset($_POST['drink']) ? sanitize($_POST['drink']) : null;
   $quantity = isset($_POST['quantity']) ? sanitize($_POST['quantity']) : null;
   $price = isset($_POST['price']) ? sanitize($_POST['price']) : null;
-  $num_drinks = isset($_POST['num_drinks']) ? sanitize($_POST['num_drinks']) : 1; // Valor per defecte si no ve
+  $num_drinks = isset($_POST['num_drinks']) ? sanitize($_POST['num_drinks']) : 1;
   $others = isset($_POST['others']) ? sanitize($_POST['others']) : '';
-  $latitude = isset($_POST['latitude']) && is_numeric($_POST['latitude']) ? sanitize($_POST['latitude']) : null; // Validació numèrica bàsica
-  $longitude = isset($_POST['longitude']) && is_numeric($_POST['longitude']) ? sanitize($_POST['longitude']) : null; // Validació numèrica bàsica
+  $latitude = isset($_POST['latitude']) && is_numeric($_POST['latitude']) ? sanitize($_POST['latitude']) : null;
+  $longitude = isset($_POST['longitude']) && is_numeric($_POST['longitude']) ? sanitize($_POST['longitude']) : null;
   $day_of_week = isset($_POST['day_of_week']) ? sanitize($_POST['day_of_week']) : null;
 
-  // Validació més estricta de dades obligatòries
   if (empty($user_id) || empty($date) || $location === null || empty($drink) || $quantity === null || $price === null || $day_of_week === null || $num_drinks === null) {
-    // Si hem mogut una imatge però les dades són invàlides, l'eliminem
     if ($imageUploadedSuccessfully && $target_file && file_exists($target_file)) {
       unlink($target_file);
       error_log("Dades invàlides rebudes. Imatge " . $target_file . " eliminada.");
     }
     http_response_code(400);
-    // Sigues més específic sobre quina dada falta si és possible
     echo json_encode(array("message" => "Falten dades obligatòries o alguna dada és invàlida per crear el registre."));
     exit;
   }
 
-  // --- Operacions de Base de Dades amb Transacció ---
   try {
-    // Iniciem la transacció
     $conn->beginTransaction();
-
-    // 1. Insert a drink_data (sempre es fa)
-    $sql_drink = "INSERT INTO drink_data
-                        (user_id, date, day_of_week, location, latitude, longitude, drink, quantity, others, price, num_drinks)
-                      VALUES
-                        (:user_id, :date, :day_of_week, :location, :latitude, :longitude, :drink, :quantity, :others, :price, :num_drinks)";
-
+    $sql_drink = "INSERT INTO drink_data (user_id, date, day_of_week, location, latitude, longitude, drink, quantity, others, price, num_drinks) VALUES (:user_id, :date, :day_of_week, :location, :latitude, :longitude, :drink, :quantity, :others, :price, :num_drinks)";
     $stmt_drink = $conn->prepare($sql_drink);
 
-    $stmt_drink->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-    $stmt_drink->bindParam(':date', $date); // PDO::PARAM_STR per defecte
-    $stmt_drink->bindParam(':day_of_week', $day_of_week, PDO::PARAM_INT);
-    $stmt_drink->bindParam(':location', $location);
-    $stmt_drink->bindParam(':latitude', $latitude); // PDO gestionarà NULL si $latitude és null
-    $stmt_drink->bindParam(':longitude', $longitude); // PDO gestionarà NULL si $longitude és null
-    $stmt_drink->bindParam(':drink', $drink);
-    $stmt_drink->bindParam(':quantity', $quantity);
-    $stmt_drink->bindParam(':price', $price);
-    $stmt_drink->bindParam(':num_drinks', $num_drinks, PDO::PARAM_INT);
-    $stmt_drink->bindParam(':others', $others);
-
-    $stmt_drink->execute();
-
-    // Obtenim l'ID de l'últim registre inserit a drink_data
+    $stmt_drink->execute([":user_id" => $user_id, ":date" => $date, ":day_of_week" => $day_of_week, ":location" => $location, ":latitude" => $latitude, ":longitude" => $longitude, ":drink" => $drink, ":quantity" => $quantity, ":price" => $price, ":num_drinks" => $num_drinks, ":others" => $others]);
     $drink_id = $conn->lastInsertId();
 
-    // Verifiquem si l'ID és vàlid (hauria de ser major que 0)
     if (!$drink_id) {
       throw new PDOException("No s'ha pogut obtenir l'ID del registre de beguda inserit.");
     }
 
-    // 2. Insert a drink_stories (NOMÉS si s'ha pujat una imatge)
     if ($image_name !== null) {
-      $sql_story = "INSERT INTO drink_stories
-                            (user_id, drink_id, image_url)
-                          VALUES
-                            (:user_id, :drink_id, :image_url)";
-
+      $sql_story = "INSERT INTO drink_stories (user_id, drink_id, image_url) VALUES (:user_id, :drink_id, :image_url)";
       $stmt_story = $conn->prepare($sql_story);
-      $stmt_story->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-      $stmt_story->bindParam(':drink_id', $drink_id, PDO::PARAM_INT);
-      $stmt_story->bindParam(':image_url', $image_name); // Guardem només el nom del fitxer
-
-      $stmt_story->execute();
+      $stmt_story->execute([":user_id" => $user_id, ":drink_id" => $drink_id, ":image_url" => $image_name]);
     }
 
-    // Si hem arribat aquí sense errors, confirmem la transacció
     $conn->commit();
-
-    // Enviem resposta d'èxit
-    http_response_code(201); // 201 Created és més apropiat per a un POST exitós
-    echo json_encode(array(
-      "message" => "Registre creat correctament.",
-      "drink_id" => $drink_id, // Pot ser útil retornar l'ID creat
-      "image_uploaded" => ($image_name !== null) // Indica si es va incloure imatge
-    ));
+    http_response_code(201);
+    echo json_encode(["message" => "Registre creat correctament.", "drink_id" => $drink_id, "image_uploaded" => ($image_name !== null)]);
 
   } catch (PDOException $e) {
-    // Si hi ha qualsevol error durant la transacció, desfem els canvis
     $conn->rollBack();
-
-    // Si l'error ha ocorregut DESPRÉS d'haver mogut la imatge, l'eliminem
     if ($imageUploadedSuccessfully && $target_file && file_exists($target_file)) {
       unlink($target_file);
-      error_log("Error durant la transacció de BD. Imatge " . $target_file . " eliminada.");
     }
-
-    // Log detallat de l'error de BD
     error_log("Error PDO en addDrinkData: " . $e->getMessage());
-
-    // Enviem resposta d'error genèrica
     http_response_code(500);
-    echo json_encode(array("message" => "Error intern del servidor al guardar les dades. Si us plau, intenta-ho més tard."));
+    echo json_encode(["message" => "Error intern del servidor al guardar les dades."]);
   }
 }
+
 function updateDrinkData($conn, $data)
 {
   error_log("updateDrinkData cridada amb les dades: " . json_encode($data));

@@ -1,5 +1,5 @@
 // src/environments/environment.ts
-
+/*
 export const environment = {
   production: false,
   // //MSI
@@ -14,17 +14,17 @@ export const environment = {
 
   storyExpirationHours: 24*15 //(15 dies)
 };
-
+*/
 //WEB
-/*
+
 export const environment = {
   production: true,
   // API
   apiUrl: 'https://joc.feritja.cat/backend',
 
   //Assets
-  assetsUrl: 'https://joc.feritja.cat/backend/assets/uploads/',
+  assetsUrl: 'https://joc.feritja.cat/assets/uploads/',
 
   storyExpirationHours: 24*15 //(15 dies)
 };
-*/
+
