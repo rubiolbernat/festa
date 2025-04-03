@@ -10,6 +10,7 @@ export interface StoryDrink {
   quantity: number;       // Quantitat de la beguda (per unitat, si count > 1)
   price: number;          // Preu de la beguda (per unitat, si count > 1)
   count: number;          // Nombre d'unitats d'aquesta beguda registrades en l'entrada original
+  others: string;
 }
 
 /**

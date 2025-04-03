@@ -124,7 +124,8 @@ export class LastInsertComponent implements OnInit, AfterViewInit {
       name: drink.drink,
       quantity: drink.quantity,
       price: drink.price,
-      count: drink.num_drinks
+      count: drink.num_drinks,
+      others: drink.others || ''
     };
 
     // 2. Crea l'únic objecte StorySlide
@@ -133,7 +134,7 @@ export class LastInsertComponent implements OnInit, AfterViewInit {
       imageUrl: drink.image_url, // Passa la URL tal com ve de l'API
       uploadedAt: (drink.timestamp instanceof Date ? drink.timestamp.toISOString() : drink.timestamp) || new Date().toISOString(), // Usa el timestamp si ve, sinó data actual
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Caducitat per defecte 24h
-      votes: 0, // Valor per defecte, no tenim vots aquí
+      votes: drink.votes ?? 0, // Valor per defecte, no tenim vots aquí
       isSaved: false, // Valor per defecte
       hasBeenSeen: false, // Valor per defecte
       drink: drinkDetails // Assigna els detalls de la beguda
