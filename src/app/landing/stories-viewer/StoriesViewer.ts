@@ -1,3 +1,4 @@
+import { AuthService } from './../../core/services/auth/auth.service';
 import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges, HostListener, ChangeDetectorRef, ChangeDetectionStrategy, inject } from '@angular/core'; // Afegit inject
 import { NgFor, NgIf, JsonPipe, CommonModule, DatePipe } from '@angular/common';
 import { environment } from '../../../environments/environment'; // Ajusta si és necessari
@@ -5,9 +6,9 @@ import { RelativeTimePipe } from '../../core/pipes/relative-time.pipe'; // El te
 
 // *** Importa els nous models ***
 import { StoryUserData, StorySlide, StoryDrink } from './../../core/models/stories.model'; // Ajusta la ruta
-
 // Importa el servei si vols implementar la votació real
 import { StoriesService } from '../../core/services/stories/stories.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-stories', // Mantens el selector del teu component
@@ -52,9 +53,11 @@ export class StoriesViewer implements OnChanges, OnDestroy {
   // Injecta ChangeDetectorRef per a possible ús amb OnPush
   // Injecta StoriesService si vols implementar la votació real
   constructor(
+    private authService: AuthService,
+    private router: Router,
     private cdr: ChangeDetectorRef,
     private storiesService: StoriesService // Injecta el servei
-    ) {}
+  ) { }
 
   // --- HostListener per a ESC (sense canvis) ---
   @HostListener('window:keydown.escape', ['$event'])
@@ -74,17 +77,17 @@ export class StoriesViewer implements OnChanges, OnDestroy {
         let validInitialIndex = this.stories.findIndex(userData => userData.stories && userData.stories.length > 0);
 
         if (validInitialIndex === -1) {
-            console.warn("Cap usuari amb stories vàlides trobat.");
-            this.hasData = false;
-            this.stopTimer();
-            this.cdr.markForCheck(); // Actualitza vista si uses OnPush
-            return;
+          console.warn("Cap usuari amb stories vàlides trobat.");
+          this.hasData = false;
+          this.stopTimer();
+          this.cdr.markForCheck(); // Actualitza vista si uses OnPush
+          return;
         }
 
         // Comprova si l'índex inicial suggerit és vàlid
         const suggestedIndexIsValid = this.initialUserIndex >= 0 &&
-                                      this.initialUserIndex < this.stories.length &&
-                                      this.stories[this.initialUserIndex]?.stories?.length > 0;
+          this.initialUserIndex < this.stories.length &&
+          this.stories[this.initialUserIndex]?.stories?.length > 0;
 
         this.currentUserIndex = suggestedIndexIsValid ? this.initialUserIndex : validInitialIndex;
         this.currentStoryIndex = 0;
@@ -143,14 +146,14 @@ export class StoriesViewer implements OnChanges, OnDestroy {
     const storySlide = currentUserSlides[this.currentStoryIndex];
     if (!storySlide) return null;
     return {
-        ...storySlide,
-        imageUrl: this.buildFullImageUrl(storySlide.imageUrl)
+      ...storySlide,
+      imageUrl: this.buildFullImageUrl(storySlide.imageUrl)
     };
   }
 
   /** Retorna l'array de slides per a l'usuari actual (per a les barres de progrés) */
   get currentUserSlidesForProgress(): StorySlide[] {
-      return this.stories[this.currentUserIndex]?.stories || [];
+    return this.stories[this.currentUserIndex]?.stories || [];
   }
 
   // --- Mètodes del Timer ---
@@ -200,9 +203,9 @@ export class StoriesViewer implements OnChanges, OnDestroy {
     this.pausedTimeRemaining = null;
     // Només inicia si hi ha dades i una story vàlida actual
     if (this.hasData && this.currentStorySlide) {
-        this.startTimer();
+      this.startTimer();
     } else {
-        console.log("No s'ha pogut reiniciar el timer: no hi ha story vàlida.");
+      console.log("No s'ha pogut reiniciar el timer: no hi ha story vàlida.");
     }
   }
 
@@ -246,19 +249,19 @@ export class StoriesViewer implements OnChanges, OnDestroy {
 
     const currentUserSlides = this.stories[this.currentUserIndex]?.stories;
     if (!currentUserSlides) { // Si per alguna raó no hi ha slides per l'usuari actual
-        this.nextUser(); // Intenta passar al següent usuari
-        return;
+      this.nextUser(); // Intenta passar al següent usuari
+      return;
     }
 
     // Comprova si hi ha més stories (slides) per a l'usuari actual
     if (this.currentStoryIndex < currentUserSlides.length - 1) {
-        this.currentStoryIndex++;
-        console.log(`Navigating to next story. User: ${this.currentUserIndex}, Story: ${this.currentStoryIndex}`);
-        this.resetTimer(); // Reinicia el timer per la nova story
+      this.currentStoryIndex++;
+      console.log(`Navigating to next story. User: ${this.currentUserIndex}, Story: ${this.currentStoryIndex}`);
+      this.resetTimer(); // Reinicia el timer per la nova story
     } else {
-        // Si era l'última story de l'usuari, passa al següent usuari
-        console.log(`Last story for user ${this.currentUserIndex}. Navigating to next user.`);
-        this.nextUser();
+      // Si era l'última story de l'usuari, passa al següent usuari
+      console.log(`Last story for user ${this.currentUserIndex}. Navigating to next user.`);
+      this.nextUser();
     }
     this.cdr.markForCheck(); // Si uses OnPush
   }
@@ -280,7 +283,7 @@ export class StoriesViewer implements OnChanges, OnDestroy {
       console.log(`First story for user ${this.currentUserIndex}. Navigating to previous user.`);
       this.prevUser(true); // true per anar a l'última story de l'usuari anterior
     }
-     this.cdr.markForCheck(); // Si uses OnPush
+    this.cdr.markForCheck(); // Si uses OnPush
   }
 
   nextUser(): void {
@@ -293,7 +296,7 @@ export class StoriesViewer implements OnChanges, OnDestroy {
     // Busca el següent índex d'usuari que tingui stories
     let nextIndex = this.currentUserIndex + 1;
     while (nextIndex < this.stories.length && (!this.stories[nextIndex]?.stories || this.stories[nextIndex].stories.length === 0)) {
-        nextIndex++;
+      nextIndex++;
     }
 
     // Si s'ha trobat un usuari vàlid
@@ -307,7 +310,7 @@ export class StoriesViewer implements OnChanges, OnDestroy {
       console.log("End of all stories. Closing viewer.");
       this.closeStories();
     }
-     this.cdr.markForCheck(); // Si uses OnPush
+    this.cdr.markForCheck(); // Si uses OnPush
   }
 
   prevUser(goToLastStory: boolean = false): void {
@@ -320,7 +323,7 @@ export class StoriesViewer implements OnChanges, OnDestroy {
     // Busca l'índex anterior d'usuari que tingui stories
     let prevIndex = this.currentUserIndex - 1;
     while (prevIndex >= 0 && (!this.stories[prevIndex]?.stories || this.stories[prevIndex].stories.length === 0)) {
-        prevIndex--;
+      prevIndex--;
     }
 
     // Si s'ha trobat un usuari vàlid
@@ -336,7 +339,7 @@ export class StoriesViewer implements OnChanges, OnDestroy {
       console.log("Beginning of all users with stories.");
       // Podries decidir tancar aquí o simplement no fer res
     }
-     this.cdr.markForCheck(); // Si uses OnPush
+    this.cdr.markForCheck(); // Si uses OnPush
   }
 
   // --- Gestor de Swipes (sense canvis, crida els mètodes ja adaptats) ---
@@ -371,9 +374,13 @@ export class StoriesViewer implements OnChanges, OnDestroy {
     const story = this.currentStorySlide;
     if (!story) return; // No fa res si no hi ha story actual
 
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/login']);
+    }
     // --- Implementació real amb API ---
     // 1. Obtenir l'ID de l'usuari que vota (hauria de venir d'un servei d'autenticació)
-    const votingUserId = 1; // **EXEMPLE**: Substituir per l'ID de l'usuari real
+    const user = this.authService.getUser();
+    const votingUserId = user?.id || 0; // **EXEMPLE**: Substituir per l'ID de l'usuari real
 
     console.log(`Votant per story ID: ${story.storyId} per usuari ${votingUserId}`);
 
@@ -383,33 +390,34 @@ export class StoriesViewer implements OnChanges, OnDestroy {
     // story.hasVoted = true;
     this.cdr.markForCheck(); // Actualitza la UI si uses OnPush
 
+
     // Crida al servei
     this.storiesService.voteStory(story.storyId, votingUserId).subscribe({
-        next: (response) => {
-            console.log('Vot enviat correctament:', response);
-            // Opcional: Actualitzar el comptador amb la resposta del servidor si és diferent
-            // if (response.newVoteCount !== undefined) {
-            //    story.votes = response.newVoteCount;
-            //    this.cdr.markForCheck();
-            // }
-        },
-        error: (err) => {
-            console.error('Error al votar la story:', err);
-            // Revertir l'actualització optimista si falla
-            story.votes--;
-            // story.hasVoted = false;
-            this.cdr.markForCheck();
-            // Mostrar un missatge d'error a l'usuari?
-        }
+      next: (response) => {
+        console.log('Vot enviat correctament:', response);
+        // Opcional: Actualitzar el comptador amb la resposta del servidor si és diferent
+        // if (response.newVoteCount !== undefined) {
+        //    story.votes = response.newVoteCount;
+        //    this.cdr.markForCheck();
+        // }
+      },
+      error: (err) => {
+        console.error('Error al votar la story:', err);
+        // Revertir l'actualització optimista si falla
+        story.votes--;
+        // story.hasVoted = false;
+        this.cdr.markForCheck();
+        // Mostrar un missatge d'error a l'usuari?
+      }
     });
-     // --- Fi Implementació real amb API ---
+    // --- Fi Implementació real amb API ---
 
-     // Implementació simple (només incrementa localment)
-     // if(this.currentStorySlide) {
-     //    this.currentStorySlide.votes++; // Modifica directament (pot no funcionar amb OnPush sense markForCheck)
-     //    console.log(`Votes (local): ${this.currentStorySlide.votes}`);
-     //    this.cdr.markForCheck(); // Si uses OnPush
-     // }
+    // Implementació simple (només incrementa localment)
+    // if(this.currentStorySlide) {
+    //    this.currentStorySlide.votes++; // Modifica directament (pot no funcionar amb OnPush sense markForCheck)
+    //    console.log(`Votes (local): ${this.currentStorySlide.votes}`);
+    //    this.cdr.markForCheck(); // Si uses OnPush
+    // }
   }
 
   /** Tanca el visor */
@@ -426,8 +434,8 @@ export class StoriesViewer implements OnChanges, OnDestroy {
     if (!this.hasData || this.timerDuration <= 0) { return 0; }
     // Calcula el progrés basat en si està pausat o no
     if (this.isPausedByUser && typeof this.pausedTimeRemaining === 'number') {
-        const elapsedPaused = this.timerDuration - Math.max(0, this.pausedTimeRemaining);
-        return Math.min(100, (elapsedPaused / this.timerDuration) * 100);
+      const elapsedPaused = this.timerDuration - Math.max(0, this.pausedTimeRemaining);
+      return Math.min(100, (elapsedPaused / this.timerDuration) * 100);
     }
     const elapsed = this.timerDuration - Math.max(0, this.timerRemaining);
     const progressPercent = Math.min(100, (elapsed / this.timerDuration) * 100);

@@ -24,36 +24,39 @@
       </div>
     </div>
 
-        <!-- Lloc -->
-        <div class="mb-3">
-          <label for="location" class="form-label">Lloc:</label>
-          <input
-            type="text"
-            class="form-control"
-            id="location"
-            name="location"
-            [(ngModel)]="drinkData.location"
-            (input)="filterLocations()"
-            required
-            #locationInput="ngModel"
-          />
-          <ul class="list-group" *ngIf="locationSuggestions.length > 0">
-            <li
-              class="list-group-item"
-              *ngFor="let suggestion of locationSuggestions"
-              (click)="drinkData.location = suggestion; locationSuggestions = []"
-            >
-              {{ suggestion }}
-            </li>
-          </ul>
-          <!-- NOU: Missatge d'error -->
-          <div
-            *ngIf="locationInput.invalid && (locationInput.dirty || locationInput.touched)"
-            class="text-danger form-text small mt-1"
-          >
-            <i class="bi bi-exclamation-triangle"></i> El lloc és obligatori.
-          </div>
-        </div>
+    <!-- Lloc -->
+    <div class="mb-3">
+      <label for="location" class="form-label">Lloc:</label>
+      <input
+        type="text"
+        class="form-control"
+        id="location"
+        name="location"
+        [(ngModel)]="drinkData.location"
+        (input)="filterLocations()"
+        required
+        #locationInput="ngModel"
+      />
+      <ul class="list-group" *ngIf="locationSuggestions.length > 0">
+        <li
+          class="list-group-item"
+          *ngFor="let suggestion of locationSuggestions"
+          (click)="drinkData.location = suggestion; locationSuggestions = []"
+        >
+          {{ suggestion }}
+        </li>
+      </ul>
+      <!-- NOU: Missatge d'error -->
+      <div
+        *ngIf="
+          locationInput.invalid &&
+          (locationInput.dirty || locationInput.touched)
+        "
+        class="text-danger form-text small mt-1"
+      >
+        <i class="bi bi-exclamation-triangle"></i> El lloc és obligatori.
+      </div>
+    </div>
 
     <!-- Latitud i Longitud -->
     <div class="mb-3 shadow p-3 rounded border">
@@ -148,7 +151,7 @@
         *ngIf="drinkInput.invalid && (drinkInput.dirty || drinkInput.touched)"
         class="text-danger form-text small mt-1"
       >
-         <i class="bi bi-exclamation-triangle"></i> La beguda és obligatòria.
+        <i class="bi bi-exclamation-triangle"></i> La beguda és obligatòria.
       </div>
     </div>
 
@@ -308,8 +311,10 @@
               name="price"
               [(ngModel)]="drinkData.price"
               (ngModelChange)="onPriceChange($event)"
-              required min="0" step="0.01" #priceInput="ngModel"
-
+              required
+              min="0"
+              step="0.01"
+              #priceInput="ngModel"
             />
             <span class="input-group-text"
               ><i class="bi bi-currency-euro"></i
@@ -400,8 +405,7 @@
           </button>
         </div>
       </div>
-      }
-
+      } @if (!imageUrl) {
       <!-- Botons d'acció imatge -->
       <div class="d-flex flex-wrap gap-2 justify-content-center mb-3">
         <button
@@ -419,7 +423,7 @@
           <i class="bi bi-image"></i> Obrir Galeria
         </button>
       </div>
-
+      }
       <!-- Progrés de la Pujada -->
       @if (uploadProgress !== undefined) {
       <div
@@ -456,7 +460,14 @@
         class="btn btn-primary"
         data-bs-toggle="modal"
         data-bs-target="#confirmationModal"
-        [disabled]="drinkData.price < 0 || !drinkData.quantity || !drinkData.location || drinkData.location.trim() === '' || !drinkData.drink || drinkData.drink.trim() === ''"
+        [disabled]="
+          drinkData.price < 0 ||
+          !drinkData.quantity ||
+          !drinkData.location ||
+          drinkData.location.trim() === '' ||
+          !drinkData.drink ||
+          drinkData.drink.trim() === ''
+        "
       >
         <i class="bi bi-plus-circle-fill"></i> Afegir
       </button>

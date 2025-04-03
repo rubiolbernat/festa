@@ -645,7 +645,8 @@ function getInsertsPaginated($conn)
                 MAX(ds.uploaded_at) AS uploaded_at,     -- Data de pujada (prenem la més recent)
                 MAX(ds.expires_at) AS expires_at,       -- Data d'expiració (prenem la màxima)
                 MAX(ds.votes) AS votes,                 -- Vots (prenem el màxim)
-                MAX(ds.is_saved) AS is_saved            -- Estat 'guardat' (prenem el màxim, on 1 > 0)
+                MAX(ds.is_saved) AS is_saved,            -- Estat 'guardat' (prenem el màxim, on 1 > 0)
+                ds.votes AS votes
             FROM
                 drink_data dd
             INNER JOIN
@@ -657,7 +658,7 @@ function getInsertsPaginated($conn)
                 -- Incloure totes les columnes de dd i fu al GROUP BY
                 dd.user_id, dd.date, dd.day_of_week, dd.location, dd.latitude, dd.longitude,
                 dd.drink, dd.quantity, dd.others, dd.price, dd.num_drinks, dd.timestamp,
-                fu.name, fu.email
+                fu.name, fu.email, ds.votes
             ORDER BY
                 dd.date DESC,             -- Ordena primer per data
                 dd.timestamp DESC         -- Després per marca de temps

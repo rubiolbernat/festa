@@ -105,27 +105,19 @@
   <!-- ===== Vots (Adaptat al model actual) ===== -->
   <!-- Col·locat fora de .story-content si vols que estigui a sota -->
   <div class="votes">
-    <button
-      (click)="voteUp()"
-      class="vote-button positive"
-      aria-label="Vot positiu"
-    >
+    <button (click)="voteUp()" class="vote-button positive" aria-label="Vot positiu">
       👍
     </button>
-    <!-- Afegeix botó de vot negatiu si el tens -->
-    <!-- <button (click)="voteDown()" class="vote-button negative" aria-label="Vot negatiu">👎</button> -->
+
     <span class="vote-count">
-      Vots positius:
-      <!-- Accedeix als vots de la SLIDE actual via el getter correcte -->
-      {{ currentStorySlide.votes || 0 }} {{ currentStorySlide.drink.name }}
+      Vots: {{ currentStorySlide.votes || 0 }}
     </span>
-    <!-- Opcional: Informació de la beguda (Si la vols mantenir) -->
+
     <div class="story-drink-info" *ngIf="currentStorySlide.drink">
+      <span class="drink-location" *ngIf="currentStorySlide.drink.others">
+        {{ currentStorySlide.drink.others }}
+      </span>
       <span class="drink-name">{{ currentStorySlide.drink.name }}</span>
-      <span class="drink-location" *ngIf="currentStorySlide.drink.location"
-        ><i class="bi bi-geo-alt-fill"></i> {{ currentStorySlide.drink.location
-        }}</span
-      >
     </div>
   </div>
 

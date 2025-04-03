@@ -116,7 +116,8 @@ export class InfiniteInsertsComponent implements OnInit {
       user_name: drink.user_name || 'Usuari Anònim',
       user_email: drink.user_email || '', // Opcional
       // Imatge (molt important)
-      image_url: drink.image_url || null // null si no hi ha imatge
+      image_url: drink.image_url || null, // null si no hi ha imatge
+      votes: drink.votes
     };
   }
 
@@ -141,7 +142,8 @@ export class InfiniteInsertsComponent implements OnInit {
           name: drink.drink,
           quantity: drink.quantity,
           price: drink.price,
-          count: drink.num_drinks
+          count: drink.num_drinks,
+          others: drink.others || ''
         };
 
         // Crea la única slide per a aquesta entrada
@@ -152,7 +154,7 @@ export class InfiniteInsertsComponent implements OnInit {
           imageUrl: drink.image_url!, // Ja hem filtrat per !null
           uploadedAt: (drink.timestamp instanceof Date ? drink.timestamp.toISOString() : drink.timestamp) || new Date().toISOString(),
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Caducitat per defecte
-          votes: 0, // Valor inicial
+          votes: drink.votes ?? 0, // Valor inicial
           isSaved: false,
           hasBeenSeen: false,
           drink: drinkDetails
