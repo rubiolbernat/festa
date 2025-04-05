@@ -246,7 +246,7 @@ function getDataByUserId($conn)
                 FROM drink_data
                 LEFT JOIN
                     drink_stories ON drink_data.id = drink_stories.drink_id
-                WHERE drink_data.user_id = :userId";
+                WHERE drink_data.user_id = :userId order by drink_data.date desc, drink_data.timestamp desc";
     try {
       $stmt = $conn->prepare($sql);
       $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
