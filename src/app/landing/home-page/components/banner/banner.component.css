@@ -26,12 +26,12 @@
   .box {
     width: 46vw;
     padding-bottom: 46vw;
+    height: 500px !important;
   }
 }
 
 .box--1 {
   width: 80vw;
-  height: 35vw;
   padding-bottom: 0;
   background-color: #fff;
   color: #000;
@@ -40,7 +40,7 @@
 @media (max-width: 768px) {
   .box--1 {
     width: 94vw;
-    height: 50vw;
+    height: 100vh !important;
     padding-bottom: 0;
   }
 }
@@ -155,9 +155,9 @@
   color: #000;
   border: 1px solid #000;
   background-color: #e8e8e8;
-  margin: 3%;
+  margin: 2%;
   /* Prova amb min-height o una alçada més gran */
-  min-height: 25%; /* Permet que creixi si cal */
+  min-height: 28%; /* Permet que creixi si cal */
   /* O augmenta el percentatge */
   /* height: 50%; */
   width: 88%;
@@ -212,7 +212,6 @@
 
 @media (max-width: 768px) {
   .box__content {
-    flex-direction: column;
     padding: 2vw;
     align-content: stretch;
     gap: 2vw;
@@ -223,6 +222,13 @@
     height: auto;
   }
 
+  .box__col--right {
+    flex-direction: column !important;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+
   .box__col:last-child {
     flex-direction: row;
     justify-content: space-around;
@@ -230,9 +236,9 @@
   }
 
   .card {
-    height: auto;
+    height: 98%;
     min-height: 18vw;
-    width: 45%;
+    width: 90%;
     margin: 0;
   }
 
@@ -268,5 +274,13 @@
     font-size: 1.6rem;
     line-height: 3.5vw;
     padding: 0 1.5vw;
+  }
+
+  .card--user{
+    font-size: 10px !important;
+    display: block;
+  }
+  .card--user span{
+    font-size: 1.5rem !important;
   }
 }

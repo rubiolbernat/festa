@@ -37,7 +37,7 @@ export class BannerComponent implements OnInit {
     // Actualitzem el signal isLoggedIn usant .set()
     this.isLoggedIn.set(this.authService.isLoggedIn());
 
-    this.drinkingDataService.getStatsDataDates('2025-02-01', '2025-04-06')
+    this.drinkingDataService.getStatsDataDates('2025-05-12', '2025-05-17') //Any, mes, dia
       .subscribe({ // Forma moderna de subscribe amb objecte
         next: (data: StatsData) => { // Tipa les dades rebudes si és possible
           // Actualitzem el signal statsData usant .set()

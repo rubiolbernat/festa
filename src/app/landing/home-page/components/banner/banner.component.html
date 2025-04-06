@@ -13,19 +13,17 @@
       </div>
       <div class="box__text-line box__text-line--bottom">
         <!-- Accedeix al signal amb () i usa ?. per seguretat -->
-        <span
-          >Setmana cultural</span
-        >
+        <span>Setmana cultural</span>
       </div>
     </div>
     <div class="box__content">
       <div class="box__col">
-        <div class="box__title">Stats <span>Generals</span></div>
+        <div class="box__title">Setmana<span>Cultural</span></div>
         <div class="box__btn" routerLink="/la_gran_aventura">
           Registrar <i class="bi bi-plus-lg"></i>
         </div>
       </div>
-      <div class="box__col">
+      <div class="box__col box__col--right">
         <!-- Opcional: Mostrar missatge mentre les dades carreguen -->
         <div *ngIf="!statsData()">Carregant estadístiques...</div>
 
@@ -41,7 +39,7 @@
               El més bevedor:
               <!-- Comprova existència i longitud de l'array abans d'accedir -->
               <span *ngIf="statsData()?.topDrinker?.length > 0">
-                {{ statsData()?.topDrinker?.[0]?.user_name }} -
+                {{ statsData()?.topDrinker[0]?.user_name }} -
                 {{ statsData()?.topDrinker?.[0]?.litres_totals }}L
               </span>
               <span
@@ -67,9 +65,9 @@
           <!-- La sintaxi @if funciona directament amb signals cridats com a funcions -->
           @if (isLoggedIn() && statsData()?.generalUserStats?.begudes_totals >
           0) {
-          <div class="box__card card">
+          <div class="box__card card card--user">
             <div class="card__top">La meva info</div>
-            <div class="card__title">
+            <div class="card__title card--user">
               <!-- Accedeix als signals amb () i usa ?. -->
               <span>{{ statsData()?.generalUserStats?.total_litres }}</span>
               Litres -

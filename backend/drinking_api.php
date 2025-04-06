@@ -1154,10 +1154,10 @@ function getTopDrinkerDates($conn, $dateStart, $dateEnd)
 
   try {
     $stmt = $conn->prepare($sql);
-    $stmt->execute();
-    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $stmt->bindParam(':dateStart', $dateStart, PDO::PARAM_STR);
     $stmt->bindParam(':dateEnd', $dateEnd, PDO::PARAM_STR);
+    $stmt->execute();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     return $result;
   } catch (PDOException $e) {
     error_log("Error en getTopDrinker: " . $e->getMessage());
