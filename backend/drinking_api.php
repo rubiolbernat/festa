@@ -1,7 +1,7 @@
 <?php
 require_once('dbconnect.php');
 require_once('restrictions.php');
-define('STORIES_UPLOAD_DIR',  '../assets/uploads/');
+define('STORIES_UPLOAD_DIR', '../assets/uploads/');
 // Funció per netejar les dades
 function sanitize($data)
 {
@@ -22,141 +22,144 @@ $action = null; // Inicialitza
 
 // --- Gestió de Peticions GET ---
 if ($method === 'GET') {
-    $action = isset($_GET['action']) ? sanitize($_GET['action']) : null; // Sanitize action
+  $action = isset($_GET['action']) ? sanitize($_GET['action']) : null; // Sanitize action
 
-    if (!$action) {
-         http_response_code(400);
-         echo json_encode(["message" => "Paràmetre 'action' requerit per a GET."]);
-         exit;
-    }
+  if (!$action) {
+    http_response_code(400);
+    echo json_encode(["message" => "Paràmetre 'action' requerit per a GET."]);
+    exit;
+  }
 
-    switch ($action) {
-        case 'getLastLocations':
-            getLastLocationsAction($conn); // Aquesta funció hauria de fer l'echo/exit
-            break; // break és bona pràctica tot i l'exit intern
-        case 'getLastDrinks':
-            getLastDrinksAction($conn);
-            break;
-        case 'getDataByUserId':
-            getDataByUserId($conn);
-            break;
-        case 'getDrinkDataById':
-            getDrinkDataById($conn);
-            break;
-        case 'getLastInserted':
-            getLastInserted($conn);
-            break;
-        case 'getInsertsPaginated':
-            getInsertsPaginated($conn);
-            break;
-        case 'getStatsData':
-            getStatsDataAction($conn);
-            break;
-        case 'getStoriesByUser':
-            getStoriesByUserAction($conn);
-            break;
-        default:
-            http_response_code(404); // Not Found per acció invàlida
-            echo json_encode(["message" => "Acció GET invàlida."]);
-            break;
-    }
-    exit; // Exit general per a GET si les funcions no ho fan
+  switch ($action) {
+    case 'getLastLocations':
+      getLastLocationsAction($conn); // Aquesta funció hauria de fer l'echo/exit
+      break; // break és bona pràctica tot i l'exit intern
+    case 'getLastDrinks':
+      getLastDrinksAction($conn);
+      break;
+    case 'getDataByUserId':
+      getDataByUserId($conn);
+      break;
+    case 'getDrinkDataById':
+      getDrinkDataById($conn);
+      break;
+    case 'getLastInserted':
+      getLastInserted($conn);
+      break;
+    case 'getInsertsPaginated':
+      getInsertsPaginated($conn);
+      break;
+    case 'getStatsData':
+      getStatsDataAction($conn);
+      break;
+    case 'getStoriesByUser':
+      getStoriesByUserAction($conn);
+      break;
+    case 'getSpecialsDateStats':
+      getSpecialsDateStats($conn);
+      break;
+    default:
+      http_response_code(404); // Not Found per acció invàlida
+      echo json_encode(["message" => "Acció GET invàlida."]);
+      break;
+  }
+  exit; // Exit general per a GET si les funcions no ho fan
 }
 
 // --- Gestió de Peticions POST ---
 elseif ($method === 'POST') {
-    // Per POST, esperem dades al body (probablement form-urlencoded o multipart)
-    // I esperem l'acció també al body per consistència
-     if (isset($_POST['action'])) {
-        $action = sanitize($_POST['action']);
-        $data = $_POST; // Passem tot $_POST a les funcions que ho necessitin
+  // Per POST, esperem dades al body (probablement form-urlencoded o multipart)
+  // I esperem l'acció també al body per consistència
+  if (isset($_POST['action'])) {
+    $action = sanitize($_POST['action']);
+    $data = $_POST; // Passem tot $_POST a les funcions que ho necessitin
 
-        switch ($action) {
-            case 'addDrinkData':
-                addDrinkData($conn); // Aquesta funció ja llegeix $_POST i $_FILES internament
-                break;
-            // Pots afegir altres accions POST aquí (vote, unvote, deleteExpired, etc.)
-            // assegurant-te que llegeixen de $data si cal
-            /*
-            case 'voteStory':
-                 if (isset($data['user_id'], $data['story_id'])) { ... } else { error 400 }
-                 break;
-            */
-            default:
-                http_response_code(404);
-                echo json_encode(["message" => "Acció POST invàlida."]);
-                break;
-        }
-    } else {
-         http_response_code(400);
-         echo json_encode(["message" => "Paràmetre 'action' requerit al body per a POST."]);
+    switch ($action) {
+      case 'addDrinkData':
+        addDrinkData($conn); // Aquesta funció ja llegeix $_POST i $_FILES internament
+        break;
+      // Pots afegir altres accions POST aquí (vote, unvote, deleteExpired, etc.)
+      // assegurant-te que llegeixen de $data si cal
+      /*
+      case 'voteStory':
+           if (isset($data['user_id'], $data['story_id'])) { ... } else { error 400 }
+           break;
+      */
+      default:
+        http_response_code(404);
+        echo json_encode(["message" => "Acció POST invàlida."]);
+        break;
     }
-    exit;
+  } else {
+    http_response_code(400);
+    echo json_encode(["message" => "Paràmetre 'action' requerit al body per a POST."]);
+  }
+  exit;
 }
 
 // --- Gestió de Peticions PUT ---
 elseif ($method === 'PUT') {
-     // Per PUT, normalment s'espera un body JSON
-     $inputJSON = file_get_contents('php://input');
-     $inputData = json_decode($inputJSON, true); // true per array associatiu
+  // Per PUT, normalment s'espera un body JSON
+  $inputJSON = file_get_contents('php://input');
+  $inputData = json_decode($inputJSON, true); // true per array associatiu
 
-     // Comprova si la decodificació ha funcionat i si hi ha 'action'
-     if ($inputData && isset($inputData['action'])) {
-         $action = sanitize($inputData['action']);
-         $data = $inputData; // Passem les dades decodificades
+  // Comprova si la decodificació ha funcionat i si hi ha 'action'
+  if ($inputData && isset($inputData['action'])) {
+    $action = sanitize($inputData['action']);
+    $data = $inputData; // Passem les dades decodificades
 
-         switch ($action) {
-             case 'updateDrinkData':
-                 // Passa les dades llegides del JSON
-                 updateDrinkData($conn, $data);
-                 break;
-             // Altres accions PUT si n'hi ha
-             default:
-                 http_response_code(404);
-                 echo json_encode(["message" => "Acció PUT invàlida."]);
-                 break;
-         }
-     } else {
-          http_response_code(400);
-          error_log("PUT Error: Body JSON invàlid o falta 'action'. Body: " . $inputJSON);
-          echo json_encode(["message" => "Body JSON invàlid o falta 'action' per a PUT."]);
-     }
-     exit;
+    switch ($action) {
+      case 'updateDrinkData':
+        // Passa les dades llegides del JSON
+        updateDrinkData($conn, $data);
+        break;
+      // Altres accions PUT si n'hi ha
+      default:
+        http_response_code(404);
+        echo json_encode(["message" => "Acció PUT invàlida."]);
+        break;
+    }
+  } else {
+    http_response_code(400);
+    error_log("PUT Error: Body JSON invàlid o falta 'action'. Body: " . $inputJSON);
+    echo json_encode(["message" => "Body JSON invàlid o falta 'action' per a PUT."]);
+  }
+  exit;
 }
 
 // --- Gestió de Peticions DELETE ---
 elseif ($method === 'DELETE') {
-    // Per DELETE (segons envia el teu Angular):
-    // 1. Llegeix l'acció del paràmetre URL ($_GET)
-    $action = isset($_GET['action']) ? sanitize($_GET['action']) : null;
+  // Per DELETE (segons envia el teu Angular):
+  // 1. Llegeix l'acció del paràmetre URL ($_GET)
+  $action = isset($_GET['action']) ? sanitize($_GET['action']) : null;
 
-    if ($action === 'deleteDrinkData') {
-        // 2. Llegeix el body JSON per obtenir l'ID
-        $inputJSON = file_get_contents('php://input');
-        $inputData = json_decode($inputJSON, true);
+  if ($action === 'deleteDrinkData') {
+    // 2. Llegeix el body JSON per obtenir l'ID
+    $inputJSON = file_get_contents('php://input');
+    $inputData = json_decode($inputJSON, true);
 
-        // 3. Comprova si s'ha pogut decodificar i si conté 'id'
-        if ($inputData && isset($inputData['id'])) {
-            $idToDelete = $inputData['id']; // L'ID ve del body JSON
-            // 4. Crida a la funció passant només l'ID
-            deleteDrinkData($conn, $idToDelete); // Usa la funció que espera ID
-        } else {
-            // Error si el body no és JSON vàlid o no conté 'id'
-            http_response_code(400);
-            error_log("[Router DELETE] Body invàlid o falta 'id'. Body rebut: " . $inputJSON);
-            echo json_encode(["message" => "Body de la petició DELETE invàlid o falta l'ID."]);
-        }
+    // 3. Comprova si s'ha pogut decodificar i si conté 'id'
+    if ($inputData && isset($inputData['id'])) {
+      $idToDelete = $inputData['id']; // L'ID ve del body JSON
+      // 4. Crida a la funció passant només l'ID
+      deleteDrinkData($conn, $idToDelete); // Usa la funció que espera ID
     } else {
-         http_response_code(400); // O 404 si l'acció no existeix
-         echo json_encode(["message" => "Acció DELETE invàlida o no especificada a la URL."]);
+      // Error si el body no és JSON vàlid o no conté 'id'
+      http_response_code(400);
+      error_log("[Router DELETE] Body invàlid o falta 'id'. Body rebut: " . $inputJSON);
+      echo json_encode(["message" => "Body de la petició DELETE invàlid o falta l'ID."]);
     }
-    exit;
+  } else {
+    http_response_code(400); // O 404 si l'acció no existeix
+    echo json_encode(["message" => "Acció DELETE invàlida o no especificada a la URL."]);
+  }
+  exit;
 }
 //Funcions
 function getLastInserted($conn)
 {
-    // Query SQL sense comentaris interns
-    $sql = "SELECT
+  // Query SQL sense comentaris interns
+  $sql = "SELECT
                 dd.id, dd.user_id, dd.date, dd.day_of_week, dd.location, dd.latitude, dd.longitude,
                 dd.drink, dd.quantity, dd.others, dd.price, dd.num_drinks, dd.timestamp,
                 fu.name AS user_name,
@@ -183,29 +186,29 @@ function getLastInserted($conn)
                 dd.timestamp DESC
             LIMIT 1";
 
-    try {
-        $stmt = $conn->prepare($sql);
-        $stmt->execute();
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
 
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($row) {
-            header('Content-Type: application/json');
-            echo json_encode($row);
-        } else {
-            http_response_code(404);
-            header('Content-Type: application/json');
-            echo json_encode(array("message" => "No s'ha trobat cap registre de consum."));
-        }
-
-    } catch (PDOException $e) {
-        http_response_code(500);
-        // Log detallat de l'error per al servidor
-        error_log("Error PDO en getLastInserted: " . $e->getMessage() . " | SQL: " . $sql);
-        header('Content-Type: application/json');
-        // Missatge genèric per al client
-        echo json_encode(array("message" => "Error intern del servidor al consultar les dades."));
+    if ($row) {
+      header('Content-Type: application/json');
+      echo json_encode($row);
+    } else {
+      http_response_code(404);
+      header('Content-Type: application/json');
+      echo json_encode(array("message" => "No s'ha trobat cap registre de consum."));
     }
+
+  } catch (PDOException $e) {
+    http_response_code(500);
+    // Log detallat de l'error per al servidor
+    error_log("Error PDO en getLastInserted: " . $e->getMessage() . " | SQL: " . $sql);
+    header('Content-Type: application/json');
+    // Missatge genèric per al client
+    echo json_encode(array("message" => "Error intern del servidor al consultar les dades."));
+  }
 }
 
 
@@ -453,107 +456,110 @@ function updateDrinkData($conn, $data)
 
 function deleteDrinkData($conn, $id) // <-- Ara rep $id directament
 {
-    error_log("[deleteDrinkData] Inici amb ID: " . $id);
+  error_log("[deleteDrinkData] Inici amb ID: " . $id);
 
-    // 1. Validar l'ID (ja no cal isset($data['id']))
-    // Usem filter_var directament sobre el paràmetre $id
-    if (!filter_var($id, FILTER_VALIDATE_INT)) {
-         http_response_code(400);
-         // No cal sanitize aquí si ja s'ha validat com a INT
-         echo json_encode(array("message" => "L'ID proporcionat ($id) no és un número enter vàlid."));
-         exit;
+  // 1. Validar l'ID (ja no cal isset($data['id']))
+  // Usem filter_var directament sobre el paràmetre $id
+  if (!filter_var($id, FILTER_VALIDATE_INT)) {
+    http_response_code(400);
+    // No cal sanitize aquí si ja s'ha validat com a INT
+    echo json_encode(array("message" => "L'ID proporcionat ($id) no és un número enter vàlid."));
+    exit;
+  }
+  // No cal sanitize si ja hem validat com a INT, PDO s'encarregarà
+
+  $imageUrlToDelete = null;
+  $dbDeleted = false;
+  $fileDeleted = false;
+  $fileDeleteAttempted = false;
+  $fileError = null;
+
+  try {
+    // --- Pas 1: Obtenir el nom del fitxer ---
+    $sql_select_image = "SELECT image_url FROM drink_stories WHERE drink_id = :id";
+    $stmt_select = $conn->prepare($sql_select_image);
+    $stmt_select->bindParam(':id', $id, PDO::PARAM_INT); // Usa l'ID rebut
+    $stmt_select->execute();
+    $storyData = $stmt_select->fetch(PDO::FETCH_ASSOC);
+
+    if ($storyData && !empty($storyData['image_url'])) {
+      $imageUrlToDelete = $storyData['image_url'];
+      error_log("[deleteDrinkData] Story trobada per a drink_id $id. Fitxer a eliminar: " . $imageUrlToDelete);
+    } else {
+      error_log("[deleteDrinkData] No s'ha trobat story o image_url per a drink_id $id.");
     }
-    // No cal sanitize si ja hem validat com a INT, PDO s'encarregarà
 
-    $imageUrlToDelete = null;
-    $dbDeleted = false;
-    $fileDeleted = false;
-    $fileDeleteAttempted = false;
-    $fileError = null;
+    // --- Pas 2: Eliminar de la BD ---
+    $conn->beginTransaction();
+    $sql_delete_drink = "DELETE FROM drink_data WHERE id = :id";
+    $stmt_delete = $conn->prepare($sql_delete_drink);
+    $stmt_delete->bindParam(':id', $id, PDO::PARAM_INT); // Usa l'ID rebut
+    $stmt_delete->execute();
+    $deletedRowCount = $stmt_delete->rowCount();
+    error_log("[deleteDrinkData] Files eliminades de drink_data: " . $deletedRowCount);
 
-    try {
-        // --- Pas 1: Obtenir el nom del fitxer ---
-        $sql_select_image = "SELECT image_url FROM drink_stories WHERE drink_id = :id";
-        $stmt_select = $conn->prepare($sql_select_image);
-        $stmt_select->bindParam(':id', $id, PDO::PARAM_INT); // Usa l'ID rebut
-        $stmt_select->execute();
-        $storyData = $stmt_select->fetch(PDO::FETCH_ASSOC);
-
-        if ($storyData && !empty($storyData['image_url'])) {
-            $imageUrlToDelete = $storyData['image_url'];
-            error_log("[deleteDrinkData] Story trobada per a drink_id $id. Fitxer a eliminar: " . $imageUrlToDelete);
-        } else {
-            error_log("[deleteDrinkData] No s'ha trobat story o image_url per a drink_id $id.");
-        }
-
-        // --- Pas 2: Eliminar de la BD ---
-        $conn->beginTransaction();
-        $sql_delete_drink = "DELETE FROM drink_data WHERE id = :id";
-        $stmt_delete = $conn->prepare($sql_delete_drink);
-        $stmt_delete->bindParam(':id', $id, PDO::PARAM_INT); // Usa l'ID rebut
-        $stmt_delete->execute();
-        $deletedRowCount = $stmt_delete->rowCount();
-        error_log("[deleteDrinkData] Files eliminades de drink_data: " . $deletedRowCount);
-
-        if ($deletedRowCount > 0) {
-            $dbDeleted = true;
-            $conn->commit();
-            error_log("[deleteDrinkData] Commit de la BD realitzat.");
-        } else {
-            $conn->rollBack();
-            error_log("[deleteDrinkData] L'ID $id no existia a drink_data. Rollback realitzat.");
-            http_response_code(404);
-            echo json_encode(array("message" => "No s'ha trobat cap registre amb l'ID proporcionat."));
-            exit;
-        }
-
-        // --- Pas 3: Eliminar el fitxer físic ---
-        if ($dbDeleted && $imageUrlToDelete) {
-            // ... (la lògica per eliminar el fitxer roman igual) ...
-            $fileDeleteAttempted = true;
-            $filePath = rtrim(STORIES_UPLOAD_DIR, '/') . '/' . $imageUrlToDelete;
-            error_log("[deleteDrinkData] Intentant eliminar el fitxer: " . $filePath);
-            if (is_file($filePath)) {
-                if (unlink($filePath)) {
-                    $fileDeleted = true;
-                    error_log("[deleteDrinkData] Fitxer eliminat amb èxit: " . $filePath);
-                } else {
-                    $fileError = "No s'ha pogut eliminar el fitxer (verificar permisos a " . STORIES_UPLOAD_DIR . ")";
-                    error_log("[deleteDrinkData] ERROR: " . $fileError . " Fitxer: " . $filePath);
-                }
-            } else {
-                $fileError = "El fitxer no existeix o no és un fitxer.";
-                error_log("[deleteDrinkData] AVÍS: " . $fileError . " Fitxer: " . $filePath);
-            }
-        }
-
-        // --- Pas 4: Enviar Resposta d'Èxit ---
-         // ... (la lògica per construir el missatge de resposta roman igual) ...
-         http_response_code(200);
-         $responseMessage = "Registre eliminat correctament de la base de dades.";
-         if($fileDeleteAttempted){ /* ... */ }
-         echo json_encode(array(
-             "message" => $responseMessage,
-             "dbDeleted" => $dbDeleted,
-             "fileDeleted" => $fileDeleted,
-             "fileError" => $fileError
-         ));
-         exit;
-
-    } catch (PDOException $e) {
-         // ... (la gestió d'errors PDO roman igual) ...
-         if ($conn->inTransaction()) { $conn->rollBack(); }
-         error_log("[deleteDrinkData] Error PDO: " . $e->getMessage());
-         http_response_code(500);
-         echo json_encode(array("message" => "Error de base de dades en eliminar el registre: " . $e->getMessage()));
-         exit;
-    } catch (Exception $e) {
-         // ... (la gestió d'errors generals roman igual) ...
-         error_log("[deleteDrinkData] ERROR General: " . $e->getMessage());
-         http_response_code(500);
-         echo json_encode(array("message" => "Error general inesperat durant l'eliminació: " . $e->getMessage()));
-         exit;
+    if ($deletedRowCount > 0) {
+      $dbDeleted = true;
+      $conn->commit();
+      error_log("[deleteDrinkData] Commit de la BD realitzat.");
+    } else {
+      $conn->rollBack();
+      error_log("[deleteDrinkData] L'ID $id no existia a drink_data. Rollback realitzat.");
+      http_response_code(404);
+      echo json_encode(array("message" => "No s'ha trobat cap registre amb l'ID proporcionat."));
+      exit;
     }
+
+    // --- Pas 3: Eliminar el fitxer físic ---
+    if ($dbDeleted && $imageUrlToDelete) {
+      // ... (la lògica per eliminar el fitxer roman igual) ...
+      $fileDeleteAttempted = true;
+      $filePath = rtrim(STORIES_UPLOAD_DIR, '/') . '/' . $imageUrlToDelete;
+      error_log("[deleteDrinkData] Intentant eliminar el fitxer: " . $filePath);
+      if (is_file($filePath)) {
+        if (unlink($filePath)) {
+          $fileDeleted = true;
+          error_log("[deleteDrinkData] Fitxer eliminat amb èxit: " . $filePath);
+        } else {
+          $fileError = "No s'ha pogut eliminar el fitxer (verificar permisos a " . STORIES_UPLOAD_DIR . ")";
+          error_log("[deleteDrinkData] ERROR: " . $fileError . " Fitxer: " . $filePath);
+        }
+      } else {
+        $fileError = "El fitxer no existeix o no és un fitxer.";
+        error_log("[deleteDrinkData] AVÍS: " . $fileError . " Fitxer: " . $filePath);
+      }
+    }
+
+    // --- Pas 4: Enviar Resposta d'Èxit ---
+    // ... (la lògica per construir el missatge de resposta roman igual) ...
+    http_response_code(200);
+    $responseMessage = "Registre eliminat correctament de la base de dades.";
+    if ($fileDeleteAttempted) { /* ... */
+    }
+    echo json_encode(array(
+      "message" => $responseMessage,
+      "dbDeleted" => $dbDeleted,
+      "fileDeleted" => $fileDeleted,
+      "fileError" => $fileError
+    ));
+    exit;
+
+  } catch (PDOException $e) {
+    // ... (la gestió d'errors PDO roman igual) ...
+    if ($conn->inTransaction()) {
+      $conn->rollBack();
+    }
+    error_log("[deleteDrinkData] Error PDO: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(array("message" => "Error de base de dades en eliminar el registre: " . $e->getMessage()));
+    exit;
+  } catch (Exception $e) {
+    // ... (la gestió d'errors generals roman igual) ...
+    error_log("[deleteDrinkData] ERROR General: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(array("message" => "Error general inesperat durant l'eliminació: " . $e->getMessage()));
+    exit;
+  }
 }
 // Funció per obtenir les ubicacions anteriors
 function getLastLocations($conn, $userId)
@@ -1045,6 +1051,117 @@ function getStoriesByUser($conn, $userId)
   } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(array("message" => "Error al obtener las stories: " . $e->getMessage()));
+  }
+}
+
+function getSpecialsDateStats($conn)
+{
+  if (isset($_GET['date-start']) && isset($_GET['date-end'])) {
+    $dateStart = sanitize($_GET['date-start']);
+    $dateEnd = sanitize($_GET['date-end']);
+  } else {
+    http_response_code(400);
+    echo json_encode(array("message" => "Falta el paràmetre date-start o date-end."));
+  }
+  if (isset($_GET['user_id'])) {
+    $userId = sanitize($_GET['user_id']);
+    // Obtener datos generales
+    $generalUserStats = getGeneralUserStatsDate($conn, $userId, $dateStart, $dateEnd);
+    $generalStats = getGeneralStatsDate($conn, $dateStart, $dateEnd);
+    // Obtener top spending day
+    $topDrinkByQuantity = getTopDrinkByQuantity($conn, $userId);
+    // Obtener estadísticas semanales
+    $weeklyStats = getWeeklyStats($conn, $userId);
+    // Obtener el mes bevedeor del grup
+    $topDrinker = getTopDrinkerDates($conn, $dateStart, $dateEnd);
+
+    // Combinar resultados
+    $result = array(
+      'generalUserStats' => $generalUserStats,
+      'generalStats' => $generalStats,
+      'topDrinkByQuantity' => $topDrinkByQuantity,
+      'weeklyStats' => $weeklyStats,
+      'topDrinker' => $topDrinker
+    );
+
+    echo json_encode($result);
+  } else {
+    http_response_code(400);
+    echo json_encode(array("message" => "Falta el paràmetre user_id."));
+  }
+}
+
+function getGeneralUserStatsDate($conn, $userId, $dateStart, $dateEnd)
+{
+  $sql = "SELECT
+              SUM(quantity) AS total_litres,
+              SUM(price) AS total_preu,
+              COUNT(DISTINCT date) AS dies_beguts,
+              SUM(num_drinks) AS begudes_totals
+          FROM drink_data
+          WHERE user_id = :userId
+            AND date BETWEEN :dateStart AND :dateEnd";
+
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+    $stmt->bindParam(':dateStart', $dateStart, PDO::PARAM_STR);
+    $stmt->bindParam(':dateEnd', $dateEnd, PDO::PARAM_STR);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error a getGeneralStatsDate: " . $e->getMessage());
+    return array("error" => "Error al obtenir estadístiques generals per dates.");
+  }
+}
+
+function getGeneralStatsDate($conn, $dateStart, $dateEnd)
+{
+  $sql = "SELECT
+              SUM(quantity) AS total_litres,
+              SUM(price) AS total_preu,
+              COUNT(DISTINCT date) AS dies_beguts,
+              SUM(num_drinks) AS begudes_totals
+          FROM drink_data
+          WHERE date BETWEEN :dateStart AND :dateEnd";
+
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':dateStart', $dateStart, PDO::PARAM_STR);
+    $stmt->bindParam(':dateEnd', $dateEnd, PDO::PARAM_STR);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error a getGeneralStatsDate: " . $e->getMessage());
+    return array("error" => "Error al obtenir estadístiques generals per dates.");
+  }
+}
+
+function getTopDrinkerDates($conn, $dateStart, $dateEnd)
+{
+  $sql = "SELECT
+            drink_data.user_id AS user_id,
+            festa_users.name AS user_name,
+            SUM(quantity) AS litres_totals
+          FROM drink_data
+          JOIN festa_users ON drink_data.user_id = festa_users.user_id
+          WHERE drink_data.date BETWEEN :dateStart AND :dateEnd
+          GROUP BY drink_data.user_id, festa_users.name
+          ORDER BY litres_totals DESC
+          LIMIT 3";
+
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt->bindParam(':dateStart', $dateStart, PDO::PARAM_STR);
+    $stmt->bindParam(':dateEnd', $dateEnd, PDO::PARAM_STR);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error en getTopDrinker: " . $e->getMessage());
+    return array("error" => "Error al obtener el mes bevedeor del grup.");
   }
 }
 
