@@ -18,7 +18,7 @@
       <tbody>
         @for (drinkData of drinkDataList; track $index) {
         <tr>
-          <td>{{ drinkData.date | date:'MM-dd-yy' }}</td>
+          <td>{{ drinkData.date | date:'dd-MM-yy' }}</td>
           <td>{{ drinkData.location }}</td>
           <td>{{ drinkData.drink }}</td>
           <td>{{ drinkData.quantity }}</td>
