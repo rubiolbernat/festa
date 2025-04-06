@@ -1,101 +1,89 @@
 import { AuthService } from './../../core/services/auth/auth.service';
-import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges, HostListener, ChangeDetectorRef, ChangeDetectionStrategy, inject } from '@angular/core'; // Afegit inject
+// Imports necessaris per a HammerJS i ViewChild
+import {
+  Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges,
+  HostListener, ChangeDetectorRef, ChangeDetectionStrategy, inject,
+  ViewChild, ElementRef, AfterViewInit, NgZone // Afegits ViewChild, ElementRef, AfterViewInit, NgZone
+} from '@angular/core';
 import { NgFor, NgIf, JsonPipe, CommonModule, DatePipe } from '@angular/common';
-import { environment } from '../../../environments/environment'; // Ajusta si és necessari
-import { RelativeTimePipe } from '../../core/pipes/relative-time.pipe'; // El teu pipe personalitzat
-
-// *** Importa els nous models ***
-import { StoryUserData, StorySlide, StoryDrink } from './../../core/models/stories.model'; // Ajusta la ruta
-// Importa el servei si vols implementar la votació real
+import { environment } from '../../../environments/environment';
+import { RelativeTimePipe } from '../../core/pipes/relative-time.pipe';
+import { StoryUserData, StorySlide, StoryDrink } from './../../core/models/stories.model';
 import { StoriesService } from '../../core/services/stories/stories.service';
 import { Router } from '@angular/router';
 
+// Importa Hammer (principalment per a tipus i instanciació manual)
+import Hammer from 'hammerjs';
+
 @Component({
-  selector: 'app-stories', // Mantens el selector del teu component
+  selector: 'app-stories',
   standalone: true,
   imports: [
-    NgFor,
-    NgIf,
-    JsonPipe,
-    CommonModule,
-    DatePipe,
-    RelativeTimePipe
+    NgFor, NgIf, JsonPipe, CommonModule, DatePipe, RelativeTimePipe
   ],
   templateUrl: './StoriesViewer.html',
   styleUrls: ['./StoriesViewer.css'],
-  // changeDetection: ChangeDetectionStrategy.OnPush // Descomenta si vols optimitzar el rendiment
+  // changeDetection: ChangeDetectionStrategy.OnPush // Descomenta per optimitzar
 })
-export class StoriesViewer implements OnChanges, OnDestroy {
+export class StoriesViewer implements OnChanges, OnDestroy, AfterViewInit { // Afegeix AfterViewInit
 
-  /**
-   * Array de dades d'usuaris i les seves stories.
-   * Ara utilitza la interfície StoryUserData per a tipatge fort.
-   */
   @Input() stories: StoryUserData[] = [];
-
   @Input() initialUserIndex: number = 0;
   @Output() close = new EventEmitter<void>();
-  // @Output() navigateToStory = new EventEmitter<number>(); // No sembla utilitzat
 
   currentUserIndex: number = 0;
-  currentStoryIndex: number = 0; // Índex de la slide dins de l'usuari actual
+  currentStoryIndex: number = 0;
 
-  // --- Estats del Timer i Visor ---
   timerInterval: ReturnType<typeof setInterval> | null = null;
-  timerDuration: number = 7; // Duració per defecte (en segons)
+  timerDuration: number = 7;
   timerRemaining: number = this.timerDuration;
   hasData: boolean = false;
   isPausedByUser: boolean = false;
   private pausedTimeRemaining: number | null = null;
-  private readonly updateIntervalMs = 50; // Interval d'actualització del timer (50ms)
+  private readonly updateIntervalMs = 50;
   private timerStartTime: number = 0;
 
-  // Injecta ChangeDetectorRef per a possible ús amb OnPush
-  // Injecta StoriesService si vols implementar la votació real
+  // ViewChild per referenciar l'element que gestionarà els gestos
+  @ViewChild('storyContent') storyContentRef!: ElementRef<HTMLDivElement>;
+  private hammerManager: HammerManager | null = null; // Instància de Hammer
+
   constructor(
     private authService: AuthService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private storiesService: StoriesService // Injecta el servei
+    private storiesService: StoriesService,
+    private zone: NgZone // Injecta NgZone
   ) { }
 
-  // --- HostListener per a ESC (sense canvis) ---
   @HostListener('window:keydown.escape', ['$event'])
   handleEscapeKey(event: KeyboardEvent) {
     this.closeStories();
   }
 
-  // --- Cicle de Vida: ngOnChanges ---
   ngOnChanges(changes: SimpleChanges): void {
+    // --- Lògica existent per gestionar canvis a 'stories' ---
     if (changes['stories'] && changes['stories'].currentValue) {
-      this.stories = changes['stories'].currentValue as StoryUserData[] || []; // Tipus aplicat
+      this.stories = changes['stories'].currentValue as StoryUserData[] || [];
 
       if (this.stories.length > 0) {
         this.hasData = true;
-
-        // Troba el primer usuari amb stories vàlides
         let validInitialIndex = this.stories.findIndex(userData => userData.stories && userData.stories.length > 0);
-
         if (validInitialIndex === -1) {
           console.warn("Cap usuari amb stories vàlides trobat.");
           this.hasData = false;
           this.stopTimer();
-          this.cdr.markForCheck(); // Actualitza vista si uses OnPush
+          this.cdr.markForCheck();
           return;
         }
-
-        // Comprova si l'índex inicial suggerit és vàlid
         const suggestedIndexIsValid = this.initialUserIndex >= 0 &&
           this.initialUserIndex < this.stories.length &&
           this.stories[this.initialUserIndex]?.stories?.length > 0;
-
         this.currentUserIndex = suggestedIndexIsValid ? this.initialUserIndex : validInitialIndex;
         this.currentStoryIndex = 0;
         this.isPausedByUser = false;
         this.pausedTimeRemaining = null;
         console.log(`Stories data rebuda. Començant a user index: ${this.currentUserIndex}, story index: ${this.currentStoryIndex}`);
         this.resetTimer();
-
       } else {
         console.log("L'array de stories rebut està buit.");
         this.hasData = false;
@@ -103,18 +91,88 @@ export class StoriesViewer implements OnChanges, OnDestroy {
         this.pausedTimeRemaining = null;
         this.stopTimer();
       }
-      this.cdr.markForCheck(); // Actualitza vista si uses OnPush
+      this.cdr.markForCheck();
+       // Reconfigura Hammer si les dades canvien i la vista ja està inicialitzada
+       if (this.storyContentRef?.nativeElement) {
+           this.setupHammer();
+       }
     }
   }
 
-  // --- Cicle de Vida: ngOnDestroy (sense canvis) ---
+  ngAfterViewInit(): void {
+    // Configura HammerJS quan l'element del DOM estigui llest
+    this.setupHammer();
+  }
+
   ngOnDestroy(): void {
     this.stopTimer();
+    // Neteja la instància de Hammer per evitar memory leaks
+    if (this.hammerManager) {
+      this.hammerManager.destroy();
+      this.hammerManager = null;
+      console.log("Hammer instance destroyed.");
+    }
+  }
+
+  // --- Configuració de HammerJS ---
+  private setupHammer(): void {
+    if (!this.storyContentRef?.nativeElement) {
+      console.error("StoriesViewer: No s'ha trobat #storyContent per configurar HammerJS.");
+      return;
+    }
+
+    // Destrueix instància anterior si existeix
+    if (this.hammerManager) {
+      this.hammerManager.destroy();
+    }
+
+    console.log("Configurant HammerJS...");
+    this.zone.runOutsideAngular(() => { // Executa fora de la zona Angular per rendiment
+      this.hammerManager = new Hammer(this.storyContentRef.nativeElement);
+
+      // Habilita Swipe en totes direccions
+      this.hammerManager.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
+      // Habilita Pan en totes direccions (per pausar)
+      this.hammerManager.get('pan').set({ direction: Hammer.DIRECTION_ALL, threshold: 5 }); // Afegit threshold petit
+
+      // --- Assigna Listeners ---
+      this.hammerManager.on('swipeleft', (ev) => this.zone.run(() => this.handleHammerSwipe('left')));
+      this.hammerManager.on('swiperight', (ev) => this.zone.run(() => this.handleHammerSwipe('right')));
+      this.hammerManager.on('swipedown', (ev) => this.zone.run(() => this.handleHammerSwipe('down')));
+      this.hammerManager.on('swipeup', (ev) => this.zone.run(() => this.handleHammerSwipe('up'))); // Opcional
+
+      // Listeners per Pausar/Reprendre
+      this.hammerManager.on('panstart', (ev) => this.pauseTimerOnPress(ev.srcEvent)); // No cal zone.run aquí
+      this.hammerManager.on('panend pancancel', (ev) => this.resumeTimerOnRelease()); // No cal zone.run aquí
+    });
+  }
+
+  // --- Gestor d'events de Hammer ---
+  private handleHammerSwipe(direction: 'left' | 'right' | 'down' | 'up'): void {
+    console.log(`Hammer swipe detected: ${direction}`);
+    // Atura timer i estat de pausa sempre en un swipe
+    this.stopTimer();
+    this.isPausedByUser = false;
+    this.pausedTimeRemaining = null;
+
+    switch (direction) {
+      case 'left':
+        this.nextUser();
+        break;
+      case 'right':
+        this.prevUser();
+        break;
+      case 'down':
+      case 'up': // Si vols que swipe up també tanqui
+        this.closeStories();
+        break;
+    }
+    // No cal markForCheck aquí perquè zone.run ho gestiona
   }
 
   // --- Funció Auxiliar URL (sense canvis) ---
   private buildFullImageUrl(relativePath: string | undefined | null): string {
-    if (!relativePath) { return 'https://joc.feritja.cat/image.png'; }
+    if (!relativePath) { return 'https://joc.feritja.cat/image.png'; } // Imatge per defecte
     if (relativePath.startsWith('http://') || relativePath.startsWith('https://') || relativePath.startsWith('data:')) {
       return relativePath;
     }
@@ -123,14 +181,12 @@ export class StoriesViewer implements OnChanges, OnDestroy {
     return baseUrl + imagePath;
   }
 
-  // --- Getters (Actualitzats per al nou model) ---
-
-  /** Retorna dades bàsiques de l'usuari actual per a la capçalera */
+  // --- Getters (sense canvis) ---
   get currentUserHeaderData(): { userId: number, userName: string, profileImageUrl: string } | null {
     if (!this.hasData || this.currentUserIndex < 0 || this.currentUserIndex >= this.stories.length) return null;
     const userData = this.stories[this.currentUserIndex];
     if (!userData) return null;
-    const profileImageUrl = this.buildFullImageUrl(userData.stories?.[0]?.imageUrl); // Imatge de la primera story com a perfil
+    const profileImageUrl = this.buildFullImageUrl(userData.stories?.[0]?.imageUrl);
     return {
       userId: userData.userId,
       userName: userData.userName,
@@ -138,55 +194,38 @@ export class StoriesViewer implements OnChanges, OnDestroy {
     };
   }
 
-  /** Retorna la slide de story actual completa */
   get currentStorySlide(): StorySlide | null {
     if (!this.hasData) return null;
     const currentUserSlides = this.stories[this.currentUserIndex]?.stories;
     if (!currentUserSlides || this.currentStoryIndex < 0 || this.currentStoryIndex >= currentUserSlides.length) return null;
     const storySlide = currentUserSlides[this.currentStoryIndex];
     if (!storySlide) return null;
-    return {
-      ...storySlide,
-      imageUrl: this.buildFullImageUrl(storySlide.imageUrl)
-    };
+    return { ...storySlide, imageUrl: this.buildFullImageUrl(storySlide.imageUrl) };
   }
 
-  /** Retorna l'array de slides per a l'usuari actual (per a les barres de progrés) */
   get currentUserSlidesForProgress(): StorySlide[] {
     return this.stories[this.currentUserIndex]?.stories || [];
   }
 
-  // --- Mètodes del Timer ---
+  // --- Mètodes del Timer (sense canvis) ---
   startTimer(resumeFrom?: number): void {
-    if (!this.hasData || this.isPausedByUser || !this.currentStorySlide) return; // No inicia si no hi ha story
+    if (!this.hasData || this.isPausedByUser || !this.currentStorySlide) return;
     this.stopTimer();
-
     const initialRemaining = typeof resumeFrom === 'number' ? Math.max(0, resumeFrom) : this.timerDuration;
     this.timerRemaining = initialRemaining;
-
     if (initialRemaining <= 0) {
-      // Si el temps és 0 o menys, passa a la següent immediatament (fora de l'interval)
       setTimeout(() => this.nextStory(), 0);
       return;
     }
-
     this.timerStartTime = Date.now();
     const totalDurationMs = initialRemaining * 1000;
-
     this.timerInterval = setInterval(() => {
-      if (this.isPausedByUser) { // Comprova si s'ha pausat mentrestant
-        this.stopTimer();
-        return;
-      }
-
+      if (this.isPausedByUser) { this.stopTimer(); return; }
       const elapsedTimeMs = Date.now() - this.timerStartTime;
       const remainingMs = Math.max(0, totalDurationMs - elapsedTimeMs);
       this.timerRemaining = remainingMs / 1000;
-      this.cdr.markForCheck(); // Actualitza la barra de progrés (si uses OnPush)
-
-      if (remainingMs <= 0) {
-        this.nextStory(); // Canvia d'story quan s'acaba el temps
-      }
+      this.cdr.markForCheck();
+      if (remainingMs <= 0) { this.nextStory(); }
     }, this.updateIntervalMs);
   }
 
@@ -201,7 +240,6 @@ export class StoriesViewer implements OnChanges, OnDestroy {
     this.stopTimer();
     this.isPausedByUser = false;
     this.pausedTimeRemaining = null;
-    // Només inicia si hi ha dades i una story vàlida actual
     if (this.hasData && this.currentStorySlide) {
       this.startTimer();
     } else {
@@ -209,236 +247,136 @@ export class StoriesViewer implements OnChanges, OnDestroy {
     }
   }
 
-  // --- Mètodes per Pausar/Reprendre ---
-  pauseTimerOnPress(event: MouseEvent | TouchEvent | PointerEvent): void {
-    // Comprova que el timer estigui actiu i no estigui ja pausat per l'usuari
+  // --- Mètodes Pausar/Reprendre (Ara cridats per Hammer) ---
+  pauseTimerOnPress(event: any): void { // Event original de Hammer
     if (this.timerInterval && !this.isPausedByUser) {
-      event.preventDefault(); // Evita altres accions (com selecció de text)
-      this.pausedTimeRemaining = this.timerRemaining; // Guarda el temps restant
-      this.isPausedByUser = true; // Marca com a pausat
-      this.stopTimer(); // Atura l'interval
-      console.log("Timer paused by user.");
+      // No cal preventDefault aquí
+      this.pausedTimeRemaining = this.timerRemaining;
+      this.isPausedByUser = true;
+      this.stopTimer();
+      console.log("Timer paused by user (Hammer panstart).");
+      this.cdr.markForCheck(); // Per actualitzar UI si mostra estat pausa
     }
   }
 
   resumeTimerOnRelease(): void {
-    // Només reprèn si estava pausat per l'usuari
     if (this.isPausedByUser) {
-      this.isPausedByUser = false; // Desmarca com a pausat
-      const timeToResume = this.pausedTimeRemaining; // Recupera el temps guardat
-      this.pausedTimeRemaining = null; // Neteja el temps guardat
-
-      console.log(`Timer resumed. Remaining: ${timeToResume}`);
-      // Reinicia el timer, des del temps guardat si és vàlid, sinó des del principi
+      this.isPausedByUser = false;
+      const timeToResume = this.pausedTimeRemaining;
+      this.pausedTimeRemaining = null;
+      console.log(`Timer resumed (Hammer panend/pancancel). Remaining: ${timeToResume}`);
       if (typeof timeToResume === 'number' && timeToResume > 0) {
         this.startTimer(timeToResume);
       } else {
-        // Si no hi havia temps guardat o era 0, simplement inicia
         this.startTimer();
       }
+      this.cdr.markForCheck(); // Per actualitzar UI
     }
   }
 
-  // --- Mètodes de Navegació (Adaptats al model) ---
+  // --- Mètodes de Navegació (sense canvis a la lògica interna) ---
   nextStory(): void {
-    this.stopTimer();
-    this.isPausedByUser = false;
-    this.pausedTimeRemaining = null;
-
-    if (!this.hasData) return; // Comprovació inicial
-
+    this.stopTimer(); this.isPausedByUser = false; this.pausedTimeRemaining = null;
+    if (!this.hasData) return;
     const currentUserSlides = this.stories[this.currentUserIndex]?.stories;
-    if (!currentUserSlides) { // Si per alguna raó no hi ha slides per l'usuari actual
-      this.nextUser(); // Intenta passar al següent usuari
-      return;
-    }
-
-    // Comprova si hi ha més stories (slides) per a l'usuari actual
+    if (!currentUserSlides) { this.nextUser(); return; }
     if (this.currentStoryIndex < currentUserSlides.length - 1) {
       this.currentStoryIndex++;
-      console.log(`Navigating to next story. User: ${this.currentUserIndex}, Story: ${this.currentStoryIndex}`);
-      this.resetTimer(); // Reinicia el timer per la nova story
+      this.resetTimer();
     } else {
-      // Si era l'última story de l'usuari, passa al següent usuari
-      console.log(`Last story for user ${this.currentUserIndex}. Navigating to next user.`);
       this.nextUser();
     }
-    this.cdr.markForCheck(); // Si uses OnPush
+    this.cdr.markForCheck();
   }
 
   prevStory(): void {
-    this.stopTimer();
-    this.isPausedByUser = false;
-    this.pausedTimeRemaining = null;
-
+    this.stopTimer(); this.isPausedByUser = false; this.pausedTimeRemaining = null;
     if (!this.hasData) return;
-
-    // Comprova si no estem a la primera story de l'usuari actual
     if (this.currentStoryIndex > 0) {
       this.currentStoryIndex--;
-      console.log(`Navigating to previous story. User: ${this.currentUserIndex}, Story: ${this.currentStoryIndex}`);
-      this.resetTimer(); // Reinicia timer per la story anterior
+      this.resetTimer();
     } else {
-      // Si estem a la primera story, intentem anar a l'usuari anterior
-      console.log(`First story for user ${this.currentUserIndex}. Navigating to previous user.`);
-      this.prevUser(true); // true per anar a l'última story de l'usuari anterior
+      this.prevUser(true);
     }
-    this.cdr.markForCheck(); // Si uses OnPush
+    this.cdr.markForCheck();
   }
 
   nextUser(): void {
-    this.stopTimer();
-    this.isPausedByUser = false;
-    this.pausedTimeRemaining = null;
-
+    this.stopTimer(); this.isPausedByUser = false; this.pausedTimeRemaining = null;
     if (!this.hasData) return;
-
-    // Busca el següent índex d'usuari que tingui stories
     let nextIndex = this.currentUserIndex + 1;
     while (nextIndex < this.stories.length && (!this.stories[nextIndex]?.stories || this.stories[nextIndex].stories.length === 0)) {
       nextIndex++;
     }
-
-    // Si s'ha trobat un usuari vàlid
     if (nextIndex < this.stories.length) {
       this.currentUserIndex = nextIndex;
-      this.currentStoryIndex = 0; // Comença per la primera story del nou usuari
-      console.log(`Navigating to next user: ${this.currentUserIndex}`);
-      this.resetTimer(); // Reinicia timer
+      this.currentStoryIndex = 0;
+      this.resetTimer();
     } else {
-      // Si no hi ha més usuaris, tanca el visor
-      console.log("End of all stories. Closing viewer.");
       this.closeStories();
     }
-    this.cdr.markForCheck(); // Si uses OnPush
+    this.cdr.markForCheck();
   }
 
   prevUser(goToLastStory: boolean = false): void {
-    this.stopTimer();
-    this.isPausedByUser = false;
-    this.pausedTimeRemaining = null;
-
+    this.stopTimer(); this.isPausedByUser = false; this.pausedTimeRemaining = null;
     if (!this.hasData) return;
-
-    // Busca l'índex anterior d'usuari que tingui stories
     let prevIndex = this.currentUserIndex - 1;
     while (prevIndex >= 0 && (!this.stories[prevIndex]?.stories || this.stories[prevIndex].stories.length === 0)) {
       prevIndex--;
     }
-
-    // Si s'ha trobat un usuari vàlid
     if (prevIndex >= 0) {
       this.currentUserIndex = prevIndex;
-      // Determina a quina story anar (la primera o l'última)
-      const prevUserStories = this.stories[this.currentUserIndex].stories; // Ja sabem que té stories
+      const prevUserStories = this.stories[this.currentUserIndex].stories;
       this.currentStoryIndex = goToLastStory ? (prevUserStories.length - 1) : 0;
-      console.log(`Navigating to previous user: ${this.currentUserIndex}. Story index: ${this.currentStoryIndex}`);
-      this.resetTimer(); // Reinicia timer
+      this.resetTimer();
     } else {
-      // Si no hi ha usuaris anteriors amb stories
       console.log("Beginning of all users with stories.");
-      // Podries decidir tancar aquí o simplement no fer res
     }
-    this.cdr.markForCheck(); // Si uses OnPush
+    this.cdr.markForCheck();
   }
 
-  // --- Gestor de Swipes (sense canvis, crida els mètodes ja adaptats) ---
-  handleSwipe(event: any): void {
-    // Assegura't que tens la lògica per detectar 'swipeleft', 'swiperight', 'swipedown'
-    // i que cridi a nextUser(), prevUser(), closeStories() respectivament.
-    // Això normalment ve d'una llibreria externa (HammerJS) o implementació manual.
-    console.log('Swipe Detected:', event.type, 'Direction:', event.direction);
-    this.stopTimer();
-    this.isPausedByUser = false;
-    this.pausedTimeRemaining = null;
+  // --- Mètode handleSwipe anterior (eliminat/no necessari) ---
 
-    switch (event.type) { // Ajusta segons com rebis l'event
-      case 'swipeleft':
-        this.nextUser();
-        break;
-      case 'swiperight':
-        this.prevUser();
-        break;
-      case 'swipedown':
-      case 'swipeup': // Opcionalment, swipe up també pot tancar
-        this.closeStories();
-        break;
-    }
-    this.cdr.markForCheck(); // Si uses OnPush
-  }
-
-  // --- Altres Mètodes ---
-
-  /** Placeholder per votar (requereix crida a l'API) */
+  // --- Altres Mètodes (sense canvis) ---
   voteUp(): void {
     const story = this.currentStorySlide;
-    if (!story) return; // No fa res si no hi ha story actual
-
-    if (!this.authService.isLoggedIn()) {
-      this.router.navigate(['/login']);
-    }
-    // --- Implementació real amb API ---
-    // 1. Obtenir l'ID de l'usuari que vota (hauria de venir d'un servei d'autenticació)
+    if (!story) return;
+    if (!this.authService.isLoggedIn()) { this.router.navigate(['/login']); return; } // Redirigeix si no està logat
     const user = this.authService.getUser();
-    const votingUserId = user?.id || 0; // **EXEMPLE**: Substituir per l'ID de l'usuari real
+    const votingUserId = user?.id;
+    if (!votingUserId) { console.error("No s'ha pogut obtenir l'ID de l'usuari per votar."); return; }
 
     console.log(`Votant per story ID: ${story.storyId} per usuari ${votingUserId}`);
+    story.votes++; // Optimistic update
+    this.cdr.markForCheck();
 
-    // Optimistic UI Update (opcional): Incrementa el comptador localment abans de la crida
-    story.votes++; // Assumeix que story és una referència mutable dins de this.stories
-    // Marcar que l'usuari ha votat (si tens aquesta propietat)
-    // story.hasVoted = true;
-    this.cdr.markForCheck(); // Actualitza la UI si uses OnPush
-
-
-    // Crida al servei
     this.storiesService.voteStory(story.storyId, votingUserId).subscribe({
-      next: (response) => {
-        console.log('Vot enviat correctament:', response);
-        // Opcional: Actualitzar el comptador amb la resposta del servidor si és diferent
-        // if (response.newVoteCount !== undefined) {
-        //    story.votes = response.newVoteCount;
-        //    this.cdr.markForCheck();
-        // }
-      },
+      next: (response) => console.log('Vot enviat correctament:', response),
       error: (err) => {
         console.error('Error al votar la story:', err);
-        // Revertir l'actualització optimista si falla
-        story.votes--;
-        // story.hasVoted = false;
+        story.votes--; // Revertir
         this.cdr.markForCheck();
-        // Mostrar un missatge d'error a l'usuari?
       }
     });
-    // --- Fi Implementació real amb API ---
-
-    // Implementació simple (només incrementa localment)
-    // if(this.currentStorySlide) {
-    //    this.currentStorySlide.votes++; // Modifica directament (pot no funcionar amb OnPush sense markForCheck)
-    //    console.log(`Votes (local): ${this.currentStorySlide.votes}`);
-    //    this.cdr.markForCheck(); // Si uses OnPush
-    // }
   }
 
-  /** Tanca el visor */
   closeStories(): void {
     console.log("Closing stories component.");
     this.stopTimer();
     this.isPausedByUser = false;
     this.pausedTimeRemaining = null;
-    this.close.emit(); // Emet l'event per al component pare
+    this.close.emit();
   }
 
-  // --- Getter Progress (sense canvis a la lògica de càlcul) ---
+  // --- Getter Progress (sense canvis) ---
   get progress(): number {
-    if (!this.hasData || this.timerDuration <= 0) { return 0; }
-    // Calcula el progrés basat en si està pausat o no
+    if (!this.hasData || this.timerDuration <= 0) return 0;
     if (this.isPausedByUser && typeof this.pausedTimeRemaining === 'number') {
       const elapsedPaused = this.timerDuration - Math.max(0, this.pausedTimeRemaining);
       return Math.min(100, (elapsedPaused / this.timerDuration) * 100);
     }
     const elapsed = this.timerDuration - Math.max(0, this.timerRemaining);
-    const progressPercent = Math.min(100, (elapsed / this.timerDuration) * 100);
-    return progressPercent;
+    return Math.min(100, (elapsed / this.timerDuration) * 100);
   }
 }

@@ -1,0 +1,298 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;800&display=swap');
+
+* {
+  box-sizing: border-box;
+  /* --size-height: 54px; -- No sembla utilitzat per box--1 */
+}
+a {
+  text-decoration: none;
+  color: white; /* Color per defecte, però box--1 el sobreescriu */
+}
+html {
+  font-size: 1vw; /* Mida base depenent de l'ample */
+}
+@media (max-width: 768px) {
+  html {
+    font-size: 1.6vw; /* Mida base més gran en mòbil */
+  }
+}
+
+.container{
+  display: flex;
+  flex-wrap: wrap; /* Permet que els elements es moguin a la següent línia */
+  justify-content: center; /* Centra els elements horitzontalment */
+  align-items: center; /* Centra els elements verticalment */
+  width: 100%;
+  height: auto; /* Alçada automàtica per adaptar-se al contingut */
+}
+
+/* Estils generals per a .box (alguns seran sobreescrits per .box--1) */
+.box {
+  cursor: pointer;
+  position: relative;
+  display: inline-block; /* O block si només n'hi ha un */
+  box-sizing: border-box;
+  height: 400px !important;
+  padding-bottom: 30vw; /* Truc per mantenir aspect ratio quadrat */
+  margin: 1vw; /* Espaiat */
+  text-transform: uppercase;
+  font-weight: 800;
+  overflow: hidden;
+}
+/* Ajust per a mòbils */
+@media (max-width: 768px) {
+  .box {
+    width: 46vw; /* Més estret */
+    padding-bottom: 46vw; /* Mantenir quadrat */
+  }
+}
+
+/* --- Estils Específics per a .box--1 --- */
+
+.box--1 {
+  width: 80vw; /* Sobreescriu l'ample general de .box */
+  /* padding-bottom: 30vw; -> No cal repetir si mantenim l'aspect ratio amb width */
+  /* Alternativa: Si vols una alçada específica en comptes de padding-bottom */
+   height: 35vw; /* Ajusta si vols una alçada fixa en lloc de padding-bottom */
+   padding-bottom: 0; /* Elimina el padding si uses height */
+
+  background-color: white;
+  color: black;
+}
+/* Ajust per a mòbils per a .box--1 */
+@media (max-width: 768px) {
+  .box--1 {
+    width: 94vw; /* Gairebé tot l'ample */
+    /* padding-bottom: 46vw; -> Comentat si uses height */
+    height: 50vw; /* Ajusta l'alçada en mòbil */
+    padding-bottom: 0;
+  }
+}
+
+/* Efecte hover general (aplicat a box--1) */
+.box:hover .box__btn { /* Aplica a qualsevol botó dins de .box */
+  background-color: yellow;
+  color: black;
+}
+/* .box:hover .box__background { animation-play-state: paused; } */ /* Animació no utilitzada */
+
+/* Títol dins de qualsevol .box */
+.box__title {
+  transition: all 0.3s; /* Temps de transició (substitueix --time-s) */
+  transform: scale(1) translateY(0);
+}
+/* Títol específic de .box--1 */
+.box--1 .box__title {
+  text-align: center;
+  font-size: 3rem; /* Mida relativa a html (1vw o 1.6vw) */
+}
+.box--1 .box__title span {
+  display: block;
+  font-size: 2.5rem; /* Mida relativa a html (1vw o 1.6vw) */
+}
+
+
+/* Botó principal dins de qualsevol .box */
+.box__btn {
+  line-height: 4vw;
+  text-align: center;
+  max-width: 80%;
+  padding: 0 2vw;
+  font-size: 1.8rem; /* Mida relativa a html (1vw o 1.6vw) */
+  margin-top: 1vw;
+  transition: all 0.3s; /* Temps de transició */
+  transform: scale(1);
+  background-color: black;
+  color: white;
+  border: 1px solid black;
+}
+
+/* Fons i vores complexes de box--1 */
+.box--1 .box__background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; /* Ocupa tot l'espai del pare .box--1 */
+  outline: 3vw solid yellow;
+  outline-offset: -3vw;
+}
+.box--1 .box__background:before {
+  content: "";
+  position: absolute;
+  border: 1px solid black;
+  left: 1.5vw;
+  right: 1.5vw;
+  top: 1.5vw;
+  bottom: 1.5vw;
+}
+
+/* Línies de text grogues (només per a box--1 si tingués els spans) */
+.box__text-line {
+  position: absolute;
+  font-size: 1rem; /* Mida relativa */
+  text-align: center;
+  left: 3vw;
+  right: 50%; /* Ocupa fins a la meitat */
+}
+.box__text-line--top {
+  top: 0;
+}
+.box__text-line--bottom {
+  bottom: 0;
+}
+.box__text-line span {
+  line-height: 3vw;
+  padding: 0 1.5vw;
+  background-color: yellow;
+}
+
+/* Contingut general de .box */
+.box__content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 2vw; /* Padding relatiu */
+  display: flex;
+  flex-wrap: wrap; /* Permet que les columnes s'ajustin */
+  justify-content: space-between;
+  align-items: center;
+  align-content: center; /* Centra el contingut verticalment quan hi ha wrap */
+}
+/* Padding específic per al contingut de box--1 */
+.box--1 .box__content {
+  padding: 3vw;
+}
+
+/* Columnes dins de qualsevol .box */
+.box__col {
+  width: 50%; /* Cada columna ocupa la meitat */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-content: center; /* Alineació creuada quan hi ha wrap */
+  align-items: center; /* Centra elements horitzontalment */
+  justify-content: center; /* Centra elements verticalment */
+}
+
+/* --- Estils per a les CARDS (només rellevants per a box--1) --- */
+.card {
+  position: relative;
+  font-size: 1.5rem; /* Mida relativa */
+  color: black;
+  border: 1px solid black;
+  background-color: #e8e8e8;
+  margin: 3%; /* Marge relatiu */
+  height: 40%; /* Alçada relativa a .box__col */
+  width: 88%; /* Amplada relativa a .box__col */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Per ocultar el botó */
+}
+
+.card__top {
+  background-color: black;
+  color: white;
+  text-align: center;
+  line-height: 1.2; /* Espaiat */
+}
+
+.card__title {
+  display: flex;
+  flex-direction: row; /* Per posar % i text junts */
+  align-items: center; /* Alinea verticalment */
+  justify-content: center; /* Centra horitzontalment */
+  flex: 1; /* Ocupa l'espai restant */
+  transition: all 0.3s; /* Temps de transició */
+}
+.card__title span {
+  padding-right: 4%; /* Espai entre % i text */
+  font-size: 3rem; /* Mida relativa */
+}
+
+.card__btn {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  line-height: 1.2;
+  transition: all 0.3s; /* Temps de transició */
+  background-color: yellow;
+  color: black;
+  border-top: 1px solid black;
+  text-align: center;
+  transform: translateY(100%); /* Ocult inicialment */
+}
+
+/* Efectes hover per a les cards */
+.card:hover .card__title {
+  transform: translateY(-1vw); /* Mou el títol amunt */
+}
+.card:hover .card__btn {
+  transform: translateY(0); /* Mostra el botó */
+}
+
+/* --- Responsivitat específica per a columnes i cards dins de box--1 --- */
+@media (max-width: 768px) {
+    .box__content {
+        flex-direction: column; /* Apila les columnes */
+        padding: 2vw; /* Redueix padding */
+        align-content: stretch; /* Estira les columnes per ocupar espai */
+        gap: 2vw; /* Espai entre columnes apilades */
+    }
+
+    .box__col {
+        width: 100%; /* Cada columna ocupa tot l'ample */
+        height: auto; /* Alçada automàtica */
+        /* Podries ajustar l'alçada mínima si cal */
+        /* min-height: 40vw; */
+    }
+
+    /* Fes que les dues cards estiguin una al costat de l'altra dins la seva columna */
+    .box__col:last-child { /* Selecciona la columna de les cards */
+        flex-direction: row; /* Posa les cards en fila */
+        justify-content: space-around; /* Espai entre elles */
+        gap: 2vw; /* Espai entre cards */
+    }
+
+    .card {
+        height: auto; /* Alçada automàtica per a les cards */
+        min-height: 18vw; /* Alçada mínima per visibilitat */
+        width: 45%; /* Amplada perquè càpiguen dues */
+        margin: 0; /* Treu marge original */
+    }
+
+    /* Ajusta mides de font dins les cards per a mòbil */
+     .card__title {
+       font-size: 1.3rem;
+       flex-direction: column; /* Apila % i text dins la card en mòbil */
+       text-align: center;
+     }
+     .card__title span {
+        font-size: 2.5rem;
+        padding-right: 0;
+        margin-bottom: 0.5vw;
+     }
+     .card__btn {
+        font-size: 1.3rem;
+     }
+     .card__top {
+         font-size: 1.2rem;
+     }
+
+     /* Ajusta mides de font del títol principal i botó en mòbil */
+      .box--1 .box__title {
+        font-size: 4rem;
+      }
+      .box--1 .box__title span {
+        font-size: 3rem;
+      }
+       .box__btn {
+         font-size: 1.6rem;
+         line-height: 3.5vw;
+         padding: 0 1.5vw;
+       }
+
+}

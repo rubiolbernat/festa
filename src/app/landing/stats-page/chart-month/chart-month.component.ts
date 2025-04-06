@@ -71,6 +71,7 @@ export class ChartMonthComponent implements AfterViewInit {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: {
             display: true,
@@ -88,5 +89,11 @@ export class ChartMonthComponent implements AfterViewInit {
         }
       }
     });
+  }
+
+  public resizeChart(): void {
+    if (this.chart) {
+      this.chart.resize(); // Mètode propi de Chart.js per ajustar-se al contenidor
+    }
   }
 }

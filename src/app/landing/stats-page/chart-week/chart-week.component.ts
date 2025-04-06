@@ -31,6 +31,7 @@ export class ChartWeekComponent implements AfterViewInit, OnChanges {
       data: this.getChartData(),
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: {
             display: true,
@@ -107,5 +108,11 @@ export class ChartWeekComponent implements AfterViewInit, OnChanges {
         }
       ]
     };
+  }
+
+  public resizeChart(): void {
+    if (this.chart) {
+      this.chart.resize(); // Mètode propi de Chart.js per ajustar-se al contenidor
+    }
   }
 }

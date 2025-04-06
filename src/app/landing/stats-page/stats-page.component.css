@@ -1,0 +1,40 @@
+/* Estils per al botó de tancar en mode pantalla completa */
+.fullscreen-close-button {
+  position: absolute; /* O fixed si absolute no funciona com s'espera dins del fullscreen */
+  top: 15px;
+  right: 15px;
+  z-index: 1056; /* Més alt que el contingut del gràfic, similar a modals */
+  display: none; /* Inicialment ocult */
+  opacity: 0.7;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.fullscreen-close-button:hover {
+    opacity: 1;
+}
+
+/* Quan el contenidor està en pantalla completa (afegirem aquesta classe amb TS) */
+.chart-container-fullscreen {
+  background-color: rgb(49, 49, 49); /* Fons blanc per llegibilitat */
+  padding: 10px; /* Una mica d'espai intern */
+  /* Assegura que el contenidor ocupi tot l'espai */
+  width: 100%;
+  height: 100%;
+  display: flex; /* Opcional: per centrar/ajustar el gràfic intern si cal */
+  justify-content: center;
+  align-items: center;
+}
+
+/* Mostra el botó quan el contenidor té la classe */
+.chart-container-fullscreen .fullscreen-close-button {
+  display: block;
+}
+
+/* Opcional: Assegura't que el component del gràfic s'expandeixi */
+.chart-container-fullscreen > app-chart-week,
+.chart-container-fullscreen > app-chart-month {
+    width: 100%;
+    height: 100%;
+    max-width: 95vw; /* Ajusta segons necessitis */
+    max-height: 90vh;
+}

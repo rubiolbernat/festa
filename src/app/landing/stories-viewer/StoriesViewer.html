@@ -58,19 +58,9 @@
   <!-- ===== Contingut de la història (Gestors d'events i navegació no canvien) ===== -->
   <div
     class="story-content"
-    (panstart)="pauseTimerOnPress($any($event))"
-    (panend)="resumeTimerOnRelease()"
-    (pancancel)="resumeTimerOnRelease()"
-    (swipeleft)="handleSwipe($any($event))"
-    (swiperight)="handleSwipe($any($event))"
-    (swipedown)="handleSwipe($any($event))"
+    #storyContent
     role="region"
     aria-label="Contingut de la història"
-    (mousedown)="pauseTimerOnPress($event)"
-    (touchstart)="pauseTimerOnPress($event)"
-    (mouseup)="resumeTimerOnRelease()"
-    (touchend)="resumeTimerOnRelease()"
-    (mouseleave)="resumeTimerOnRelease()"
   >
     <!-- Navegació per clic/tap (Sense canvis de lògica) -->
     <div
