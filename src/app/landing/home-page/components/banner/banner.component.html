@@ -1,0 +1,100 @@
+<div class="container">
+  <a class="box box--1">
+    <div class="box__background">
+      <div class="box__text-line box__text-line--top">
+        <span
+          >Eseiaat
+          <img
+            src="https://click.org.es/img/simbol_upc_p542_negro2.png"
+            alt="Logo"
+            class="logo"
+            style="width: 1.1rem"
+        /></span>
+      </div>
+      <div class="box__text-line box__text-line--bottom">
+        <!-- Accedeix al signal amb () i usa ?. per seguretat -->
+        <span
+          >Setmana cultural</span
+        >
+      </div>
+    </div>
+    <div class="box__content">
+      <div class="box__col">
+        <div class="box__title">Stats <span>Generals</span></div>
+        <div class="box__btn" routerLink="/la_gran_aventura">
+          Registrar <i class="bi bi-plus-lg"></i>
+        </div>
+      </div>
+      <div class="box__col">
+        <!-- Opcional: Mostrar missatge mentre les dades carreguen -->
+        <div *ngIf="!statsData()">Carregant estadístiques...</div>
+
+        <!-- Només mostra les cards si statsData té valor -->
+        <ng-container *ngIf="statsData()">
+          <div class="box__card card">
+            <div class="card__top">Quantitat</div>
+            <div class="card__title">
+              <!-- Accedeix al signal amb () i usa ?. -->
+              <span>{{ statsData()?.generalStats?.total_litres }}</span> Litres
+            </div>
+            <div class="card__btn">
+              El més bevedor:
+              <!-- Comprova existència i longitud de l'array abans d'accedir -->
+              <span *ngIf="statsData()?.topDrinker?.length > 0">
+                {{ statsData()?.topDrinker?.[0]?.user_name }} -
+                {{ statsData()?.topDrinker?.[0]?.litres_totals }}L
+              </span>
+              <span
+                *ngIf="
+                  !statsData()?.topDrinker ||
+                  statsData()?.topDrinker?.length === 0
+                "
+              >
+                N/A
+              </span>
+            </div>
+          </div>
+
+          <div class="box__card card">
+            <div class="card__top">PREU</div>
+            <div class="card__title">
+              <!-- Accedeix al signal amb () i usa ?. -->
+              <span> {{ statsData()?.generalStats?.total_preu }}</span> €
+            </div>
+            <div class="card__btn">See more</div>
+          </div>
+
+          <!-- La sintaxi @if funciona directament amb signals cridats com a funcions -->
+          @if (isLoggedIn() && statsData()?.generalUserStats?.begudes_totals >
+          0) {
+          <div class="box__card card">
+            <div class="card__top">La meva info</div>
+            <div class="card__title">
+              <!-- Accedeix als signals amb () i usa ?. -->
+              <span>{{ statsData()?.generalUserStats?.total_litres }}</span>
+              Litres -
+              <span>{{ statsData()?.generalUserStats?.total_preu }}</span> €
+            </div>
+            <div class="card__btn">
+              <!-- Accedeix al signal amb () i usa ?. -->
+              Has pres:
+              {{ statsData()?.generalUserStats?.begudes_totals }} begudes
+            </div>
+          </div>
+          } @else if (isLoggedIn()) {
+          <!-- Pots afegir un cas per quan està loguejat però no té begudes -->
+          <div class="box__card card">
+            <div class="card__top">La meva info</div>
+            <div class="card__title">No has registrat begudes</div>
+            <div class="card__btn" routerLink="/la_gran_aventura">
+              Registrar
+            </div>
+          </div>
+          }
+          <!-- No cal un @else explícit si no vols mostrar res quan no està loguejat -->
+        </ng-container>
+        <!-- Fi del *ngIf="statsData()" -->
+      </div>
+    </div>
+  </a>
+</div>

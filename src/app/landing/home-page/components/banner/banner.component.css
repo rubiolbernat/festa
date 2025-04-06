@@ -1,0 +1,272 @@
+@import "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;800&display=swap";
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: auto;
+}
+
+.box {
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  box-sizing: border-box;
+  height: 400px !important;
+  padding-bottom: 30vw;
+  margin: 1vw;
+  text-transform: uppercase;
+  font-weight: 800;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .box {
+    width: 46vw;
+    padding-bottom: 46vw;
+  }
+}
+
+.box--1 {
+  width: 80vw;
+  height: 35vw;
+  padding-bottom: 0;
+  background-color: #fff;
+  color: #000;
+}
+
+@media (max-width: 768px) {
+  .box--1 {
+    width: 94vw;
+    height: 50vw;
+    padding-bottom: 0;
+  }
+}
+
+.box:hover .box__btn {
+  background-color: #ff0;
+  color: #000;
+}
+
+.box__title {
+  transition: all 0.3s;
+  transform: scale(1) translateY(0);
+}
+
+.box--1 .box__title {
+  text-align: center;
+  font-size: 3rem;
+}
+
+.box--1 .box__title span {
+  display: block;
+  font-size: 2.5rem;
+}
+
+.box__btn {
+  line-height: 4vw;
+  text-align: center;
+  max-width: 80%;
+  padding: 0 2vw;
+  font-size: 1.8rem;
+  margin-top: 1vw;
+  transition: all 0.3s;
+  transform: scale(1);
+  background-color: #000;
+  color: #fff;
+  border: 1px solid #000;
+}
+
+.box--1 .box__background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  outline: 3vw solid #ff0;
+  outline-offset: -3vw;
+}
+
+.box--1 .box__background:before {
+  content: "";
+  position: absolute;
+  border: 1px solid #000;
+  left: 1.5vw;
+  right: 1.5vw;
+  top: 1.5vw;
+  bottom: 1.5vw;
+}
+
+.box__text-line {
+  position: absolute;
+  font-size: 1rem;
+  text-align: center;
+  left: 3vw;
+  right: 50%;
+}
+
+.box__text-line--top {
+  top: 0;
+}
+
+.box__text-line--bottom {
+  bottom: 0;
+}
+
+.box__text-line span {
+  line-height: 3vw;
+  padding: 0 1.5vw;
+  background-color: #ff0;
+}
+
+.box__content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 2vw;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  align-content: center;
+}
+
+.box--1 .box__content {
+  padding: 3vw;
+}
+
+.box__col {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  position: relative;
+  font-size: 1.5rem;
+  color: #000;
+  border: 1px solid #000;
+  background-color: #e8e8e8;
+  margin: 3%;
+  /* Prova amb min-height o una alçada més gran */
+  min-height: 25%; /* Permet que creixi si cal */
+  /* O augmenta el percentatge */
+  /* height: 50%; */
+  width: 88%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Mantenir overflow: hidden de moment */
+}
+
+.card__top {
+  background-color: #000;
+  color: #fff;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.card__title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  transition: all 0.3s;
+}
+
+.card__title span {
+  padding-right: 4%;
+  /* Prova un valor més petit */
+  font-size: 2rem; /* O 1.8rem, etc. */
+}
+
+.card__btn {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  line-height: 1.2;
+  transition: all 0.3s;
+  background-color: #ff0;
+  color: #000;
+  border-top: 1px solid #000;
+  text-align: center;
+  transform: translateY(100%);
+}
+
+.card:hover .card__title {
+  transform: translateY(-1vw);
+}
+
+.card:hover .card__btn {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .box__content {
+    flex-direction: column;
+    padding: 2vw;
+    align-content: stretch;
+    gap: 2vw;
+  }
+
+  .box__col {
+    width: 100%;
+    height: auto;
+  }
+
+  .box__col:last-child {
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 2vw;
+  }
+
+  .card {
+    height: auto;
+    min-height: 18vw;
+    width: 45%;
+    margin: 0;
+  }
+
+  .card__title {
+    font-size: 1.3rem;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .card__title span {
+    font-size: 2.5rem;
+    padding-right: 0;
+    margin-bottom: 0.5vw;
+  }
+
+  .card__btn {
+    font-size: 1.3rem;
+  }
+
+  .card__top {
+    font-size: 1.2rem;
+  }
+
+  .box--1 .box__title {
+    font-size: 4rem;
+  }
+
+  .box--1 .box__title span {
+    font-size: 3rem;
+  }
+
+  .box__btn {
+    font-size: 1.6rem;
+    line-height: 3.5vw;
+    padding: 0 1.5vw;
+  }
+}

@@ -1,4 +1,39 @@
-canvas {
-  width: 100% !important;
-  height: 400px; /* Pot ajustar-se segons les teves necessitats */
+/* chart-week.component.css */
+
+/* Estil base per a l'element host del component */
+:host {
+  display: block; /* Important perquè width/height tinguin efecte */
+  width: 100%;   /* Ocupa l'amplada disponible per defecte */
+  height: 400px;  /* Alçada per defecte per a pantalles grans (ordinador) - Ajusta si cal */
+  position: relative; /* Sovint necessari per a la responsivitat de Chart.js */
+  box-sizing: border-box;
 }
+
+/* Estil per al canvas intern */
+canvas {
+  display: block; /* Evita espais estranys */
+  box-sizing: border-box;
+  /* El width/height del canvas serà gestionat per Chart.js si
+     responsive:true i maintainAspectRatio:false, adaptant-se al :host */
+   width: 100% !important; /* Forcem amplada per seguretat */
+   height: 100% !important; /* Forcem alçada per seguretat */
+}
+
+/* === ESTILS PER A MÒBIL === */
+@media (max-width: 767.98px) { /* Breakpoint SM de Bootstrap (<768px). Ajusta si fas servir un altre framework o vols un altre punt de tall */
+  :host {
+    /* Aquí definim l'alçada desitjada per a mòbils */
+    height: 300px; /* <<---- PROVA AMB AQUEST VALOR (o 65vh, 380px, etc.) */
+    /* O pots fer servir unitats relatives a la pantalla */
+    /* height: 65vh; */
+  }
+}
+
+/* Opcional: Pots afegir altres breakpoints si necessites més control */
+
+@media (max-width: 575.98px) {
+  :host {
+    height: 350px;
+  }
+}
+

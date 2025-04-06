@@ -177,9 +177,9 @@ export class DrinkingDataService {
   }
 
   getDrinkDataById(id: number): Observable<DrinkData> {
-     const user = this.authService.getUser();
-     const params: any = { id: id };
-     if (user) { params.user_id = user.id; }
+    const user = this.authService.getUser();
+    const params: any = { id: id };
+    if (user) { params.user_id = user.id; }
     return this.get<DrinkData>('getDrinkDataById', params);
   }
 
@@ -205,7 +205,7 @@ export class DrinkingDataService {
     if (error.error instanceof ErrorEvent) {
       errorMessage = `Error del client o de xarxa: ${error.error.message}`;
     } else if (error.status === 0) {
-        errorMessage = 'No s\'ha pogut connectar amb el servidor. Verifica la connexió o la URL de l\'API.';
+      errorMessage = 'No s\'ha pogut connectar amb el servidor. Verifica la connexió o la URL de l\'API.';
     }
     else {
       const serverErrorMsg = error.error?.message || error.error?.error || (typeof error.error === 'string' ? error.error : error.message);
@@ -213,4 +213,25 @@ export class DrinkingDataService {
     }
     return throwError(() => new Error(errorMessage));
   }
+
+  getStatsDataDates(dateStart: string, dateEnd: string): Observable<any> {
+    const user = this.authService.getUser();
+    //if (!user) return throwError(() => new Error('Usuari no autenticat.'));
+
+    const params = {
+      user_id: user ? user.id : -1,
+      'date-start': dateStart,
+      'date-end': dateEnd
+    };
+
+    return this.get<any>('getSpecialsDateStats', params);
+  }
+  /*
+  // Exemple d'ús del mètode getStatsDataDates
+  this.statsService.getStatsData('2025-04-01', '2025-04-06').subscribe(
+    data => console.log(data),
+    err => console.error(err)
+  );
+  */
+
 }

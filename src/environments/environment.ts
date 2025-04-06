@@ -12,7 +12,7 @@ export const environment = {
   //MSI
   //assetsUrl: 'http://localhost/festa/assets/uploads/',
 
-  storyExpirationHours: 24*1 //(15 dies)
+  storyExpirationHours: 24*15 //(15 dies)
 };
 
 //WEB
