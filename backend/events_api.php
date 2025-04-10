@@ -43,6 +43,12 @@ if ($method == 'GET') {
       case 'getEventDetails':
         getEventDetailsAction($conn);
         break;
+      case 'getMySubscriptions': // Nom d'acció suggerit
+        getMySubscribedEventsAction($conn);
+        break;
+      case 'getMyActiveSubscriptions': // Nom d'acció suggerit
+        getMyActiveSubscribedEventsAction($conn);
+        break;
       default:
         http_response_code(404);
         echo json_encode(["message" => "Acció GET desconeguda: " . sanitize($action)]); // Sanitize action abans de mostrar-la
@@ -361,6 +367,122 @@ function getEventDetailsAction(PDO $conn): void
   }
 }
 
+/**
+ * Obté tots els esdeveniments als quals està subscrit l'usuari actual.
+ * Requereix autenticació (user_id a la sessió).
+ */
+function getMySubscribedEventsAction(PDO $conn): void
+{
+  // Assegura't que la sessió estigui iniciada (potser ja ho fas globalment)
+  if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+  }
+
+  // Obtenir i validar user_id de la sessió
+  $user_id_auth = $_SESSION['user_id'] ?? null;
+  $user_id = filter_var($user_id_auth, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
+
+  if ($user_id === false || $user_id === null) {
+    http_response_code(401); // Unauthorized
+    error_log("getMySubscribedEventsAction fail: Unauthenticated user.");
+    echo json_encode(["message" => "Autenticació requerida per veure les teves subscripcions."]);
+    exit;
+  }
+
+  try {
+    // Consulta per obtenir els events als que l'usuari està subscrit
+    // Fem un JOIN entre drink_event i event_users
+    $query = "SELECT de.event_id, de.nom, de.data_creacio, de.data_inici, de.data_fi, de.opcions
+                  FROM drink_event de
+                  JOIN event_users eu ON de.event_id = eu.event_id
+                  WHERE eu.user_id = :user_id
+                  ORDER BY de.data_inici DESC"; // O l'ordre que prefereixis
+
+    $stmt = $conn->prepare($query);
+    if ($stmt === false) {
+      $errorInfo = $conn->errorInfo();
+      throw new Exception("Error preparant consulta PDO (getMySubscribedEvents): " . ($errorInfo[2] ?? 'Error desconegut'));
+    }
+
+    $stmt->execute([':user_id' => $user_id]);
+    $subscribedEvents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    http_response_code(200);
+    echo json_encode($subscribedEvents);
+    exit;
+
+  } catch (PDOException $e) {
+    error_log("Error PDO a getMySubscribedEventsAction (User: $user_id): " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message" => "Error del servidor (PDO) al recuperar les teves subscripcions."]);
+    exit;
+  } catch (Exception $e) {
+    error_log("Error General a getMySubscribedEventsAction (User: $user_id): " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message" => "Error general del servidor al recuperar les teves subscripcions."]);
+    exit;
+  }
+}
+/**
+ * Obté els esdeveniments ACTIUS als quals està subscrit l'usuari actual.
+ * Un event es considera actiu si la seva data de fi encara no ha passat.
+ * Requereix autenticació (user_id a la sessió).
+ */
+function getMyActiveSubscribedEventsAction(PDO $conn): void
+{
+  // Assegura't que la sessió estigui iniciada
+  if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+  }
+
+  // Obtenir i validar user_id de la sessió
+  $user_id_auth = $_SESSION['user_id'] ?? null;
+  $user_id = filter_var($user_id_auth, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
+
+  if ($user_id === false || $user_id === null) {
+    http_response_code(401); // Unauthorized
+    error_log("getMyActiveSubscribedEventsAction fail: Unauthenticated user.");
+    echo json_encode(["message" => "Autenticació requerida per veure les teves subscripcions actives."]);
+    exit;
+  }
+
+  try {
+    $now = date('Y-m-d H:i:s'); // Data i hora actual
+
+    // Consulta similar a l'anterior, però afegint la condició de data_fi
+    $query = "SELECT de.event_id, de.nom, de.data_creacio, de.data_inici, de.data_fi, de.opcions
+                  FROM drink_event de
+                  JOIN event_users eu ON de.event_id = eu.event_id
+                  WHERE eu.user_id = :user_id
+                    AND de.data_fi >= :now  -- Condició per events actius (o futurs)
+                  ORDER BY de.data_inici ASC"; // Potser vols veure primer els més propers
+
+    $stmt = $conn->prepare($query);
+    if ($stmt === false) {
+      $errorInfo = $conn->errorInfo();
+      throw new Exception("Error preparant consulta PDO (getMyActiveSubscribedEvents): " . ($errorInfo[2] ?? 'Error desconegut'));
+    }
+
+    // Passem els dos paràmetres
+    $stmt->execute([':user_id' => $user_id, ':now' => $now]);
+    $activeSubscribedEvents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    http_response_code(200);
+    echo json_encode($activeSubscribedEvents);
+    exit;
+
+  } catch (PDOException $e) {
+    error_log("Error PDO a getMyActiveSubscribedEventsAction (User: $user_id): " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message" => "Error del servidor (PDO) al recuperar les teves subscripcions actives."]);
+    exit;
+  } catch (Exception $e) {
+    error_log("Error General a getMyActiveSubscribedEventsAction (User: $user_id): " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message" => "Error general del servidor al recuperar les teves subscripcions actives."]);
+    exit;
+  }
+}
 /**
  * Crea un nou esdeveniment.
  */
