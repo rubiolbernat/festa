@@ -1,33 +1,46 @@
-// Interfície per a un esdeveniment
+// Interfície bàsica de l'esdeveniment (igual que abans)
 export interface DrinkEvent {
   event_id: number;
   nom: string;
-  data_creacio: string; // Pots utilitzar 'Date' però string és més directe des de JSON
+  data_creacio: string;
   data_inici: string;
   data_fi: string;
-  opcions?: string | null; // Opcional i pot ser null
+  opcions?: string | null; // Pot ser un string JSON o null
 }
 
-// Interfície per a la informació d'un usuari inscrit
+// Interfície per a la informació d'un usuari inscrit (igual que abans)
 export interface EventUser {
   user_id: number;
   data_inscripcio: string;
-  // Podries afegir més detalls de l'usuari si l'API fes un JOIN
-  // nom_usuari?: string;
 }
 
-// Interfície genèrica per a respostes simples (POST, PUT, DELETE)
+// Interfície per a la resposta de getEventDetails
+export interface EventDetails extends DrinkEvent {
+  participants: EventUser[]; // Array de participants
+}
+
+// Interfície per a respostes genèriques de l'API (missatges)
+// L'API PHP retorna { "message": "..." } per errors o èxit simple
 export interface ApiResponse {
-  message?: string;
-  error?: string;
-  event_id?: number; // Útil per a la resposta de creació
+  message: string; // El PHP sembla retornar sempre 'message'
 }
 
-// Tipus per a les dades en crear un event (sense id ni data_creacio)
+// Interfície específica per a la resposta de creació/actualització exitosa
+// El PHP retorna { "message": "...", "event": { ... } }
+export interface ApiEventResponse extends ApiResponse {
+  event: DrinkEvent;
+}
+
+// Tipus per a les dades en crear (Omit<...> igual que abans)
 export type CreateEventData = Omit<DrinkEvent, 'event_id' | 'data_creacio'>;
 
-// Tipus per a les dades en actualitzar (tots els camps són opcionals)
-export type UpdateEventData = Partial<CreateEventData>;
-
-// Tipus per als filtres possibles
-export type EventFilter = 'upcoming' | 'past' | 'next' | 'date' | 'all';
+// Tipus per a les dades en actualitzar (Partial<...> igual que abans, però adaptat)
+// L'API PHP sembla esperar tots els camps a l'actualització ('nom', 'data_inici', 'data_fi', 'opcions')
+// Si vols permetre actualització parcial, hauries de modificar el PHP `updateEventAction`
+// Per ara, assumim que tots els camps són necessaris a l'actualització, excepte 'opcions' que pot ser null.
+export interface UpdateEventData {
+    nom: string;
+    data_inici: string;
+    data_fi: string;
+    opcions?: any | null; // Pot ser objecte, array, string JSON, o null per esborrar
+}

@@ -41,7 +41,7 @@ if ($method == 'GET') {
         getEventsByDateAction($conn); // La funció llegirà el paràmetre 'date'
         break;
       case 'getEventDetails':
-        getEventDetailsAction($conn); // Passa l'ID
+        getEventDetailsAction($conn);
         break;
       default:
         http_response_code(404);
@@ -109,530 +109,789 @@ if ($method == 'GET') {
   exit;
 }
 
-// --- Implementació de les Funcions d'Acció Independents ---
-
-// GET /events  o  ?action=getAllEvents
-function getAllEventsAction($conn)
+// --- Funcions d'Acció Refactoritzades ---
+// Assegura't que $conn és realment l'objecte PDO que ve de db_config.php o similar
+function getAllEventsAction(PDO $conn): void // És bona pràctica type-hint $conn com a PDO
 {
   try {
+    // 1. Preparar la consulta (igual que abans)
     $stmt = $conn->prepare("SELECT event_id, nom, data_creacio, data_inici, data_fi, opcions FROM drink_event ORDER BY data_inici DESC");
+
+    // 2. Comprovar si la preparació ha fallat
+    //    Normalment, si tens PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION configurat,
+    //    prepare() llençarà una excepció si falla, però comprovar per 'false' és una
+    //    doble seguretat si les excepcions estiguessin desactivades.
+    if ($stmt === false) {
+      $errorInfo = $conn->errorInfo(); // Obté informació de l'error PDO
+      throw new Exception("Error preparant la consulta PDO: " . ($errorInfo[2] ?? 'Error desconegut'));
+    }
+
+    // 3. Executar la consulta preparada
     $stmt->execute();
-    $result = $stmt->get_result();
-    $events = $result->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
+
+    // 4. Obtenir TOTS els resultats directament des del PDOStatement
+    //    Utilitzem PDO::FETCH_ASSOC per obtenir arrays associatius, equivalent a MYSQLI_ASSOC
+    $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // 5. No és estrictament necessari cridar a $stmt->close() en PDO.
+    //    El statement es tanca quan l'objecte $stmt es destrueix (p.ex., al final de la funció).
+
+    // 6. Enviar la resposta JSON
+    http_response_code(200);
+    echo json_encode($events);
+    exit;
+
+  } catch (PDOException $e) { // És millor capturar PDOException específicament
+    error_log("Error PDO a getAllEventsAction: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message" => "Error del servidor (PDO) al recuperar els esdeveniments."]);
+    exit;
+  } catch (Exception $e) { // Captura altres excepcions generals
+    error_log("Error General a getAllEventsAction: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message" => "Error general del servidor al recuperar els esdeveniments."]);
+    exit;
+  }
+}
+
+/**
+ * Obté el pròxim esdeveniment que comença a partir d'ara.
+ */
+function getNextEventAction(PDO $conn): void
+{
+  try {
+    $now = date('Y-m-d H:i:s');
+    $stmt = $conn->prepare("SELECT event_id, nom, data_creacio, data_inici, data_fi, opcions FROM drink_event WHERE data_inici >= :now ORDER BY data_inici ASC LIMIT 1");
+    if ($stmt === false) {
+      $errorInfo = $conn->errorInfo();
+      throw new Exception("Error preparant consulta PDO (getNextEvent): " . ($errorInfo[2] ?? 'Error desconegut'));
+    }
+    // Passem els paràmetres a execute()
+    $stmt->execute([':now' => $now]);
+    // fetch() retorna una fila o false si no n'hi ha
+    $event = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    http_response_code(200);
+    // json_encode(false) retorna "false", json_encode(null) retorna "null".
+    // Si $event és false (no trobat), el convertim a null per a un JSON més estàndard.
+    echo json_encode($event === false ? null : $event);
+    exit;
+  } catch (PDOException $e) {
+    error_log("Error PDO a getNextEventAction: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message' => 'Error del servidor (PDO) al recuperar el pròxim esdeveniment."]);
+    exit;
+  } catch (Exception $e) {
+    error_log("Error General a getNextEventAction: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message' => 'Error general del servidor al recuperar el pròxim esdeveniment."]);
+    exit;
+  }
+}
+
+/**
+ * Obté esdeveniments futurs (data fi >= ara).
+ */
+function getFutureEventsAction(PDO $conn): void
+{
+  try {
+    $now = date('Y-m-d H:i:s');
+    $stmt = $conn->prepare("SELECT event_id, nom, data_creacio, data_inici, data_fi, opcions FROM drink_event WHERE data_fi >= :now ORDER BY data_inici ASC");
+    if ($stmt === false) {
+      $errorInfo = $conn->errorInfo();
+      throw new Exception("Error preparant consulta PDO (getFutureEvents): " . ($errorInfo[2] ?? 'Error desconegut'));
+    }
+    $stmt->execute([':now' => $now]);
+    $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     http_response_code(200);
     echo json_encode($events);
     exit;
-  } catch (Exception $e) {
-    error_log("Error a getAllEventsAction: " . $e->getMessage());
+  } catch (PDOException $e) {
+    error_log("Error PDO a getFutureEventsAction: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["message" => "Error del servidor al recuperar els esdeveniments."]);
+    echo json_encode(["message' => 'Error del servidor (PDO) al recuperar esdeveniments futurs."]);
+    exit;
+  } catch (Exception $e) {
+    error_log("Error General a getFutureEventsAction: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message' => 'Error general del servidor al recuperar esdeveniments futurs."]);
     exit;
   }
 }
 
-// GET ?action=getNextEvent
-function getNextEventAction($conn)
+/**
+ * Obté esdeveniments passats (data fi < ara).
+ */
+function getPastEventsAction(PDO $conn): void
 {
   try {
     $now = date('Y-m-d H:i:s');
-    $stmt = $conn->prepare("SELECT event_id, nom, data_creacio, data_inici, data_fi, opcions FROM drink_event WHERE data_inici >= ? ORDER BY data_inici ASC LIMIT 1");
-    $stmt->bind_param("s", $now);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $event = $result->fetch_assoc();
-    $stmt->close();
-
-    http_response_code(200); // Fins i tot si no hi ha event, la petició és correcta
-    echo json_encode($event); // Retornarà null si no es troba
-    exit;
-  } catch (Exception $e) {
-    error_log("Error a getNextEventAction: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(["message" => "Error del servidor al recuperar el pròxim esdeveniment."]);
-    exit;
-  }
-}
-
-// GET ?action=getFutureEvents
-function getFutureEventsAction($conn)
-{
-  try {
-    $now = date('Y-m-d H:i:s');
-    $stmt = $conn->prepare("SELECT event_id, nom, data_creacio, data_inici, data_fi, opcions FROM drink_event WHERE data_fi >= ? ORDER BY data_inici ASC");
-    $stmt->bind_param("s", $now);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $events = $result->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
+    $stmt = $conn->prepare("SELECT event_id, nom, data_creacio, data_inici, data_fi, opcions FROM drink_event WHERE data_fi < :now ORDER BY data_inici DESC");
+    if ($stmt === false) {
+      $errorInfo = $conn->errorInfo();
+      throw new Exception("Error preparant consulta PDO (getPastEvents): " . ($errorInfo[2] ?? 'Error desconegut'));
+    }
+    $stmt->execute([':now' => $now]);
+    $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     http_response_code(200);
     echo json_encode($events);
     exit;
-  } catch (Exception $e) {
-    error_log("Error a getFutureEventsAction: " . $e->getMessage());
+  } catch (PDOException $e) {
+    error_log("Error PDO a getPastEventsAction: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["message" => "Error del servidor al recuperar esdeveniments futurs."]);
+    echo json_encode(["message' => 'Error del servidor (PDO) al recuperar esdeveniments passats."]);
+    exit;
+  } catch (Exception $e) {
+    error_log("Error General a getPastEventsAction: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message' => 'Error general del servidor al recuperar esdeveniments passats."]);
     exit;
   }
 }
 
-// GET ?action=getPastEvents
-function getPastEventsAction($conn)
+/**
+ * Obté esdeveniments actius en una data específica.
+ */
+function getEventsByDateAction(PDO $conn): void
 {
-  try {
-    $now = date('Y-m-d H:i:s');
-    $stmt = $conn->prepare("SELECT event_id, nom, data_creacio, data_inici, data_fi, opcions FROM drink_event WHERE data_fi < ? ORDER BY data_inici DESC");
-    $stmt->bind_param("s", $now);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $events = $result->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
-    http_response_code(200);
-    echo json_encode($events);
-    exit;
-  } catch (Exception $e) {
-    error_log("Error a getPastEventsAction: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(["message" => "Error del servidor al recuperar esdeveniments passats."]);
-    exit;
-  }
-}
-
-// GET ?action=getEventsByDate&date=YYYY-MM-DD
-function getEventsByDateAction($conn)
-{
-  // Obtenir el paràmetre 'date' directament
-  $date = isset($_GET['date']) ? sanitize($_GET['date']) : null;
-
-  if (!$date || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+  // Validació de la data (igual que abans)
+  $date_str = isset($_GET['date']) ? trim($_GET['date']) : null;
+  if ($date_str === null || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_str)) {
     http_response_code(400);
-    echo json_encode(["message" => "Paràmetre 'date' requerit amb format YYYY-MM-DD."]);
+    $message = ($date_str === null) ? "Paràmetre 'date' requerit." : "Paràmetre 'date' invàlid (YYYY-MM-DD).";
+    echo json_encode(["message" => $message]);
     exit;
   }
+  $date = $date_str;
+
   try {
-    $stmt = $conn->prepare("SELECT event_id, nom, data_creacio, data_inici, data_fi, opcions FROM drink_event WHERE DATE(data_inici) <= ? AND DATE(data_fi) >= ? ORDER BY data_inici ASC");
-    $stmt->bind_param("ss", $date, $date);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $events = $result->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
+    // Usem paràmetres amb nom per claredat
+    $query = "SELECT event_id, nom, data_creacio, data_inici, data_fi, opcions
+                  FROM drink_event
+                  WHERE DATE(data_inici) <= :date_filter AND DATE(data_fi) >= :date_filter
+                  ORDER BY data_inici ASC";
+    $stmt = $conn->prepare($query);
+    if ($stmt === false) {
+      $errorInfo = $conn->errorInfo();
+      throw new Exception("Error preparant consulta PDO (getEventsByDate): " . ($errorInfo[2] ?? 'Error desconegut'));
+    }
+    // Passem el mateix valor per als dos paràmetres
+    $stmt->execute([':date_filter' => $date]);
+    $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
     http_response_code(200);
     echo json_encode($events);
     exit;
-  } catch (Exception $e) {
-    error_log("Error a getEventsByDateAction: " . $e->getMessage());
+
+  } catch (PDOException $e) {
+    error_log("Error PDO a getEventsByDateAction (Date: $date): " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["message" => "Error del servidor al recuperar esdeveniments per data."]);
+    // Correcció del typo aquí també
+    echo json_encode(["message" => "Error del servidor (PDO) al recuperar els esdeveniments per data."]);
+    exit;
+  } catch (Exception $e) {
+    error_log("Error General a getEventsByDateAction (Date: $date): " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message" => "Error general del servidor al recuperar els esdeveniments per data."]);
     exit;
   }
+  // No cal 'finally' per tancar $stmt en PDO bàsic
 }
 
-// GET /events/{id}
-function getEventDetailsAction($conn)
+/**
+ * Obté els detalls d'un event i els seus participants.
+ */
+function getEventDetailsAction(PDO $conn): void
 {
-  $event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null;
-  $event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null;
-  $event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null;
-  $event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null;
-  if (!filter_var($event_id, FILTER_VALIDATE_INT) || $event_id <= 0) {
+  // Validació de l'ID (igual que abans)
+  $event_id_input = $_GET['event_id'] ?? null;
+  $event_id = filter_var($event_id_input, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
+  if ($event_id === false || $event_id === null) {
     http_response_code(400);
-    echo json_encode(["message" => "ID d'esdeveniment invàlid proporcionat."]);
+    $message = ($event_id_input === null) ? "Paràmetre 'event_id' requerit." : "Paràmetre 'event_id' invàlid.";
+    echo json_encode(["message" => $message]);
     exit;
   }
-  try {
-    // Obtenir detalls
-    $stmtEvent = $conn->prepare("SELECT event_id, nom, data_creacio, data_inici, data_fi, opcions FROM drink_event WHERE event_id = ?");
-    $stmtEvent->bind_param("i", $event_id);
-    $stmtEvent->execute();
-    $resultEvent = $stmtEvent->get_result();
-    $event = $resultEvent->fetch_assoc();
-    $stmtEvent->close();
 
-    if (!$event) {
+  try {
+    // Obtenir detalls de l'esdeveniment
+    $queryEvent = "SELECT event_id, nom, data_creacio, data_inici, data_fi, opcions FROM drink_event WHERE event_id = :event_id";
+    $stmtEvent = $conn->prepare($queryEvent);
+    if ($stmtEvent === false) {
+      $errorInfo = $conn->errorInfo();
+      throw new Exception("Error preparant consulta event (getEventDetails): " . ($errorInfo[2] ?? 'Error'));
+    }
+    $stmtEvent->execute([':event_id' => $event_id]);
+    $event = $stmtEvent->fetch(PDO::FETCH_ASSOC);
+
+    if ($event === false) { // L'event no existeix
       http_response_code(404);
-      echo json_encode(["message" => "Esdeveniment no trobat."]);
-      exit;
+      echo json_encode(["message" => "Esdeveniment no trobat amb l'ID proporcionat."]);
+    } else {
+      // Obtenir participants
+      $queryUsers = "SELECT user_id, data_inscripcio FROM event_users WHERE event_id = :event_id";
+      $stmtUsers = $conn->prepare($queryUsers);
+      if ($stmtUsers === false) {
+        $errorInfo = $conn->errorInfo();
+        throw new Exception("Error preparant consulta usuaris (getEventDetails): " . ($errorInfo[2] ?? 'Error'));
+      }
+      $stmtUsers->execute([':event_id' => $event_id]);
+      $participants = $stmtUsers->fetchAll(PDO::FETCH_ASSOC);
+
+      // Afegir participants a l'event
+      $event['participants'] = $participants;
+
+      http_response_code(200);
+      echo json_encode($event);
     }
-
-    // Obtenir participants
-    $stmtUsers = $conn->prepare("SELECT user_id, data_inscripcio FROM event_users WHERE event_id = ?");
-    $stmtUsers->bind_param("i", $event_id);
-    $stmtUsers->execute();
-    $resultUsers = $stmtUsers->get_result();
-    $participants = $resultUsers->fetch_all(MYSQLI_ASSOC);
-    $stmtUsers->close();
-
-    $event['participants'] = $participants;
-
-    http_response_code(200);
-    echo json_encode($event);
     exit;
 
-  } catch (Exception $e) {
-    error_log("Error a getEventDetailsAction (ID: $event_id): " . $e->getMessage());
+  } catch (PDOException $e) {
+    error_log("Error PDO a getEventDetailsAction (ID: $event_id): " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["message" => "Error del servidor al recuperar els detalls de l'esdeveniment."]);
+    echo json_encode(["message' => 'Error del servidor (PDO) al recuperar detalls."]);
+    exit;
+  } catch (Exception $e) {
+    error_log("Error General a getEventDetailsAction (ID: $event_id): " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message' => 'Error general del servidor al recuperar detalls."]);
     exit;
   }
 }
 
-// POST /events  o ?action=addEvent
-function createEventAction($conn)
-{   // Validació de dades rebudes (ara dins la funció)
-  $nom = $data['nom'] ?? null;
-  $data_inici = $data['data_inici'] ?? null;
-  $data_fi = $data['data_fi'] ?? null;
-  // Opcions: Si s'envien com a string JSON, les decodifiquem; si ja són array/objecte, les codifiquem
-  $opcions_input = $data['opcions'] ?? null;
-  $opcions_json = null;
-  if (is_string($opcions_input)) {
-    $decoded = json_decode($opcions_input, true);
-    if (json_last_error() === JSON_ERROR_NONE) {
-      $opcions_json = $opcions_input; // Ja era un JSON string vàlid
-    } else if (is_array($opcions_input) || is_object($opcions_input)) {
-      $opcions_json = json_encode($opcions_input); // Era array/objecte, el codifiquem
-    } else {
-      // Si no és cap dels anteriors, potser text pla? Ho guardem tal qual o com a null?
-      // Per consistència, intentem guardar sempre JSON o NULL.
-      // Si es vol text pla, caldria ajustar la lògica o el tipus de dada a la BD.
-      // Assumim que es vol JSON o res.
-      $opcions_json = null;
-    }
-  } elseif (is_array($opcions_input) || is_object($opcions_input)) {
-    $opcions_json = json_encode($opcions_input);
+/**
+ * Crea un nou esdeveniment.
+ */
+function createEventAction(PDO $conn): void
+{
+  // Llegir i validar JSON del body (IMPORTANT!)
+  $json_data = file_get_contents('php://input');
+  $data = json_decode($json_data, true);
+  if (json_last_error() !== JSON_ERROR_NONE) {
+    http_response_code(400);
+    error_log("Error decodificant JSON a createEventAction: " . json_last_error_msg());
+    echo json_encode(['message' => 'Cos de la petició invàlid: S\'esperava JSON.']);
+    exit;
+  }
+  if ($data === null) {
+    http_response_code(400);
+    echo json_encode(['message' => 'Cos de la petició JSON buit o invàlid.']);
+    exit;
   }
 
-
-  if (empty($nom) || empty($data_inici) || empty($data_fi)) {
+  // Validació de dades (igual que abans, però llegint de $data)
+  $nom = $data['nom'] ?? null;
+  $data_inici_str = $data['data_inici'] ?? null;
+  $data_fi_str = $data['data_fi'] ?? null;
+  $opcions_input = $data['opcions'] ?? null;
+  if (empty($nom) || empty($data_inici_str) || empty($data_fi_str)) {
     http_response_code(400);
     echo json_encode(["message" => "Falten camps obligatoris: nom, data_inici, data_fi."]);
     exit;
   }
-
-  // Validació de dates
-  $ts_inici = strtotime($data_inici);
-  $ts_fi = strtotime($data_fi);
+  $ts_inici = strtotime($data_inici_str);
+  $ts_fi = strtotime($data_fi_str);
   if ($ts_inici === false || $ts_fi === false) {
     http_response_code(400);
-    echo json_encode(["message" => "Format de data invàlid per data_inici o data_fi. Utilitza formats reconeguts (ex: YYYY-MM-DD HH:MM:SS)."]);
+    echo json_encode(["message" => "Format de data invàlid."]);
     exit;
   }
   if ($ts_fi < $ts_inici) {
     http_response_code(400);
-    echo json_encode(["message" => "La data de fi no pot ser anterior a la data d'inici."]);
+    echo json_encode(["message" => "La data de fi no pot ser anterior a la d'inici."]);
     exit;
   }
   $formatted_inici = date('Y-m-d H:i:s', $ts_inici);
   $formatted_fi = date('Y-m-d H:i:s', $ts_fi);
-
+  $opcions_json = null; // Gestió d'opcions (igual que abans)
+  if ($opcions_input !== null) { /* ... (codi per gestionar opcions igual) ... */
+    if (is_string($opcions_input)) {
+      json_decode($opcions_input);
+      if (json_last_error() === JSON_ERROR_NONE) {
+        $opcions_json = $opcions_input;
+      }
+    } elseif (is_array($opcions_input) || is_object($opcions_input)) {
+      $opcions_json = json_encode($opcions_input);
+      if ($opcions_json === false) {
+        http_response_code(400);
+        echo json_encode(["message" => "Error codificant 'opcions' a JSON."]);
+        exit;
+      }
+    }
+  }
 
   try {
+    // Usem paràmetres anònims (?) per consistència amb el teu codi original
     $stmt = $conn->prepare("INSERT INTO drink_event (nom, data_inici, data_fi, opcions) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssss", $nom, $formatted_inici, $formatted_fi, $opcions_json);
+    if ($stmt === false) {
+      $errorInfo = $conn->errorInfo();
+      throw new Exception("Error preparant INSERT PDO: " . ($errorInfo[2] ?? 'Error'));
+    }
 
-    if ($stmt->execute()) {
-      $newEventId = $conn->insert_id;
-      // Recuperar i retornar l'esdeveniment creat
+    // Sanititzem el nom (usant la teva funció 'sanitize')
+    $sanitized_nom = sanitize($nom); // <<-- CORREGIT: Utilitza la teva funció sanitize
+
+    // Executem passant els paràmetres en un array
+    $success = $stmt->execute([$sanitized_nom, $formatted_inici, $formatted_fi, $opcions_json]);
+
+    if ($success) {
+      $newEventId = $conn->lastInsertId();
+
+      // Recuperar i retornar l'event creat
       $stmtSelect = $conn->prepare("SELECT * FROM drink_event WHERE event_id = ?");
-      $stmtSelect->bind_param("i", $newEventId);
-      $stmtSelect->execute();
-      $newEvent = $stmtSelect->get_result()->fetch_assoc();
-      $stmtSelect->close();
+      if ($stmtSelect === false) { /* Gestionar error */
+        throw new Exception("Error SELECT post-insert");
+      }
+      $stmtSelect->execute([$newEventId]);
+      $newEvent = $stmtSelect->fetch(PDO::FETCH_ASSOC);
 
-      http_response_code(201); // Created
+      http_response_code(201);
       echo json_encode(['message' => 'Esdeveniment creat correctament.', 'event' => $newEvent]);
       exit;
     } else {
-      error_log("Error SQL a createEventAction: " . $stmt->error);
-      http_response_code(500);
-      echo json_encode(["message" => "Error del servidor al crear l'esdeveniment."]);
-      exit;
+      // Si execute() retorna false i no llença excepció (depèn de config PDO)
+      $errorInfo = $stmt->errorInfo();
+      throw new Exception("Error executant INSERT PDO: " . ($errorInfo[2] ?? 'Error desconegut'));
     }
-    $stmt->close(); // Es tanca automàticament amb l'exit, però és bona pràctica
+
+  } catch (PDOException $e) {
+    error_log("Error PDO a createEventAction: " . $e->getMessage());
+    // Comprovar codi d'error per duplicats (SQLSTATE 23000 sol ser integritat)
+    if ($e->getCode() == '23000') {
+      http_response_code(409); // Conflict
+      echo json_encode(["message" => "Conflicte: Ja existeix un esdeveniment amb aquestes característiques."]);
+    } else {
+      http_response_code(500);
+      echo json_encode(["message" => "Error del servidor (PDO) al crear l'esdeveniment."]);
+    }
+    exit;
   } catch (Exception $e) {
-    error_log("Error a createEventAction: " . $e->getMessage());
+    error_log("Error General a createEventAction: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["message" => "Error del servidor al crear l'esdeveniment."]);
+    echo json_encode(["message" => "Error general del servidor al crear l'esdeveniment."]);
     exit;
   }
 }
 
-// PUT /events/{id}
-function updateEventAction($conn)
-{ // Rep dades sanititzades i user_id
-  if (!filter_var($event_id, FILTER_VALIDATE_INT) || $event_id <= 0) {
+/**
+ * Actualitza un esdeveniment existent.
+ */
+function updateEventAction(PDO $conn): void
+{
+  // Validació ID (igual que abans)
+  $event_id_input = $_GET['event_id'] ?? null;
+  $event_id = filter_var($event_id_input, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
+  if ($event_id === false || $event_id === null) { /* error 400 */
     http_response_code(400);
-    echo json_encode(["message" => "ID d'esdeveniment invàlid proporcionat."]);
+    echo json_encode(["message" => "event_id requerit/invàlid"]);
     exit;
   }
 
-  // Validació de dades rebudes
-  $nom = $data['nom'] ?? null;
-  $data_inici = $data['data_inici'] ?? null;
-  $data_fi = $data['data_fi'] ?? null;
-  $opcions_input = $data['opcions'] ?? null;
-  $opcions_json = null;
-  // Lògica per gestionar opcions (similar a createEventAction)
-  if (is_string($opcions_input)) {
-    $decoded = json_decode($opcions_input, true);
-    $opcions_json = (json_last_error() === JSON_ERROR_NONE) ? $opcions_input : null;
-  } elseif (is_array($opcions_input) || is_object($opcions_input)) {
-    $opcions_json = json_encode($opcions_input);
-  }
-
-
-  if (empty($nom) || empty($data_inici) || empty($data_fi)) {
+  // Llegir i validar JSON del body (igual que a create)
+  $json_data = file_get_contents('php://input');
+  $data = json_decode($json_data, true);
+  if (json_last_error() !== JSON_ERROR_NONE) { /* error 400 */
     http_response_code(400);
-    echo json_encode(["message" => "Falten camps obligatoris: nom, data_inici, data_fi."]);
+    echo json_encode(['message' => 'JSON invàlid']);
+    error_log("JSON Error update: " . json_last_error_msg());
     exit;
   }
-  // Validació de dates
-  $ts_inici = strtotime($data_inici);
-  $ts_fi = strtotime($data_fi);
-  if ($ts_inici === false || $ts_fi === false) {
-    http_response_code(400);
-    echo json_encode(["message" => "Format de data invàlid per data_inici o data_fi."]);
-    exit;
+  if ($data === null) {
+    $data = [];
+  } // Permet body buit o "null", però no farem res si no hi ha camps
+
+  // Validació de dades rebudes (igual que a create)
+  // PERÒ: Ara els camps són opcionals per a PUT parcial (si ho desitges)
+  // Si vols PUT complet, manté les comprovacions 'empty' o '!isset' com abans
+  // Aquest exemple permet actualització parcial
+  $fieldsToUpdate = [];
+  $params = [];
+
+  if (isset($data['nom'])) {
+    if (empty(trim($data['nom']))) {
+      http_response_code(400);
+      echo json_encode(["message" => "El nom no pot ser buit."]);
+      exit;
+    }
+    $fieldsToUpdate[] = "nom = :nom";
+    $params[':nom'] = sanitize($data['nom']); // Sanititzar!
   }
-  if ($ts_fi < $ts_inici) {
-    http_response_code(400);
-    echo json_encode(["message" => "La data de fi no pot ser anterior a la data d'inici."]);
-    exit;
+  if (isset($data['data_inici'])) {
+    $ts_inici = strtotime($data['data_inici']);
+    if ($ts_inici === false) {
+      http_response_code(400);
+      echo json_encode(["message" => "Format data_inici invàlid."]);
+      exit;
+    }
+    $fieldsToUpdate[] = "data_inici = :data_inici";
+    $params[':data_inici'] = date('Y-m-d H:i:s', $ts_inici);
   }
-  $formatted_inici = date('Y-m-d H:i:s', $ts_inici);
-  $formatted_fi = date('Y-m-d H:i:s', $ts_fi);
+  if (isset($data['data_fi'])) {
+    $ts_fi = strtotime($data['data_fi']);
+    if ($ts_fi === false) {
+      http_response_code(400);
+      echo json_encode(["message" => "Format data_fi invàlid."]);
+      exit;
+    }
+    $fieldsToUpdate[] = "data_fi = :data_fi";
+    $params[':data_fi'] = date('Y-m-d H:i:s', $ts_fi);
+  }
+  // Validació creuada de dates si s'han proporcionat les dues
+  if (isset($params[':data_inici']) && isset($params[':data_fi'])) {
+    if (strtotime($params[':data_inici']) >= strtotime($params[':data_fi'])) {
+      http_response_code(400);
+      echo json_encode(["message" => "data_inici ha de ser anterior a data_fi."]);
+      exit;
+    }
+  } // Hauries d'afegir validacions si només es passa una data contra la data existent a la BD
 
-  try {
-    $stmt = $conn->prepare("UPDATE drink_event SET nom = ?, data_inici = ?, data_fi = ?, opcions = ? WHERE event_id = ?");
-    $stmt->bind_param("ssssi", $nom, $formatted_inici, $formatted_fi, $opcions_json, $event_id);
-
-    if ($stmt->execute()) {
-      if ($stmt->affected_rows > 0) {
-        // Opcional: retornar l'esdeveniment actualitzat
-        $stmtSelect = $conn->prepare("SELECT * FROM drink_event WHERE event_id = ?");
-        $stmtSelect->bind_param("i", $event_id);
-        $stmtSelect->execute();
-        $updatedEvent = $stmtSelect->get_result()->fetch_assoc();
-        $stmtSelect->close();
-
-        http_response_code(200);
-        echo json_encode(['message' => 'Esdeveniment actualitzat correctament.', 'event' => $updatedEvent]);
-        exit;
-      } else {
-        // Comprovar si existeix per diferenciar 404 de 200 sense canvis
-        $stmtCheck = $conn->prepare("SELECT event_id FROM drink_event WHERE event_id = ?");
-        $stmtCheck->bind_param("i", $event_id);
-        $stmtCheck->execute();
-        $exists = $stmtCheck->get_result()->num_rows > 0;
-        $stmtCheck->close();
-        if ($exists) {
-          http_response_code(200); // O 304 si vols ser estricte
-          echo json_encode(['message' => 'Cap canvi detectat a l\'esdeveniment.']);
-          exit;
-        } else {
-          http_response_code(404);
-          echo json_encode(["message" => "Esdeveniment no trobat per actualitzar."]);
+  if (array_key_exists('opcions', $data)) { // Permet posar 'opcions' a null explícitament
+    $opcions_input = $data['opcions'];
+    $opcions_json = null;
+    if ($opcions_input !== null) { /* ... (codi per gestionar opcions igual que a create) ... */
+      if (is_string($opcions_input)) {
+        json_decode($opcions_input);
+        if (json_last_error() === JSON_ERROR_NONE) {
+          $opcions_json = $opcions_input;
+        }
+      } elseif (is_array($opcions_input) || is_object($opcions_input)) {
+        $opcions_json = json_encode($opcions_input);
+        if ($opcions_json === false) {
+          http_response_code(400);
+          echo json_encode(["message" => "Error codificant 'opcions' a JSON."]);
           exit;
         }
       }
-    } else {
-      error_log("Error SQL a updateEventAction (ID: $event_id): " . $stmt->error);
-      http_response_code(500);
-      echo json_encode(["message" => "Error del servidor a l'actualitzar l'esdeveniment."]);
-      exit;
     }
-    $stmt->close();
-  } catch (Exception $e) {
-    error_log("Error a updateEventAction (ID: $event_id): " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(["message" => "Error del servidor a l'actualitzar l'esdeveniment."]);
-    exit;
+    $fieldsToUpdate[] = "opcions = :opcions";
+    $params[':opcions'] = $opcions_json;
   }
-}
 
-// DELETE /events/{id}
-function deleteEventAction($conn)
-{
-  if (!filter_var($event_id, FILTER_VALIDATE_INT) || $event_id <= 0) {
+  if (empty($fieldsToUpdate)) {
     http_response_code(400);
-    echo json_encode(["message" => "ID d'esdeveniment invàlid proporcionat."]);
+    echo json_encode(['message' => 'Cap camp vàlid proporcionat per actualitzar.']);
     exit;
   }
 
   try {
-    // Abans d'esborrar, comprovar si existeix per donar un 404 correcte
-    $stmtCheck = $conn->prepare("SELECT event_id FROM drink_event WHERE event_id = ?");
-    $stmtCheck->bind_param("i", $event_id);
-    $stmtCheck->execute();
-    $exists = $stmtCheck->get_result()->num_rows > 0;
-    $stmtCheck->close();
+    // Comprovar si l'event existeix abans d'intentar actualitzar
+    $stmtCheck = $conn->prepare("SELECT event_id FROM drink_event WHERE event_id = :event_id");
+    if ($stmtCheck === false) {
+      throw new Exception("Error prepare check exists (update)");
+    }
+    $stmtCheck->execute([':event_id' => $event_id]);
+    if ($stmtCheck->fetchColumn() === false) {
+      http_response_code(404);
+      echo json_encode(['message' => 'Esdeveniment no trobat per actualitzar.']);
+      exit;
+    }
 
-    if (!$exists) {
+    // Construir i executar l'UPDATE
+    $sql = "UPDATE drink_event SET " . implode(', ', $fieldsToUpdate) . " WHERE event_id = :event_id";
+    $params[':event_id'] = $event_id; // Afegir l'ID als paràmetres
+
+    $stmtUpdate = $conn->prepare($sql);
+    if ($stmtUpdate === false) {
+      $errorInfo = $conn->errorInfo();
+      throw new Exception("Error preparant UPDATE PDO: " . ($errorInfo[2] ?? 'Error'));
+    }
+
+    $success = $stmtUpdate->execute($params);
+
+    if ($success) {
+      // rowCount() pot ser poc fiable en alguns drivers/versions per a SELECT,
+      // però per UPDATE/DELETE sol indicar les files afectades.
+      $rowCount = $stmtUpdate->rowCount();
+
+      // Recuperar l'event actualitzat (fins i tot si rowCount és 0)
+      $stmtSelect = $conn->prepare("SELECT * FROM drink_event WHERE event_id = :event_id");
+      if ($stmtSelect === false) {
+        throw new Exception("Error prepare select post-update");
+      }
+      $stmtSelect->execute([':event_id' => $event_id]);
+      $updatedEvent = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+
+      if ($rowCount > 0) {
+        http_response_code(200);
+        echo json_encode(['message' => 'Esdeveniment actualitzat correctament.', 'event' => $updatedEvent]);
+      } else {
+        http_response_code(200); // O 304 Not Modified
+        echo json_encode(['message' => 'Cap canvi detectat a l\'esdeveniment.', 'event' => $updatedEvent]);
+      }
+      exit;
+    } else {
+      $errorInfo = $stmtUpdate->errorInfo();
+      throw new Exception("Error executant UPDATE PDO: " . ($errorInfo[2] ?? 'Error desconegut'));
+    }
+
+  } catch (PDOException $e) {
+    error_log("Error PDO a updateEventAction (ID: $event_id): " . $e->getMessage());
+    if ($e->getCode() == '23000') {
+      http_response_code(409);
+      echo json_encode(["message" => "Conflicte de dades (possible duplicat)."]);
+    } else {
+      http_response_code(500);
+      echo json_encode(["message" => "Error del servidor (PDO) a l'actualitzar."]);
+    }
+    exit;
+  } catch (Exception $e) {
+    error_log("Error General a updateEventAction (ID: $event_id): " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message" => "Error general del servidor a l'actualitzar."]);
+    exit;
+  }
+}
+
+/**
+ * Elimina un esdeveniment.
+ */
+function deleteEventAction(PDO $conn): void
+{
+  // Validació ID (igual que abans)
+  $event_id_input = $_GET['event_id'] ?? null;
+  $event_id = filter_var($event_id_input, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
+  if ($event_id === false || $event_id === null) { /* error 400 */
+    http_response_code(400);
+    echo json_encode(["message" => "event_id requerit/invàlid"]);
+    exit;
+  }
+
+  // Opcional: Lògica de permisos
+
+  try {
+    // Comprovar si existeix (opcional però recomanat per donar 404 correcte)
+    $stmtCheck = $conn->prepare("SELECT event_id FROM drink_event WHERE event_id = :event_id");
+    if ($stmtCheck === false) {
+      throw new Exception("Error prepare check exists (delete)");
+    }
+    $stmtCheck->execute([':event_id' => $event_id]);
+    if ($stmtCheck->fetchColumn() === false) {
       http_response_code(404);
       echo json_encode(["message" => "Esdeveniment no trobat per eliminar."]);
       exit;
     }
 
-    // Procedir a eliminar (ON DELETE CASCADE hauria de gestionar event_users)
-    $stmt = $conn->prepare("DELETE FROM drink_event WHERE event_id = ?");
-    $stmt->bind_param("i", $event_id);
+    // Eliminar
+    $stmtDelete = $conn->prepare("DELETE FROM drink_event WHERE event_id = :event_id");
+    if ($stmtDelete === false) {
+      $errorInfo = $conn->errorInfo();
+      throw new Exception("Error preparant DELETE PDO: " . ($errorInfo[2] ?? 'Error'));
+    }
 
-    if ($stmt->execute()) {
-      if ($stmt->affected_rows > 0) {
+    $success = $stmtDelete->execute([':event_id' => $event_id]);
+
+    if ($success) {
+      // Comprovar si realment s'ha eliminat (rowCount)
+      if ($stmtDelete->rowCount() > 0) {
         http_response_code(204); // No Content
-        exit;
+        // No hi ha body per 204
       } else {
-        // Això no hauria de passar si la comprovació d'existència funciona bé
-        error_log("DELETE event $event_id: affected_rows = 0 tot i existir prèviament.");
-        http_response_code(500);
-        echo json_encode(["message" => "Error inesperat en eliminar l'esdeveniment."]);
-        exit;
+        // No hauria de passar si la comprovació d'existència ha anat bé
+        error_log("DELETE event $event_id: rowCount = 0 tot i existir prèviament.");
+        http_response_code(404); // O 500? Si existia, potser un error inesperat
+        echo json_encode(["message" => "Esdeveniment no trobat o error inesperat en eliminar (rowCount=0)."]);
       }
     } else {
-      error_log("Error SQL a deleteEventAction (ID: $event_id): " . $stmt->error);
-      http_response_code(500);
-      // Podria ser un error de foreign key si ON DELETE CASCADE no funciona bé
-      echo json_encode(["message" => "Error del servidor a l'eliminar l'esdeveniment."]);
-      exit;
+      $errorInfo = $stmtDelete->errorInfo();
+      throw new Exception("Error executant DELETE PDO: " . ($errorInfo[2] ?? 'Error desconegut'));
     }
-    $stmt->close();
+    exit;
+
+  } catch (PDOException $e) {
+    $errorIdForLog = $event_id ?? ($event_id_input ?? 'INVALID');
+    error_log("Error PDO a deleteEventAction (ID: $errorIdForLog): " . $e->getMessage());
+    // Comprovar error FK (si no hi ha ON DELETE CASCADE)
+    if ($e->getCode() == '23000') { // 23000 és Integrity constraint violation
+      http_response_code(409); // Conflict
+      echo json_encode(["message" => "No es pot eliminar, té dades associades (participants?)."]);
+    } else {
+      http_response_code(500);
+      echo json_encode(["message" => "Error del servidor (PDO) a l'eliminar."]);
+    }
+    exit;
   } catch (Exception $e) {
-    error_log("Error a deleteEventAction (ID: $event_id): " . $e->getMessage());
+    $errorIdForLog = $event_id ?? ($event_id_input ?? 'INVALID');
+    error_log("Error General a deleteEventAction (ID: $errorIdForLog): " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["message" => "Error del servidor a l'eliminar l'esdeveniment."]);
+    echo json_encode(["message" => "Error general del servidor a l'eliminar."]);
     exit;
   }
 }
 
-// POST /events/{id}?action=signUp  (o action al body)
-function signUpToEventAction($conn)
+/**
+ * Inscriu un usuari a un esdeveniment.
+ */
+function signUpToEventAction(PDO $conn): void
 {
-  // Validar IDs
-  if (!filter_var($event_id, FILTER_VALIDATE_INT) || $event_id <= 0) {
+  // Validació event_id (igual que abans)
+  $event_id_input = $_GET['event_id'] ?? null;
+  $event_id = filter_var($event_id_input, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
+  if ($event_id === false || $event_id === null) { /* error 400 */
     http_response_code(400);
-    echo json_encode(["message" => "ID d'esdeveniment invàlid."]);
-    exit;
-  }
-  if ($user_id === null || !filter_var($user_id, FILTER_VALIDATE_INT) || $user_id <= 0) {
-    http_response_code(401); // Requereix autenticació
-    echo json_encode(["message" => "Necessites iniciar sessió per apuntar-te (ID usuari no vàlid)."]);
+    echo json_encode(["message" => "event_id requerit/invàlid"]);
     exit;
   }
 
+  // Obtenció user_id (igual que abans - FIXME: Autenticació real!)
+  session_start(); // Assegura't que estigui al principi del script globalment
+  $user_id_auth = $_SESSION['user_id'] ?? null;
+  $user_id = filter_var($user_id_auth, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
+  if ($user_id === false || $user_id === null) { /* error 401 */
+    http_response_code(401);
+    error_log("Signup fail: Unauthenticated user. Event: $event_id");
+    echo json_encode(["message" => "Autenticació requerida."]);
+    exit;
+  }
 
   try {
-    // Verificar si l'esdeveniment existeix i està actiu? (Opcional)
-    $stmtCheckEvent = $conn->prepare("SELECT event_id FROM drink_event WHERE event_id = ? AND data_fi >= NOW()");
-    $stmtCheckEvent->bind_param("i", $event_id);
-    $stmtCheckEvent->execute();
-    $eventExists = $stmtCheckEvent->get_result()->num_rows > 0;
-    $stmtCheckEvent->close();
-    if (!$eventExists) {
+    // Verificar si l'event existeix i està actiu
+    $now = date('Y-m-d H:i:s');
+    $stmtCheckEvent = $conn->prepare("SELECT event_id FROM drink_event WHERE event_id = :event_id AND data_fi >= :now");
+    if ($stmtCheckEvent === false) {
+      throw new Exception("Err prepare check event (signUp)");
+    }
+    $stmtCheckEvent->execute([':event_id' => $event_id, ':now' => $now]);
+    if ($stmtCheckEvent->fetchColumn() === false) {
       http_response_code(404);
-      echo json_encode(["message" => "L'esdeveniment no existeix o ja ha finalitzat."]);
+      echo json_encode(["message" => "L'esdeveniment no existeix o ha finalitzat."]);
       exit;
     }
 
-
-    // Comprovar si ja està inscrit (per evitar error de clau primària duplicada)
-    $stmtCheck = $conn->prepare("SELECT event_id FROM event_users WHERE event_id = ? AND user_id = ?");
-    $stmtCheck->bind_param("ii", $event_id, $user_id);
-    $stmtCheck->execute();
-    $isAlreadySignedUp = $stmtCheck->get_result()->num_rows > 0;
-    $stmtCheck->close();
-
-    if ($isAlreadySignedUp) {
+    // Comprovar si ja està inscrit
+    $stmtCheckSignUp = $conn->prepare("SELECT event_id FROM event_users WHERE event_id = :event_id AND user_id = :user_id");
+    if ($stmtCheckSignUp === false) {
+      throw new Exception("Err prepare check signup (signUp)");
+    }
+    $stmtCheckSignUp->execute([':event_id' => $event_id, ':user_id' => $user_id]);
+    if ($stmtCheckSignUp->fetchColumn() !== false) {
       http_response_code(409); // Conflict
       echo json_encode(["message" => "Ja estàs inscrit en aquest esdeveniment."]);
       exit;
     }
 
-    // Inscriure
-    $stmtInsert = $conn->prepare("INSERT INTO event_users (event_id, user_id) VALUES (?, ?)");
-    $stmtInsert->bind_param("ii", $event_id, $user_id);
-
-    if ($stmtInsert->execute()) {
-      http_response_code(201); // Created (o 200 OK si es prefereix)
-      echo json_encode(['message' => 'Inscripció realitzada correctament.']);
-      exit;
-    } else {
-      error_log("Error SQL signUpToEventAction (Event: $event_id, User: $user_id): " . $stmtInsert->error);
-      // Comprovar si l'error és per clau forana (usuari o event esborrat just abans?)
-      if (strpos(strtolower($stmtInsert->error), 'foreign key constraint') !== false) {
-        http_response_code(404); // O 400 Bad Request
-        echo json_encode(["message" => "Error en la inscripció: L'usuari o l'esdeveniment especificat no existeix."]);
-      } else {
-        http_response_code(500);
-        echo json_encode(["message" => "Error del servidor durant la inscripció."]);
-      }
-      exit;
+    // Inscriure (INSERT IGNORE és més simple si només vols evitar errors de duplicat)
+    // $stmtInsert = $conn->prepare("INSERT INTO event_users (event_id, user_id) VALUES (:event_id, :user_id)");
+    $stmtInsert = $conn->prepare("INSERT IGNORE INTO event_users (event_id, user_id) VALUES (:event_id, :user_id)");
+    if ($stmtInsert === false) {
+      throw new Exception("Err prepare insert (signUp)");
     }
-    $stmtInsert->close(); // Redundant per exit
 
+    $success = $stmtInsert->execute([':event_id' => $event_id, ':user_id' => $user_id]);
+
+    if ($success) {
+      // Si hem usat INSERT IGNORE, rowCount pot ser 0 si ja existia, o 1 si s'ha inserit.
+      // Si NO hem usat IGNORE, hauria d'haver donat error 23000 si existia.
+      if ($stmtInsert->rowCount() > 0) {
+        http_response_code(201); // Created
+        echo json_encode(['message' => 'Inscripció realitzada correctament.']);
+      } else {
+        // Si rowCount és 0 amb INSERT IGNORE, significa que ja existia
+        http_response_code(200); // OK (o 409 si prefereixes indicar conflicte)
+        echo json_encode(['message' => 'Ja estaves inscrit (INSERT IGNORE).']);
+      }
+    } else {
+      $errorInfo = $stmtInsert->errorInfo();
+      throw new Exception("Error executant INSERT signup PDO: " . ($errorInfo[2] ?? 'Error desconegut'));
+    }
+    exit;
+
+  } catch (PDOException $e) {
+    $errorEventId = $event_id ?? ($event_id_input ?? 'INVALID');
+    $errorUserId = $user_id ?? ($user_id_auth ?? 'INVALID/UNAUTH');
+    error_log("Error PDO a signUpToEventAction (Event: $errorEventId, User: $errorUserId): " . $e->getMessage() . " Code: " . $e->getCode());
+    if ($e->getCode() == '23000') { // Integrity constraint (FK o duplicat si no hi ha IGNORE)
+      // Podria ser FK d'usuari o event no existent, O duplicat si no usem IGNORE
+      http_response_code(400); // O 404 o 409 depenent de la causa exacta
+      echo json_encode(["message" => "Error d'integritat: L'event/usuari no existeix o ja estaves inscrit."]);
+    } else {
+      http_response_code(500);
+      echo json_encode(["message" => "Error del servidor (PDO) durant la inscripció."]);
+    }
+    exit;
   } catch (Exception $e) {
-    error_log("Error a signUpToEventAction (Event: $event_id, User: $user_id): " . $e->getMessage());
+    $errorEventId = $event_id ?? ($event_id_input ?? 'INVALID');
+    $errorUserId = $user_id ?? ($user_id_auth ?? 'INVALID/UNAUTH');
+    error_log("Error General a signUpToEventAction (Event: $errorEventId, User: $errorUserId): " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["message" => "Error del servidor durant la inscripció."]);
+    echo json_encode(["message" => "Error general del servidor durant la inscripció."]);
     exit;
   }
 }
 
-// POST /events/{id}?action=unsign (o action al body)
-function unsignFromEventAction($conn)
+/**
+ * Desinscriu un usuari d'un esdeveniment.
+ */
+function unsignFromEventAction(PDO $conn): void
 {
-  // Validar IDs
-  if (!filter_var($event_id, FILTER_VALIDATE_INT) || $event_id <= 0) {
+  // Validació event_id (igual)
+  $event_id_input = $_GET['event_id'] ?? null;
+  $event_id = filter_var($event_id_input, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
+  if ($event_id === false || $event_id === null) { /* error 400 */
     http_response_code(400);
-    echo json_encode(["message" => "ID d'esdeveniment invàlid."]);
+    echo json_encode(["message" => "event_id requerit/invàlid"]);
     exit;
   }
-  if ($user_id === null || !filter_var($user_id, FILTER_VALIDATE_INT) || $user_id <= 0) {
-    http_response_code(401); // Requereix autenticació
-    echo json_encode(["message" => "Necessites iniciar sessió per desapuntar-te (ID usuari no vàlid)."]);
+
+  // Obtenció user_id (igual - FIXME: Autenticació real!)
+  session_start(); // Al principi del script globalment
+  $user_id_auth = $_SESSION['user_id'] ?? null;
+  $user_id = filter_var($user_id_auth, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
+  if ($user_id === false || $user_id === null) { /* error 401 */
+    http_response_code(401);
+    error_log("Unsign fail: Unauthenticated user. Event: $event_id");
+    echo json_encode(["message" => "Autenticació requerida."]);
     exit;
   }
 
   try {
-    $stmt = $conn->prepare("DELETE FROM event_users WHERE event_id = ? AND user_id = ?");
-    $stmt->bind_param("ii", $event_id, $user_id);
+    // Intentar eliminar la inscripció
+    $stmtDelete = $conn->prepare("DELETE FROM event_users WHERE event_id = :event_id AND user_id = :user_id");
+    if ($stmtDelete === false) {
+      throw new Exception("Err prepare delete (unsign)");
+    }
 
-    if ($stmt->execute()) {
-      if ($stmt->affected_rows > 0) {
-        http_response_code(204); // No Content
-        exit;
+    $success = $stmtDelete->execute([':event_id' => $event_id, ':user_id' => $user_id]);
+
+    if ($success) {
+      if ($stmtDelete->rowCount() > 0) {
+        http_response_code(204); // No Content (Èxit)
       } else {
-        // No s'ha eliminat res: l'usuari no estava inscrit o l'event no existia
-        // Comprovem si l'event existeix per donar un missatge més clar
-        $stmtCheckEvent = $conn->prepare("SELECT event_id FROM drink_event WHERE event_id = ?");
-        $stmtCheckEvent->bind_param("i", $event_id);
-        $stmtCheckEvent->execute();
-        $eventExists = $stmtCheckEvent->get_result()->num_rows > 0;
-        $stmtCheckEvent->close();
-
-        if (!$eventExists) {
-          http_response_code(404);
+        // No s'ha eliminat res. Comprovar si era perquè l'event no existia o perquè no estava inscrit.
+        $stmtCheckEvent = $conn->prepare("SELECT event_id FROM drink_event WHERE event_id = :event_id");
+        if ($stmtCheckEvent === false) {
+          throw new Exception("Err prepare check event post-delete (unsign)");
+        }
+        $stmtCheckEvent->execute([':event_id' => $event_id]);
+        if ($stmtCheckEvent->fetchColumn() === false) {
+          http_response_code(404); // Event Not Found
           echo json_encode(["message" => "L'esdeveniment no existeix."]);
         } else {
-          http_response_code(404); // O 400 Bad Request
+          http_response_code(404); // Signup Not Found
           echo json_encode(["message" => "No estaves inscrit en aquest esdeveniment."]);
         }
-        exit;
       }
     } else {
-      error_log("Error SQL unsignFromEventAction (Event: $event_id, User: $user_id): " . $stmt->error);
-      http_response_code(500);
-      echo json_encode(["message" => "Error del servidor al desapuntar-se."]);
-      exit;
+      $errorInfo = $stmtDelete->errorInfo();
+      throw new Exception("Error executant DELETE unsign PDO: " . ($errorInfo[2] ?? 'Error desconegut'));
     }
-    $stmt->close(); // Redundant
-  } catch (Exception $e) {
-    error_log("Error a unsignFromEventAction (Event: $event_id, User: $user_id): " . $e->getMessage());
+    exit;
+
+  } catch (PDOException $e) {
+    $errorEventId = $event_id ?? ($event_id_input ?? 'INVALID');
+    $errorUserId = $user_id ?? ($user_id_auth ?? 'INVALID/UNAUTH');
+    error_log("Error PDO a unsignFromEventAction (Event: $errorEventId, User: $errorUserId): " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["message" => "Error del servidor al desapuntar-se."]);
+    echo json_encode(["message" => "Error del servidor (PDO) al desapuntar-se."]);
+    exit;
+  } catch (Exception $e) {
+    $errorEventId = $event_id ?? ($event_id_input ?? 'INVALID');
+    $errorUserId = $user_id ?? ($user_id_auth ?? 'INVALID/UNAUTH');
+    error_log("Error General a unsignFromEventAction (Event: $errorEventId, User: $errorUserId): " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message" => "Error general del servidor al desapuntar-se."]);
     exit;
   }
 }
-
 ?>
