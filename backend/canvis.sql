@@ -89,5 +89,24 @@ CREATE TABLE `drink_story_votes` (
   FOREIGN KEY (`story_id`) REFERENCES `drink_stories`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-SELECT * FROM drink_stories WHERE expires_at > NOW() OR is_saved = 1;
+CREATE TABLE drink_event (
+    event_id INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(255) NOT NULL,
+    data_creacio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_inici DATETIME NOT NULL,
+    data_fi DATETIME NOT NULL,
+    opcions TEXT
+);
 
+CREATE TABLE event_users (
+    event_id INT NOT NULL,
+    user_id INT NOT NULL,
+    data_inscripcio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    primary key (event_id, user_id),
+    FOREIGN KEY (event_id) REFERENCES drink_event(event_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES festa_users(user_id) ON DELETE CASCADE
+);
+
+ALTER TABLE drink_data
+ADD COLUMN event_id INT NULL,
+ADD FOREIGN KEY (event_id) REFERENCES drink_event(event_id) ON DELETE SET NULL;

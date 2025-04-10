@@ -93,6 +93,8 @@
                     <th>Total (L)</th>
                     <!-- Abreujat -->
                     <th>Mitjana (L)</th>
+                    <th>Total (€) </th>
+                    <th>Mitjana (€)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -117,6 +119,8 @@
                     <td>{{ stat.begudes_preses }}</td>
                     <td>{{ stat.total_quantitat | number : "1.2-2" }}</td>
                     <td>{{ stat.mitjana_quantitat | number : "1.2-2" }}</td>
+                    <td>{{ stat.total_preu | number : "1.2-2" }}</td>
+                    <td>{{ stat.mitjana_preu | number : "1.2-2" }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -252,7 +256,7 @@
               </thead>
               <tbody>
                 <tr *ngFor="let topDrinker of statsData.topDrinkerMonth">
-                  <td>{{ topDrinker.user_id }}</td>
+                  <td>{{ topDrinker.user_name }}</td>
                   <!-- Considera mostrar el nom si el tens -->
                   <td>{{ topDrinker.litres_totals | number : "1.2-2" }}</td>
                   <!-- Format -->
