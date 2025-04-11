@@ -1,30 +1,8 @@
-// src/environments/environment.ts
-
+//ng serve --configuration=pc --open
+//ng build --configuration=pc
 export const environment = {
   production: false,
-  // //MSI
-  //apiUrl: 'http://localhost/festa/backend',
-  //PC
   apiUrl: 'http://localhost:8012/festa/backend',
-
-  //Assets
   assetsUrl: 'http://localhost:8012/festa/assets/uploads/',
-  //MSI
-  //assetsUrl: 'http://localhost/festa/assets/uploads/',
-
-  storyExpirationHours: 24*15 //(15 dies)
+  storyExpirationHours: 24 * 15
 };
-
-//WEB
-/*
-export const environment = {
-  production: true,
-  // API
-  apiUrl: 'https://joc.feritja.cat/backend',
-
-  //Assets
-  assetsUrl: 'https://joc.feritja.cat/assets/uploads/',
-
-  storyExpirationHours: 24*15 //(15 dies)
-};
-*/

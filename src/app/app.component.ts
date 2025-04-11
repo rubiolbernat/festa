@@ -1,4 +1,4 @@
-import { environment } from './../environments/environment';
+import { environment } from '../environments/environment';
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AlertComponent } from './shared/components/alert/alert.component';

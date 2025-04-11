@@ -110,3 +110,16 @@ CREATE TABLE event_users (
 ALTER TABLE drink_data
 ADD COLUMN event_id INT NULL,
 ADD FOREIGN KEY (event_id) REFERENCES drink_event(event_id) ON DELETE SET NULL;
+
+
+CREATE TABLE `festa_user_followers` (
+  `follower_id` INT(11) NOT NULL,
+  `followed_id` INT(11) NOT NULL,
+  PRIMARY KEY (`follower_id`, `followed_id`),
+  CONSTRAINT `fk_follower_user`
+    FOREIGN KEY (`follower_id`) REFERENCES `festa_users` (`user_id`)
+    ON DELETE CASCADE,
+  CONSTRAINT `fk_followed_user`
+    FOREIGN KEY (`followed_id`) REFERENCES `festa_users` (`user_id`)
+    ON DELETE CASCADE
+) 
