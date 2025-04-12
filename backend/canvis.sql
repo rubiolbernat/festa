@@ -122,4 +122,15 @@ CREATE TABLE `festa_user_followers` (
   CONSTRAINT `fk_followed_user`
     FOREIGN KEY (`followed_id`) REFERENCES `festa_users` (`user_id`)
     ON DELETE CASCADE
-) 
+)
+
+
+ALTER TABLE festa_users
+ADD COLUMN role BOOLEAN DEFAULT 0;
+
+ALTER TABLE drink_event
+ADD COLUMN created_by INT,
+ADD CONSTRAINT fk_created_by
+FOREIGN KEY (created_by) REFERENCES festa_users(user_id)
+ON DELETE SET NULL
+ON UPDATE CASCADE;

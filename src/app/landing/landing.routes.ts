@@ -36,15 +36,15 @@ export const LANDING_ROUTES: Routes = [
       //JOCS
       {
         path: 'jocs',
-        loadComponent: () => import('./games-menu-page/games-menu-page.component').then(m => m.GamesMenuPageComponent),
+        loadComponent: () => import('./games/games-menu-page/games-menu-page.component').then(m => m.GamesMenuPageComponent),
       },
       {
         path: 'jo_maimai',
-        loadComponent: () => import('./maimai-page/maimai-page.component').then(m => m.MaimaiPageComponent)
+        loadComponent: () => import('./games/maimai-page/maimai-page.component').then(m => m.MaimaiPageComponent)
       },
       {
         path: 'veritatoprova',
-        loadComponent: () => import('./trhuthdare-page/trhuthdare-page.component').then(m => m.TrhuthdarePageComponent)
+        loadComponent: () => import('./games/trhuthdare-page/trhuthdare-page.component').then(m => m.TrhuthdarePageComponent)
       },
       {
         path: 'la_gran_aventura',
