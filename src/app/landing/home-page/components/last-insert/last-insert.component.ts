@@ -1,4 +1,4 @@
-import { environment } from './../../../../../environments/environment';
+import { environment } from '../../../../../environments/environment';
 // Core Angular Imports
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { DatePipe, NgIf, CommonModule } from '@angular/common'; // Afegit CommonModule per *ngIf al template

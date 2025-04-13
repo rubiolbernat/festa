@@ -4,7 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 
 import { StoryUserData, StorySlide } from './../../models/stories.model'; // Ajusta la ruta si cal
-import { environment } from '../../../../environments/environment';
+import { environment } from './../../../../environments/environment';
 
 // ... (les interfícies VoteResponse i DeleteResponse romanen igual) ...
 export interface VoteResponse {

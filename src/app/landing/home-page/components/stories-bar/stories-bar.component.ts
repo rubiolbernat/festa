@@ -1,4 +1,4 @@
-import { environment } from './../../../../../environments/environment';
+import { environment } from '../../../../../environments/environment';
 import { StoryUserData, StorySlide } from './../../../../core/models/stories.model';
 import { StoriesService } from './../../../../core/services/stories/stories.service';
 import { Component, OnInit } from '@angular/core'; // Importa OnInit
