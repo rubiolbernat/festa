@@ -1,0 +1,23 @@
+@if(events.length==0){
+<div class="no-events">
+  <div class="position-relative">
+    <div class="position-absolute top-0 end-0">
+      <button type="button" class="btn metallic-button text-black mt-2 font-weight-bold" style="margin-right: 8px;">Apunta't a un esdeveniment</button>
+    </div>
+  </div>
+</div>
+} @else {
+<div class="events-banner">
+  <h2>Upcoming Events</h2>
+  <ul>
+    @for(event of events; track event.event_id) {
+    <li>
+      <h3>{{ event.nom }}</h3>
+      <p>Data inici: {{ event.data_inici | date : "fullDate" }}</p>
+      <p>Data fi: {{ event.data_fi | date : "fullDate" }}</p>
+      <p>{{ event.opcions }}</p>
+    </li>
+    }
+  </ul>
+</div>
+}
