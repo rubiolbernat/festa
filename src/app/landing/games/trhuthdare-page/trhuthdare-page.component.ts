@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { TruthDareModel } from '../../core/models/TruthDareModel.model';
-import { TruthdareService } from '../../core/services/thuthdare/truthdare.service';
+import { TruthDareModel } from '../../../core/models/TruthDareModel.model';
+import { TruthdareService } from '../../../core/services/thuthdare/truthdare.service';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { AlertService } from '../../core/services/alert/alert.service';
+import { AlertService } from '../../../core/services/alert/alert.service';
 
 @Component({
   selector: 'app-trhuthdare-page',

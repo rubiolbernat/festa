@@ -3,6 +3,7 @@ import { environment } from '../../../../../environments/environment';
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { DatePipe, NgIf, CommonModule } from '@angular/common'; // Afegit CommonModule per *ngIf al template
 import { RouterModule } from '@angular/router';
+import { FollowButtonComponent } from '../../../shared/follow-button/follow-button.component';
 
 // Serveis i Models
 import { DrinkingDataService } from './../../../../core/services/drinking-data/drinking-data.service';

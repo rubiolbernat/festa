@@ -1,0 +1,12 @@
+<button
+  class="btn"
+  [ngClass]="{
+    'btn-outline-primary': !isFollowing,
+    'btn-primary': isFollowing
+  }"
+  [disabled]="loading"
+  (click)="toggleFollow()"
+>
+  <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+  {{ isFollowing ? 'Seguint' : 'Seguir' }}
+</button>
