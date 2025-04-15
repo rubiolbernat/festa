@@ -153,7 +153,7 @@ export class LastInsertComponent implements OnInit, AfterViewInit {
     // Ha de ser un array que contingui l'objecte de l'usuari
     this.storyDataForViewer = [userData];
 
-    console.log('Dades preparades per al visor:', JSON.stringify(this.storyDataForViewer));
+    //console.log('Dades preparades per al visor:', JSON.stringify(this.storyDataForViewer));
   }
 
   /** Funció per construir URL completa (similar a la del visor) */

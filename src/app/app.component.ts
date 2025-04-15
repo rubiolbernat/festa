@@ -25,10 +25,10 @@ export class AppComponent {
       .subscribe({
         next: (response) => {
           // El log ja es fa dins del servei amb el tap, però pots afegir més lògica aquí si cal
-          console.log('Neteja automàtica completada des del component.');
+          //console.log('Neteja automàtica completada des del component.');
         },
         error: (error) => {
-          console.error('Error en la neteja automàtica des del component:', error);
+          //console.error('Error en la neteja automàtica des del component:', error);
         }
     });
   }

@@ -43,11 +43,22 @@ if ($method == 'GET') {
       case 'getEventDetails':
         getEventDetailsAction($conn);
         break;
+      case 'getEventStats':
+        getEventStats($conn);
+        break;
       case 'getMySubscriptions': // Nom d'acció suggerit
+        if (!isset($_GET['user_id'])) {
+          http_response_code(400);
+          echo json_encode(["message" => "Paràmetre 'user_id' requerit."]);
+          exit;
+        }
         getMySubscribedEventsAction($conn);
         break;
       case 'getMyActiveSubscriptions': // Nom d'acció suggerit
         getMyActiveSubscribedEventsAction($conn);
+        break;
+      case 'getEventsPaginated':
+        getEventsPaginated($conn);
         break;
       default:
         http_response_code(404);
@@ -257,6 +268,105 @@ function getPastEventsAction(PDO $conn): void
   }
 }
 
+function getEventsPaginated($conn)
+{
+  $limit = isset($_GET['limit']) && is_numeric($_GET['limit']) ? intval($_GET['limit']) : 10;
+  $offset = isset($_GET['offset']) && is_numeric($_GET['offset']) ? intval($_GET['offset']) : 0;
+
+  $sql = "
+        SELECT
+          de.event_id, de.nom, de.data_creacio, de.data_inici, de.data_fi,
+          de.opcions, de.created_by, fu.name AS created_by_name
+        FROM drink_event de
+        LEFT JOIN festa_users fu ON de.created_by = fu.user_id
+        ORDER BY de.data_inici DESC
+        LIMIT :limit OFFSET :offset
+    ";
+
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (!empty($events)) {
+      // 1. Recollir tots els event_ids d'aquesta pàgina
+      $event_ids = array_column($events, 'event_id');
+
+      // 2. Fer UNA SOLA consulta per a TOTS els participants d'aquests events
+      $placeholders = implode(',', array_fill(0, count($event_ids), '?')); // ?,?,?
+      $sql_participants = "
+                SELECT eu.event_id, eu.user_id, eu.data_inscripcio,
+                       fu.user_id AS participant_user_id, fu.name, fu.email
+                       /* Altres camps de fu si cal */
+                FROM event_users eu
+                INNER JOIN festa_users fu ON fu.user_id = eu.user_id
+                WHERE eu.event_id IN ($placeholders)
+            ";
+      $stmt_participants = $conn->prepare($sql_participants);
+      // Bind cada event_id (PDO s'encarrega del tipus correcte si són enters)
+      foreach ($event_ids as $k => $id) {
+        $stmt_participants->bindValue(($k + 1), $id, PDO::PARAM_INT);
+      }
+      $stmt_participants->execute();
+      $all_participants_results = $stmt_participants->fetchAll(PDO::FETCH_ASSOC);
+
+      // 3. Organitzar els participants per event_id per accedir-hi fàcilment
+      $participants_by_event = [];
+      foreach ($all_participants_results as $row) {
+        // Aplica aquí l'estructura que hagis decidit (plana o niuada)
+        // Exemple amb estructura niuada (Solució 1A)
+        $participant_data = [
+          'user_id' => (int) $row['user_id'],
+          'data_inscripcio' => $row['data_inscripcio'],
+          'user' => [
+            'user_id' => (int) $row['participant_user_id'],
+            'name' => $row['name'],
+            'email' => $row['email'],
+            // ... altres camps de user ...
+          ]
+        ];
+        // Exemple amb estructura plana (Solució 1B)
+        /*
+        $participant_data = [
+            'user_id' => (int)$row['user_id'],
+            'data_inscripcio' => $row['data_inscripcio'],
+            'name' => $row['name'],
+            'email' => $row['email'],
+            // ... altres camps plans ...
+        ];
+        */
+        $participants_by_event[$row['event_id']][] = $participant_data;
+      }
+
+      // 4. Assignar els participants a cada event
+      foreach ($events as &$event) { // Important el '&' per modificar l'array original
+        $event_id = $event['event_id'];
+        // Assigna l'array de participants (o un array buit si no n'hi ha)
+        $event['participants'] = isset($participants_by_event[$event_id]) ? $participants_by_event[$event_id] : [];
+        // Assegura't que els tipus de dades siguin correctes (ex: enters)
+        $event['event_id'] = (int) $event['event_id'];
+        $event['created_by'] = isset($event['created_by']) ? (int) $event['created_by'] : null;
+      }
+      // Desfer la referència per seguretat després del bucle
+      unset($event);
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($events);
+
+  } catch (PDOException $e) {
+    http_response_code(500);
+    error_log("Error PDO en getEventsPaginated: " . $e->getMessage());
+    echo json_encode(["message" => "Error en obtenir les dades: " . $e->getMessage()]);
+  }
+}
+
+// La funció getParticipants ja no és cridada dins del bucle de getEventsPaginated
+// però la pots mantenir si la necessites en altres llocs.
+
+
 /**
  * Obté esdeveniments actius en una data específica.
  */
@@ -373,30 +483,30 @@ function getEventDetailsAction(PDO $conn): void
  */
 function getMySubscribedEventsAction(PDO $conn): void
 {
-  // Assegura't que la sessió estigui iniciada (potser ja ho fas globalment)
-  if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-  }
-
   // Obtenir i validar user_id de la sessió
-  $user_id_auth = $_SESSION['user_id'] ?? null;
-  $user_id = filter_var($user_id_auth, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
+  $user_id = $_GET['user_id'] ?? null;
 
-  if ($user_id === false || $user_id === null) {
+  if ($user_id === null) {
     http_response_code(401); // Unauthorized
-    error_log("getMySubscribedEventsAction fail: Unauthenticated user.");
-    echo json_encode(["message" => "Autenticació requerida per veure les teves subscripcions."]);
+    error_log("getMyActiveSubscribedEventsAction fail: Unauthenticated user.");
+    echo json_encode(["message" => "Autenticació requerida per veure les teves subscripcions actives."]);
     exit;
   }
 
   try {
     // Consulta per obtenir els events als que l'usuari està subscrit
     // Fem un JOIN entre drink_event i event_users
-    $query = "SELECT de.event_id, de.nom, de.data_creacio, de.data_inici, de.data_fi, de.opcions
-                  FROM drink_event de
-                  JOIN event_users eu ON de.event_id = eu.event_id
-                  WHERE eu.user_id = :user_id
-                  ORDER BY de.data_inici DESC"; // O l'ordre que prefereixis
+    $query = "SELECT
+                de.event_id,  de.nom,  de.data_creacio,  de.data_inici,  de.data_fi,
+                de.opcions,  fu.name AS created_by_name,
+                (SELECT COUNT(*)
+                FROM event_users eu2
+                WHERE eu2.event_id = de.event_id) AS total_participants
+              FROM drink_event de
+              JOIN event_users eu ON de.event_id = eu.event_id
+              JOIN festa_users fu ON de.created_by = fu.user_id
+              WHERE eu.user_id = :user_id
+              ORDER BY de.data_inici ASC"; // O l'ordre que prefereixis
 
     $stmt = $conn->prepare($query);
     if ($stmt === false) {
@@ -436,10 +546,9 @@ function getMyActiveSubscribedEventsAction(PDO $conn): void
   }
 
   // Obtenir i validar user_id de la sessió
-  $user_id_auth = $_SESSION['user_id'] ?? null;
-  $user_id = filter_var($user_id_auth, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
+  $user_id = $_GET['user_id'] ?? null;
 
-  if ($user_id === false || $user_id === null) {
+  if ($user_id === null) {
     http_response_code(401); // Unauthorized
     error_log("getMyActiveSubscribedEventsAction fail: Unauthenticated user.");
     echo json_encode(["message" => "Autenticació requerida per veure les teves subscripcions actives."]);
@@ -856,14 +965,13 @@ function signUpToEventAction(PDO $conn): void
     exit;
   }
 
-  // Obtenció user_id (igual que abans - FIXME: Autenticació real!)
-  session_start(); // Assegura't que estigui al principi del script globalment
-  $user_id_auth = $_SESSION['user_id'] ?? null;
-  $user_id = filter_var($user_id_auth, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
-  if ($user_id === false || $user_id === null) { /* error 401 */
-    http_response_code(401);
-    error_log("Signup fail: Unauthenticated user. Event: $event_id");
-    echo json_encode(["message" => "Autenticació requerida."]);
+  // Obtenir i validar user_id de la sessió
+  $user_id = $_GET['user_id'] ?? null;
+
+  if ($user_id === null) {
+    http_response_code(401); // Unauthorized
+    error_log("getMyActiveSubscribedEventsAction fail: Unauthenticated user.");
+    echo json_encode(["message" => "Autenticació requerida per veure les teves subscripcions actives."]);
     exit;
   }
 
@@ -956,14 +1064,13 @@ function unsignFromEventAction(PDO $conn): void
     exit;
   }
 
-  // Obtenció user_id (igual - FIXME: Autenticació real!)
-  session_start(); // Al principi del script globalment
-  $user_id_auth = $_SESSION['user_id'] ?? null;
-  $user_id = filter_var($user_id_auth, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
-  if ($user_id === false || $user_id === null) { /* error 401 */
-    http_response_code(401);
-    error_log("Unsign fail: Unauthenticated user. Event: $event_id");
-    echo json_encode(["message" => "Autenticació requerida."]);
+  // Obtenir i validar user_id de la sessió
+  $user_id = $_GET['user_id'] ?? null;
+
+  if ($user_id === null) {
+    http_response_code(401); // Unauthorized
+    error_log("getMyActiveSubscribedEventsAction fail: Unauthenticated user.");
+    echo json_encode(["message" => "Autenticació requerida per veure les teves subscripcions actives."]);
     exit;
   }
 
@@ -1016,4 +1123,109 @@ function unsignFromEventAction(PDO $conn): void
     exit;
   }
 }
+
+function getEventStats($conn)
+{
+  if (isset($_GET['event_id'])) {
+    $eventId = sanitize($_GET['event_id']);
+  } else {
+    http_response_code(400);
+    echo json_encode(array("message" => "Falta el paràmetre date-start o date-end."));
+  }
+  if (isset($eventId)) {
+    // Obtener datos generales
+    $generalUserStats = getGeneralUserStatsEvent($conn, $eventId);
+    $generalStats = getGeneralStatsEvent($conn, $eventId);
+    // Obtener top spending day
+    //$topDrinkByQuantity = getTopDrinkByQuantityEvent($conn, $eventId);
+    // Obtener estadísticas semanales
+    //$weeklyStats = getWeeklyStats($conn, $userId);
+    // Obtener el mes bevedeor del grup
+    $topDrinker = getTopDrinkerEvent($conn, $eventId);
+
+    // Combinar resultados
+    $result = array(
+      'generalUserStats' => $generalUserStats,
+      'generalStats' => $generalStats,
+      //'topDrinkByQuantity' => $topDrinkByQuantity,
+      //'weeklyStats' => $weeklyStats,
+      'topDrinker' => $topDrinker
+    );
+
+    echo json_encode($result);
+  } else {
+    http_response_code(400);
+    echo json_encode(array("message" => "Falta el paràmetre user_id."));
+  }
+}
+
+function getGeneralUserStatsEvent($conn, $eventId)
+{
+  $sql = "SELECT
+              SUM(quantity) AS total_litres,
+              SUM(price) AS total_preu,
+              COUNT(DISTINCT date) AS dies_beguts,
+              SUM(num_drinks) AS begudes_totals
+          FROM drink_data
+          WHERE event_id = :eventId";
+
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':eventId', $eventId, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error a getGeneralStatsDate: " . $e->getMessage());
+    return array("error" => "Error al obtenir estadístiques generals per dates.");
+  }
+}
+
+function getGeneralStatsEvent($conn, $eventId)
+{
+  $sql = "SELECT
+                SUM(quantity) AS total_litres,
+                SUM(price) AS total_preu,
+                COUNT(DISTINCT date) AS dies_beguts,
+                SUM(num_drinks) AS begudes_totals
+            FROM drink_data
+            WHERE event_id = :eventId;";
+
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':eventId', $eventId, PDO::PARAM_STR);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error a getGeneralStatsDate: " . $e->getMessage());
+    return array("error" => "Error al obtenir estadístiques generals per dates.");
+  }
+}
+
+function getTopDrinkerEvent($conn, $eventId)
+{
+  $sql = "SELECT
+            drink_data.user_id AS user_id,
+            festa_users.name AS user_name,
+            SUM(quantity) AS litres_totals
+          FROM drink_data
+          JOIN festa_users ON drink_data.user_id = festa_users.user_id
+          WHERE drink_data.event_id = :eventId
+          GROUP BY drink_data.user_id, festa_users.name
+          ORDER BY litres_totals DESC
+          LIMIT 3";
+
+  try {
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':eventId', $eventId, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $result;
+  } catch (PDOException $e) {
+    error_log("Error en getTopDrinkerEvent: " . $e->getMessage());
+    return array("error" => "Error al obtenir el més bevedor de l'esdeveniment.");
+  }
+}
+
 ?>

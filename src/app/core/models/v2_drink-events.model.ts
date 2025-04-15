@@ -10,6 +10,9 @@ export interface DrinkEvent {
   data_fi: string;
   opcions?: string | null; // Pot ser un string JSON o null
   DrinkData?: DrinkData;
+  Created_by?: Number;
+  created_by_name?: string;
+  total_participants?: number;
 }
 
 // Interfície per a la informació d'un usuari inscrit (igual que abans)

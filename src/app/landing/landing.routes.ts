@@ -72,6 +72,12 @@ export const LANDING_ROUTES: Routes = [
       }, {
         path: 'ruleta',
         loadComponent: () => import('./wheel-page/wheel-page.component').then(m => m.WheelPageComponent),
+      },
+      //EVENTS
+      {
+        path: 'events',
+        loadComponent: ()=> import('./events-page/events-page.component').then(m => m.EventsPageComponent),
+        canActivate: [AuthGuard],
       }
     ]
   },

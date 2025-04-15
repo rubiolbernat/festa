@@ -1,0 +1,25 @@
+@import "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;800&display=swap";
+
+.container-special {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  height: auto;
+  gap: 1rem;
+}
+
+/* Per navegadors basats en WebKit (Chrome, Safari) */
+.container-special::-webkit-scrollbar {
+  height: 7px;
+}
+
+.container-special::-webkit-scrollbar-track {
+  background: rgba(58, 58, 58, 0.603);
+}
+
+.container-special::-webkit-scrollbar-thumb {
+  background-color: rgba(146, 120, 2, 0.959); /* Color subtil, o transparent si vols invisible */
+  border-radius: 10px;
+}

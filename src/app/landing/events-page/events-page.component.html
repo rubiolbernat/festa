@@ -1,0 +1,270 @@
+<div class="no-events">
+  <div class="position-relative">
+    <div class="position-absolute top-0 end-0" style="margin-top: 8px">
+      <button
+        type="button"
+        class="metallic-button-shine"
+        style="margin-right: 8px"
+        routerLink="/events"
+      >
+        Crea un esdeveniment
+      </button>
+    </div>
+  </div>
+</div>
+<section class="py-5">
+  <div
+    class="container my-4"
+    infiniteScroll
+    [infiniteScrollDistance]="2"
+    [infiniteScrollThrottle]="150"
+    (scrolled)="loadevents()"
+  >
+    <div class="row g-3">
+      <!-- Targeta per cada esdeveniment -->
+      <!-- Afegeix trackBy si el tens: trackBy: trackByEventId -->
+      <div class="col-12" *ngFor="let event of InfiniteEvents">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">{{ event.nom }}</h5>
+
+            <!-- Informació Principal -->
+            <div class="row mb-2">
+              <div class="col-md-6 mb-1">
+                <p class="card-text mb-0" style="text-transform: capitalize">
+                  <i class="bi bi-calendar-event text-primary me-1"></i>
+                  <strong>Inici:</strong>
+                  {{ event.data_inici | date : "fullDate" }}
+                </p>
+              </div>
+              <div class="col-md-6 mb-1">
+                <p class="card-text mb-0" style="text-transform: capitalize">
+                  <i class="bi bi-calendar-check text-success me-1"></i>
+                  <strong>Fi:</strong>
+                  {{ event.data_fi | date : "EEEE, dd 'del' MM 'de' yyyy" }}
+                </p>
+              </div>
+              <div class="col-md-6 mb-1">
+                <p class="card-text mb-0">
+                  <i class="bi bi-person-fill text-secondary me-1"></i>
+                  <strong>Creat per:</strong> {{ event.created_by_name }}
+                </p>
+              </div>
+              <div class="col-md-6 mb-1">
+                <p class="card-text mb-0">
+                  <i class="bi bi-people-fill me-1"></i>
+                  <!-- Utilitza ?. per seguretat si participants pot ser null/undefined inicialment -->
+                  <strong>Participants:</strong>
+                  {{ event.participants?.length || 0 }}
+                </p>
+              </div>
+            </div>
+
+            <!-- =============================================================== -->
+            <!-- ================ ZONA D'ACCIONS (BOTONS) ====================== -->
+            <!-- =============================================================== -->
+            <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
+              <!-- Botó per Obrir el Modal de Participants -->
+              <button
+                *ngIf="event.participants && event.participants.length > 0"
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
+                data-bs-toggle="modal"
+                [attr.data-bs-target]="'#participantsModal-' + event.event_id"
+                [disabled]="
+                  actionLoading &&
+                  (actionLoading['enroll-' + event.event_id] ||
+                    actionLoading['unenroll-' + event.event_id])
+                "
+              >
+                <!-- Deshabilita si s'està processant inscripció/desinscripció -->
+                <i class="bi bi-list-ul me-1"></i>
+                Veure Participants
+              </button>
+
+              <!-- Botó Inscriure's: Mostrat si usuari loguejat i NO inscrit -->
+              <button
+                *ngIf="currentUserId && !isUserEnrolled(event)"
+                type="button"
+                class="btn btn-success btn-sm"
+                (click)="enrollUser(event)"
+                [disabled]="
+                  actionLoading && actionLoading['enroll-' + event.event_id]
+                "
+              >
+                <!-- Contingut Normal -->
+                <span
+                  *ngIf="
+                    !actionLoading || !actionLoading['enroll-' + event.event_id]
+                  "
+                >
+                  <i class="bi bi-person-plus-fill me-1"></i> Inscriure's
+                </span>
+                <!-- Contingut durant la càrrega -->
+                <span
+                  *ngIf="
+                    actionLoading && actionLoading['enroll-' + event.event_id]
+                  "
+                >
+                  <span
+                    class="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  Inscrivint...
+                </span>
+              </button>
+
+              <!-- Botó Desinscriure's: Mostrat si usuari loguejat i SÍ inscrit -->
+              <button
+                *ngIf="currentUserId && isUserEnrolled(event)"
+                type="button"
+                class="btn btn-danger btn-sm"
+                (click)="unenrollUser(event)"
+                [disabled]="
+                  actionLoading && actionLoading['unenroll-' + event.event_id]
+                "
+              >
+                <!-- Contingut Normal -->
+                <span
+                  *ngIf="
+                    !actionLoading ||
+                    !actionLoading['unenroll-' + event.event_id]
+                  "
+                >
+                  <i class="bi bi-person-dash-fill me-1"></i> Desinscriure's
+                </span>
+                <!-- Contingut durant la càrrega -->
+                <span
+                  *ngIf="
+                    actionLoading && actionLoading['unenroll-' + event.event_id]
+                  "
+                >
+                  <span
+                    class="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  Processant...
+                </span>
+              </button>
+            </div>
+            <!-- ================= Fi Zona d'Accions =========================== -->
+
+            <!-- Missatge si no hi ha participants -->
+            <p
+              *ngIf="!event.participants || event.participants.length === 0"
+              class="text-muted small mt-2 mb-0 fst-italic"
+            >
+              <i class="bi bi-info-circle me-1"></i> Encara no hi ha
+              participants inscrits.
+              <!-- Opcional: Animem a inscriure's si l'usuari està loguejat -->
+              <span *ngIf="currentUserId"> Sigues el primer!</span>
+            </p>
+          </div>
+          <!-- Fi card-body -->
+        </div>
+        <!-- Fi card -->
+
+        <!-- =============================================================== -->
+        <!-- ============ Definició del MODAL per aquest event ============= -->
+        <!-- =============================================================== -->
+        <div
+          class="modal fade"
+          [id]="'participantsModal-' + event.event_id"
+          tabindex="-1"
+          [attr.aria-labelledby]="'participantsModalLabel-' + event.event_id"
+          aria-hidden="true"
+        >
+          <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5
+                  class="modal-title"
+                  [id]="'participantsModalLabel-' + event.event_id"
+                >
+                  <i class="bi bi-people-fill me-2"></i>Participants:
+                  {{ event.nom }}
+                </h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Tancar"
+                ></button>
+              </div>
+              <div class="modal-body">
+                <!-- Llista de Participants dins del Modal -->
+                <ul class="list-group list-group-flush">
+                  <li
+                    *ngIf="
+                      !event.participants || event.participants.length === 0
+                    "
+                    class="list-group-item text-muted"
+                  >
+                    No hi ha participants inscrits per mostrar.
+                  </li>
+                  <!-- Utilitza ?. per seguretat si user pot ser null/undefined -->
+                  <li
+                    *ngFor="let participant of event.participants"
+                    class="list-group-item py-2 px-1"
+                  >
+                    <div class="d-flex w-100 justify-content-between">
+                      <h6 class="mb-1">
+                        {{ participant.user?.name || "Usuari desconegut" }}
+                      </h6>
+                      <small class="text-muted"
+                        >ID: {{ participant.user_id }}</small
+                      >
+                    </div>
+                    <small class="text-muted">
+                      Inscrit el:
+                      {{
+                        participant.data_inscripcio | date : "dd/MM/yy HH:mm"
+                      }}
+                    </small>
+                  </li>
+                </ul>
+              </div>
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  data-bs-dismiss="modal"
+                >
+                  <i class="bi bi-x-lg me-1"></i>Tancar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- ================= Fi del Modal =============================== -->
+      </div>
+      <!-- Fi col-12 -->
+    </div>
+    <!-- Fi row -->
+
+    <!-- ... (Spinner i missatges de càrrega/final, sense canvis) ... -->
+    <div *ngIf="loading" class="text-center mt-4 py-3">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Carregant més esdeveniments...</span>
+      </div>
+      <p class="mt-2 mb-0 text-muted">Carregant...</p>
+    </div>
+    <div
+      *ngIf="allInsertsLoaded && !loading && InfiniteEvents.length > 0"
+      class="text-center text-muted mt-4 py-3 border-top"
+    >
+      <i class="bi bi-check-circle me-1"></i> Ja has vist tots els
+      esdeveniments.
+    </div>
+    <div
+      *ngIf="!loading && InfiniteEvents.length === 0 && allInsertsLoaded"
+      class="text-center text-muted mt-4 py-3"
+    >
+      <i class="bi bi-calendar-x me-1 fs-4"></i>
+      <p class="mb-0">No s'han trobat esdeveniments.</p>
+    </div>
+  </div>
+  <!-- Fi container -->
+</section>

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { catchError, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { DrinkEvent, EventUser, EventParticipants } from '../models/v2_drink-events.model';
@@ -14,7 +14,7 @@ export class DrinkEventsService {
   constructor(private http: HttpClient) { }
 
   getEvents(): Observable<DrinkEvent[]> {
-    return this.http.get<DrinkEvent[]>(`${this.apiUrl}?action=getEvents`).pipe(
+    return this.http.get<DrinkEvent[]>(`${this.apiUrl}?action=getFutureEvents`).pipe(
       tap((events: DrinkEvent[]) => console.log('Events:', events)),
       catchError((error: any) => {
         console.error('Error al carregar els esdeveniments:', error);
@@ -22,6 +22,31 @@ export class DrinkEventsService {
       })
     );
   }
+
+  getEventsByUser(user_id: number): Observable<DrinkEvent[]> {
+    return this.http.get<DrinkEvent[]>(`${this.apiUrl}?action=getMySubscriptions&user_id=${user_id}`).pipe(
+      tap((events: DrinkEvent[]) => console.log('Events:', events)),
+      catchError((error: any) => {
+        console.error('Error al carregar els esdeveniments:', error);
+        throw error;
+      })
+    );
+  }
+
+  getEventsPaginated(limit: number, offset: number): Observable<EventParticipants[]> {
+    return this.http.get<EventParticipants[]>(`${this.apiUrl}?action=getEventsPaginated&limit=${limit}&offset=${offset}`)
+  }
+
+  getEventStatsData(event_id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}?action=getEventStats&event_id=${event_id}`).pipe(
+      tap((stats: any) => console.log('Event Stats Data:', stats)),
+      catchError((error: any) => {
+        console.error('Error fetching event stats data:', error);
+        throw error;
+      })
+    );
+  }
+
 
   getEvent(eventId: number): Observable<DrinkEvent> {
     return this.http.get<DrinkEvent>(`${this.apiUrl}?action=${eventId}`);
@@ -45,6 +70,52 @@ export class DrinkEventsService {
       catchError((error: any) => {
         console.error('Error creating event:', error);
         throw error;
+      })
+    );
+  }
+
+  enrollInEvent(eventId: number, userId: number): Observable<any> { // Return type 'any' or a specific success model
+    const body = new HttpParams()
+      .set('action', 'enrollUser')
+      .set('event_id', eventId.toString())
+      .set('user_id', userId.toString()); // Consider if PHP should get user_id from session instead
+
+    return this.http.post<any>(this.apiUrl, body, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).pipe(
+      tap(response => console.log('Enrollment response:', response)),
+      catchError((error: any) => {
+        console.error('Error enrolling in event:', error);
+        // Re-throw the error to be handled by the component
+        throw error;
+      })
+    );
+  }
+
+  unenrollFromEvent(eventId: number, userId: number): Observable<any> {
+    // Normalment les eliminacions es fan amb DELETE, però si l'API espera POST:
+    const body = new HttpParams()
+      .set('action', 'unenrollUser') // Nova acció PHP
+      .set('event_id', eventId.toString())
+      .set('user_id', userId.toString()); // O obtenir de sessió/token a PHP
+
+    // Si l'API accepta DELETE (millor pràctica REST):
+    // return this.http.delete<any>(`${this.apiUrl}?action=unenrollUser&event_id=${eventId}&user_id=${userId}`).pipe(
+    //   tap(response => console.log('Unenrollment response:', response)),
+    //   catchError((error: any) => {
+    //     console.error('Error unenrolling from event:', error);
+    //     throw error;
+    //   })
+    // );
+
+    // Utilitzant POST com per 'enroll':
+    return this.http.post<any>(this.apiUrl, body, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).pipe(
+      tap(response => console.log('Unenrollment response:', response)),
+      catchError((error: any) => {
+        console.error('Error unenrolling from event:', error);
+        throw error; // Propaga l'error
       })
     );
   }

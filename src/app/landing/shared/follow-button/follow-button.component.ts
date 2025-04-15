@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-follow-button',
   templateUrl: './follow-button.component.html',
-  styleUrls: ['./follow-button.component.scss'],
+  styleUrls: ['./follow-button.component.css'],
   imports: [CommonModule],
 })
 export class FollowButtonComponent {

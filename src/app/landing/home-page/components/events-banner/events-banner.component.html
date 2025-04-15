@@ -1,23 +1,40 @@
-@if(events.length==0){
+@if (isloggedIn$) { @if(events.length==0){
 <div class="no-events">
   <div class="position-relative">
     <div class="position-absolute top-0 end-0">
-      <button type="button" class="btn metallic-button text-black mt-2 font-weight-bold" style="margin-right: 8px;">Apunta't a un esdeveniment</button>
+      <button
+        type="button"
+        class="btn metallic-button text-black mt-2 font-weight-bold metallic-spinner-button"
+        style="margin-right: 8px"
+        routerLink="/events"
+      >
+        Apunta't a un esdeveniment
+      </button>
     </div>
   </div>
 </div>
 } @else {
-<div class="events-banner">
-  <h2>Upcoming Events</h2>
-  <ul>
-    @for(event of events; track event.event_id) {
-    <li>
-      <h3>{{ event.nom }}</h3>
-      <p>Data inici: {{ event.data_inici | date : "fullDate" }}</p>
-      <p>Data fi: {{ event.data_fi | date : "fullDate" }}</p>
-      <p>{{ event.opcions }}</p>
-    </li>
-    }
-  </ul>
+<!--<h2>Esdeveniments actius</h2>-->
+
+<div class="container-special">
+  @for(event of events; track event.event_id) {
+  <app-banner [eventdata]="event"></app-banner>
+  }
 </div>
-}
+
+<div class="no-events">
+  <div class="position-relative">
+    <div class="position-absolute top-0 end-0" style="margin-top: 8px">
+      <button
+        type="button"
+        class="metallic-button-spinner"
+        style="margin-right: 8px"
+        routerLink="/events"
+      >
+        Apunta't a un esdeveniment
+      </button>
+    </div>
+  </div>
+</div>
+
+} } @else { }
