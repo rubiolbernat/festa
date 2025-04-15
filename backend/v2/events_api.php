@@ -272,6 +272,8 @@ function getEventsPaginated($conn)
 {
   $limit = isset($_GET['limit']) && is_numeric($_GET['limit']) ? intval($_GET['limit']) : 10;
   $offset = isset($_GET['offset']) && is_numeric($_GET['offset']) ? intval($_GET['offset']) : 0;
+  $user_id = isset($_GET['user_id']) && is_numeric($_GET['user_id']) ? intval($_GET['user_id']) : null;
+
 
   $sql = "
         SELECT
@@ -343,12 +345,27 @@ function getEventsPaginated($conn)
       // 4. Assignar els participants a cada event
       foreach ($events as &$event) { // Important el '&' per modificar l'array original
         $event_id = $event['event_id'];
+
         // Assigna l'array de participants (o un array buit si no n'hi ha)
         $event['participants'] = isset($participants_by_event[$event_id]) ? $participants_by_event[$event_id] : [];
-        // Assegura't que els tipus de dades siguin correctes (ex: enters)
+
+        // Assegura't que els tipus de dades siguin correctes
         $event['event_id'] = (int) $event['event_id'];
         $event['created_by'] = isset($event['created_by']) ? (int) $event['created_by'] : null;
-      }
+
+        // Comprovar si l'usuari actual està inscrit a l'event
+        if ($user_id !== null && isset($participants_by_event[$event_id])) {
+            $event['enrrolled'] = false;
+            foreach ($participants_by_event[$event_id] as $participant) {
+                if ($participant['user_id'] === $user_id) {
+                    $event['enrrolled'] = true;
+                    break;
+                }
+            }
+        } else {
+            $event['enrrolled'] = false;
+        }
+    }
       // Desfer la referència per seguretat després del bucle
       unset($event);
     }

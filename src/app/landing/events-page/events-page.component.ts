@@ -34,7 +34,7 @@ export class EventsPageComponent implements OnInit {
     if (this.loading || this.allInsertsLoaded) return;
     this.loading = true;
 
-    this.eventsService.getEventsPaginated(this.limit, this.offset).subscribe({
+    this.eventsService.getEventsPaginated(this.limit, this.offset, this.currentUserId ?? 0).subscribe({
       next: (newevents: EventParticipants[]) => {
         if (newevents.length === 0) {
           this.allInsertsLoaded = true;
@@ -54,9 +54,6 @@ export class EventsPageComponent implements OnInit {
     })
   }
 
-  isUserEnrolled(event: any) {
-    return true;
-  }
   enrollUser(event: any) {
 
   }

@@ -32,10 +32,23 @@ export class DrinkEventsService {
       })
     );
   }
+  /*
+    getEventsPaginated(limit: number, offset: number, id:number): Observable<EventParticipants[]> {
+      return this.http.get<EventParticipants[]>(`${this.apiUrl}?action=getEventsPaginated&limit=${limit}&offset=${offset}&user_id=${id}`)
 
-  getEventsPaginated(limit: number, offset: number): Observable<EventParticipants[]> {
-    return this.http.get<EventParticipants[]>(`${this.apiUrl}?action=getEventsPaginated&limit=${limit}&offset=${offset}`)
+    }
+  */
+  getEventsPaginated(limit: number, offset: number, id: number): Observable<EventParticipants[]> {
+    const params = new HttpParams()
+      .set('action', 'getEventsPaginated')  // Paràmetres per GET
+      .set('limit', limit.toString())
+      .set('offset', offset.toString())
+      .set('user_id', id.toString());  // Add user_id as a query parameter
+
+    return this.http.get<EventParticipants[]>(this.apiUrl, { params, });
   }
+
+
 
   getEventStatsData(event_id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}?action=getEventStats&event_id=${event_id}`).pipe(

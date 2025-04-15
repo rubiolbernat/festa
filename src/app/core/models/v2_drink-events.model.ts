@@ -13,6 +13,7 @@ export interface DrinkEvent {
   Created_by?: Number;
   created_by_name?: string;
   total_participants?: number;
+  enrrolled?:boolean;
 }
 
 // Interfície per a la informació d'un usuari inscrit (igual que abans)

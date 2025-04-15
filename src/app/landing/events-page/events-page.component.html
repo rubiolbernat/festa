@@ -84,7 +84,7 @@
 
               <!-- Botó Inscriure's: Mostrat si usuari loguejat i NO inscrit -->
               <button
-                *ngIf="currentUserId && !isUserEnrolled(event)"
+                *ngIf="currentUserId && !event.enrrolled"
                 type="button"
                 class="btn btn-success btn-sm"
                 (click)="enrollUser(event)"
@@ -117,7 +117,7 @@
 
               <!-- Botó Desinscriure's: Mostrat si usuari loguejat i SÍ inscrit -->
               <button
-                *ngIf="currentUserId && isUserEnrolled(event)"
+                *ngIf="currentUserId && event.enrrolled"
                 type="button"
                 class="btn btn-danger btn-sm"
                 (click)="unenrollUser(event)"
