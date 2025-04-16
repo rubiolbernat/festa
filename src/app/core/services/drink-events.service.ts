@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { catchError, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { DrinkEvent, EventUser, EventParticipants } from '../models/v2_drink-events.model';
@@ -89,36 +89,52 @@ export class DrinkEventsService {
 
   enrollInEvent(eventId: number, userId: number | null): Observable<any> {
     if (!userId) {
-      console.warn('Intent d’inscriure amb userId nul');
-      return throwError(() => new Error('Usuari no vàlid'));
+      const errorMsg = 'Intent d’inscriure amb userId nul o invàlid.';
+      console.warn(errorMsg);
+      return throwError(() => new Error(errorMsg));
     }
 
-    const body = new HttpParams()
-      .set('action', 'signUp')
+    // 1. Defineix l'acció que anirà a la URL
+    const action = 'signUp';
+    const urlWithAction = `${this.apiUrl}?action=${action}`;
+
+    console.log(`Target URL for POST: ${urlWithAction}`); // Verifica la URL
+
+    // 3. Construeix el BODY del POST només amb event_id i user_id
+    const bodyParams = new HttpParams()
+      // NO AFEGIM 'action' aquí
       .set('event_id', eventId.toString())
       .set('user_id', userId.toString());
 
-    return this.http.post<any>(this.apiUrl, body, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    }).pipe(
-      tap(response => console.log('Enrollment response:', response)),
-      catchError((error: any) => {
-        console.error('Error enrolling in event:', error);
-        throw error;
+    console.log(`Request Body (form-urlencoded): ${bodyParams.toString()}`); // Verifica el body
+
+    // 4. Fes la sol·licitud POST a la URL modificada, passant les dades al body
+    return this.http.post<any>(
+      urlWithAction,          // URL que ja conté ?action=signUp
+      bodyParams.toString(),  // Cos de la sol·licitud amb les dades (cal convertir a string)
+      {
+        // Capçalera necessària per a POST amb dades form-urlencoded
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      }
+    ).pipe(
+      tap(response => console.log('Enrollment response (POST with action in URL):', response)),
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error enrolling in event (POST with action in URL):', error);
+        return throwError(() => error);
       })
     );
   }
 
 
   unenrollFromEvent(eventId: number, userId: number | null): Observable<any> {
-    // Normalment les eliminacions es fan amb DELETE, però si l'API espera POST:
     const body = new HttpParams()
-      .set('action', 'unsign') // Nova acció PHP
       .set('event_id', eventId.toString())
-      .set('user_id', userId ? userId.toString() : 0); // O obtenir de sessió/token a PHP
+      .set('user_id', userId ? userId.toString() : '0'); // O obtenir de sessió/token a PHP
 
-    // Utilitzant POST com per 'enroll':
-    return this.http.post<any>(this.apiUrl, body, {
+    // Afegeix 'action=unsign' com a GET a l'URL
+    const urlWithAction = `${this.apiUrl}?action=unsign`;
+
+    return this.http.post<any>(urlWithAction, body, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).pipe(
       tap(response => console.log('Unenrollment response:', response)),
@@ -129,6 +145,7 @@ export class DrinkEventsService {
     );
   }
 }
+
 function throwError(arg0: () => Error): Observable<any> {
   throw new Error('Function not implemented.');
 }

@@ -514,17 +514,23 @@ function getMySubscribedEventsAction(PDO $conn): void
     // Consulta per obtenir els events als que l'usuari està subscrit
     // Fem un JOIN entre drink_event i event_users
     $query = "SELECT
-                    de.event_id, de.nom, de.data_creacio, de.data_inici, de.data_fi,de.opcions, fu.name AS created_by_name,
-                    (SELECT COUNT(*)
-                    FROM event_users eu2
-                    WHERE eu2.event_id = de.event_id) AS total_participants
-                FROM drink_event de
-                JOIN event_users eu ON de.event_id = eu.event_id
-                JOIN festa_users fu ON de.created_by = fu.user_id
-                WHERE eu.user_id = :user_id
-                  AND de.data_inici <= NOW() + INTERVAL 2 DAY
-                  AND de.data_fi >= NOW() - INTERVAL 2 DAY
-                ORDER BY de.data_inici ASC;          ";
+                      de.event_id, de.nom, de.data_creacio, de.data_inici, de.data_fi, de.opcions,
+                      fu.name AS created_by_name,
+                      (SELECT COUNT(*)
+                      FROM event_users eu2
+                      WHERE eu2.event_id = de.event_id) AS total_participants
+                  FROM
+                      drink_event de
+                  JOIN
+                      event_users eu ON de.event_id = eu.event_id
+                  JOIN
+                      festa_users fu ON de.created_by = fu.user_id
+                  WHERE
+                      eu.user_id = :user_id
+                      AND DATE(de.data_fi) >= DATE(NOW() - INTERVAL 2 DAY)
+                      AND DATE(de.data_inici) <= DATE(NOW() + INTERVAL 2 DAY)
+                  ORDER BY
+                      de.data_inici ASC;";
 
     $stmt = $conn->prepare($query);
     if ($stmt === false) {

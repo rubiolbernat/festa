@@ -7,60 +7,81 @@
     <div class="mb-3 row">
       <!-- Cas amb select -->
       @if (this.enrolledEvents.length > 0) {
-        <div class="col-md-6">
-          <label for="date" class="form-label">Data:</label>
-          <input
-            type="date"
-            class="form-control"
-            id="date"
-            name="date"
-            [(ngModel)]="drinkData.date"
-            (change)="updateDayOfWeek()"
-            required
-            #dateInput="ngModel"
-          />
-          <div
-            *ngIf="dateInput.invalid && (dateInput.dirty || dateInput.touched)"
-            class="text-danger form-text"
-          >
-            La data és obligatòria.
-          </div>
+      <div class="col-md-6">
+        <label for="date" class="form-label">Data:</label>
+        <!-- Assegura't que el teu input de data tingui (change) -->
+        <input
+          type="date"
+          class="form-control"
+          id="date"
+          name="date"
+          [(ngModel)]="drinkData.date"
+          (change)="onDateChange()"
+          required
+          #dateInput="ngModel"
+        />
+        <div
+          *ngIf="dateInput.invalid && (dateInput.dirty || dateInput.touched)"
+          class="text-danger form-text"
+        >
+          La data és obligatòria.
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Esdeveniment:</label>
-          <select class="form-select">
-            @for (event of enrolledEvents; track event.event_id) {
-              <option>
-                {{ event.nom }} | {{ event.data_inici | date: "dd/MM/yy" }} - {{ event.data_fi | date:"dd/MM/yy"}}
-              </option>
-            }
-          </select>
-        </div>
+      </div>
+      <div class="col-md-6">
+        <label for="event" class="form-label fw-semibold">
+          <i class="bi bi-calendar-event me-1"></i>Esdeveniment:
+        </label>
+        <!-- <<<--- Afegit 'for' -->
+        <!-- <<<--- MODIFICAT EL SELECT ---<<< -->
+        <select
+          class="form-select"
+          id="event"
+          name="event"
+          [(ngModel)]="selectedEventId"
+          (ngModelChange)="updateDrinkDataEventId()"
+        >
+          <!-- Opcional: per mantenir drinkData actualitzat -->
+
+          <!-- Opció per no seleccionar cap esdeveniment -->
+          <option [ngValue]="null">Cap esdeveniment</option>
+          <!-- <<<--- AFEGIT: usa [ngValue] per a null -->
+          @for (event of enrolledEvents; track event.event_id) {
+            <option [value]="event.event_id">
+               <!-- Apliquem el Pipe per obtenir l'icona -->
+              <span class="icon me-1" aria-hidden="true">{{ event.nom | eventIcon }}</span>
+              <!-- La resta del text -->
+              {{ event.nom }} | del {{ event.data_inici | date : "dd/MM/yy" }} al
+              {{ event.data_fi | date : "dd/MM/yy" }}
+            </option>
+          }
+        </select>
+      </div>
       }
       <!-- Cas sense select -->
       @else {
-        <div class="col-12">
-          <label for="date" class="form-label">Data:</label>
-          <input
-            type="date"
-            class="form-control"
-            id="date"
-            name="date"
-            [(ngModel)]="drinkData.date"
-            (change)="updateDayOfWeek()"
-            required
-            #dateInput="ngModel"
-          />
-          <div
-            *ngIf="dateInput.invalid && (dateInput.dirty || dateInput.touched)"
-            class="text-danger form-text"
-          >
-            La data és obligatòria.
-          </div>
+      <div class="col-12">
+        <label for="date" class="form-label">Data:</label>
+        <input
+          type="date"
+          class="form-control"
+          id="date"
+          name="date"
+          [(ngModel)]="drinkData.date"
+          (change)="onDateChange()"
+          required
+          #dateInput="ngModel"
+        />
+        <div
+          *ngIf="dateInput.invalid && (dateInput.dirty || dateInput.touched)"
+          class="text-danger form-text"
+        >
+          La data és obligatòria.
         </div>
+      </div>
       }
     </div>
 
+    <!-- ... resta de la plantilla ... -->
 
     <!-- Lloc -->
     <div class="mb-3">
@@ -606,7 +627,7 @@
           <button
             type="button"
             class="btn btn-primary"
-            (click)="submitData()"
+            (click)="onSubmit()"
             data-bs-dismiss="modal"
           >
             <i class="bi bi-send-check-fill"></i> Confirmar i Enviar

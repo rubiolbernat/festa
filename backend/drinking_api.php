@@ -292,15 +292,20 @@ function getLastDrinksAction($conn)
   echo json_encode($drinks);
 }
 
+
+// Suposant que tens una funció sanitize definida en algun lloc:
+// function sanitize($data) {
+//     return htmlspecialchars(strip_tags(trim($data)));
+// }
+
 function addDrinkData($conn)
 {
-  // --- Gestió de la Imatge (igual que abans) ---
-  $target_dir = "../assets/uploads/"; // Assegura't que aquesta carpeta existeix i té permisos d'escriptura
-  $image_name = null; // Inicialitza a null per defecte
+  // --- Gestió de la Imatge (sense canvis) ---
+  $target_dir = "../assets/uploads/";
+  $image_name = null;
   $target_file = null;
-  $imageUploadedSuccessfully = false; // Flag per saber si hem mogut l'arxiu
+  $imageUploadedSuccessfully = false;
 
-  // Comprovem si la carpeta existeix, si no, intentem crear-la
   if (!is_dir($target_dir) && !mkdir($target_dir, 0777, true)) {
     http_response_code(500);
     echo json_encode(array("message" => "No s'ha pogut crear la carpeta de destinació per a les imatges."));
@@ -308,15 +313,12 @@ function addDrinkData($conn)
   }
 
   if (isset($_FILES["image"]) && $_FILES["image"]["error"] == 0 && $_FILES["image"]["size"] > 0) {
-    // Nom de fitxer original
     $original_filename = basename($_FILES["image"]["name"]);
-    // Nom únic per evitar col·lisions
-    $image_name = uniqid('img_', true) . "_" . preg_replace("/[^a-zA-Z0-9\.\_\-]/", "_", $original_filename); // Nom més segur
+    $image_name = uniqid('img_', true) . "_" . preg_replace("/[^a-zA-Z0-9\.\_\-]/", "_", $original_filename);
     $target_file = $target_dir . $image_name;
     $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-    // Validació de la imatge (mida, tipus, si és imatge real)
-    $check = @getimagesize($_FILES["image"]["tmp_name"]); // Usa @ per suprimir warnings si no és imatge
+    $check = @getimagesize($_FILES["image"]["tmp_name"]);
     if ($check === false) {
       http_response_code(400);
       echo json_encode(array("message" => "El fitxer proporcionat no sembla ser una imatge vàlida."));
@@ -336,13 +338,11 @@ function addDrinkData($conn)
       exit;
     }
 
-    // Intentem moure el fitxer pujat
     if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-      $imageUploadedSuccessfully = true; // Marquem que s'ha mogut correctament
-      error_log("Imatge pujada amb èxit a: " . $target_file); // Log per debugging
+      $imageUploadedSuccessfully = true;
+      error_log("Imatge pujada amb èxit a: " . $target_file);
     } else {
-      // Si falla el move_uploaded_file, no continuem amb la BD
-      error_log("Error crític: No s'ha pogut moure el fitxer pujat a " . $target_file); // Log més detallat
+      error_log("Error crític: No s'ha pogut moure el fitxer pujat a " . $target_file);
       http_response_code(500);
       echo json_encode(array("message" => "Error intern del servidor al processar la imatge."));
       exit;
@@ -362,6 +362,27 @@ function addDrinkData($conn)
   $longitude = isset($_POST['longitude']) && is_numeric($_POST['longitude']) ? sanitize($_POST['longitude']) : null;
   $day_of_week = isset($_POST['day_of_week']) ? sanitize($_POST['day_of_week']) : null;
 
+  // *** 1. OBTENIR event_id ***
+  $event_id_raw = isset($_POST['event_id']) ? $_POST['event_id'] : null;
+
+  // *** 2. VALIDAR/SANITIZAR event_id ***
+  // Si arriba '', o no és numèric (excepte si és null), el posem a null.
+  // Si és numèric, el sanititzem.
+  $event_id = null; // Valor per defecte
+  if ($event_id_raw !== null && $event_id_raw !== '' && is_numeric($event_id_raw)) {
+    $event_id = intval(sanitize($event_id_raw)); // Converteix a enter i sanititza
+    // Comprovació addicional per si sanitize retorna quelcom no numèric
+    if (!is_numeric($event_id)) {
+      $event_id = null;
+    }
+  } else if ($event_id_raw === '') {
+    // Si arriba una string buida, la tractem com a null explícitament
+    $event_id = null;
+  }
+  // Si $event_id_raw ja era null, $event_id es queda com null.
+
+
+  // Validació de dades obligatòries
   if (empty($user_id) || empty($date) || $location === null || empty($drink) || $quantity === null || $price === null || $day_of_week === null || $num_drinks === null) {
     if ($imageUploadedSuccessfully && $target_file && file_exists($target_file)) {
       unlink($target_file);
@@ -374,16 +395,39 @@ function addDrinkData($conn)
 
   try {
     $conn->beginTransaction();
-    $sql_drink = "INSERT INTO drink_data (user_id, date, day_of_week, location, latitude, longitude, drink, quantity, others, price, num_drinks) VALUES (:user_id, :date, :day_of_week, :location, :latitude, :longitude, :drink, :quantity, :others, :price, :num_drinks)";
+
+    // *** 3. MODIFICAR L'INSERT ***
+    // Afegir `event_id` a la llista de columnes i `:event_id` als valors
+    $sql_drink = "INSERT INTO drink_data
+                        (user_id, date, day_of_week, location, latitude, longitude, drink, quantity, others, price, num_drinks, event_id)
+                      VALUES
+                        (:user_id, :date, :day_of_week, :location, :latitude, :longitude, :drink, :quantity, :others, :price, :num_drinks, :event_id)";
+
     $stmt_drink = $conn->prepare($sql_drink);
 
-    $stmt_drink->execute([":user_id" => $user_id, ":date" => $date, ":day_of_week" => $day_of_week, ":location" => $location, ":latitude" => $latitude, ":longitude" => $longitude, ":drink" => $drink, ":quantity" => $quantity, ":price" => $price, ":num_drinks" => $num_drinks, ":others" => $others]);
+    // Afegir el paràmetre `:event_id` a execute()
+    $stmt_drink->execute([
+      ":user_id" => $user_id,
+      ":date" => $date,
+      ":day_of_week" => $day_of_week,
+      ":location" => $location,
+      ":latitude" => $latitude,
+      ":longitude" => $longitude,
+      ":drink" => $drink,
+      ":quantity" => $quantity,
+      ":others" => $others, // Assegura't que la variable $others existeixi i s'hagi obtingut abans
+      ":price" => $price,
+      ":num_drinks" => $num_drinks,
+      ":event_id" => $event_id // <<<--- Afegit el paràmetre event_id
+    ]);
+
     $drink_id = $conn->lastInsertId();
 
     if (!$drink_id) {
       throw new PDOException("No s'ha pogut obtenir l'ID del registre de beguda inserit.");
     }
 
+    // Inserció a drink_stories (sense canvis)
     if ($image_name !== null) {
       $sql_story = "INSERT INTO drink_stories (user_id, drink_id, image_url) VALUES (:user_id, :drink_id, :image_url)";
       $stmt_story = $conn->prepare($sql_story);
@@ -392,16 +436,20 @@ function addDrinkData($conn)
 
     $conn->commit();
     http_response_code(201);
-    echo json_encode(["message" => "Registre creat correctament.", "drink_id" => $drink_id, "image_uploaded" => ($image_name !== null)]);
+    echo json_encode(["message" => "Registre creat correctament.", "drink_id" => $drink_id, "event_id_saved" => $event_id, "image_uploaded" => ($image_name !== null)]); // Afegit event_id a la resposta per debugging
 
   } catch (PDOException $e) {
     $conn->rollBack();
     if ($imageUploadedSuccessfully && $target_file && file_exists($target_file)) {
-      unlink($target_file);
+      unlink($target_file); // Neteja la imatge si la BD falla
     }
     error_log("Error PDO en addDrinkData: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["message" => "Error intern del servidor al guardar les dades."]);
+    // Envia un missatge d'error més específic si és possible (compte amb la seguretat)
+    echo json_encode(["message" => "Error intern del servidor al guardar les dades.", "error_details" => $e->getMessage()]); // Opcional: detalls de l'error
+  } finally {
+    // Opcional: Tancar la connexió o altres tasques de neteja si cal
+    // $conn = null; // Depèn de com gestionis la connexió
   }
 }
 

@@ -13,7 +13,7 @@ export interface DrinkData {
   others?: string; // Opcional
   num_drinks: number;
   price: number;
-  event_id?: number;
+  event_id?: number | null;
 }
 
 export interface CombinedDrinkUserData extends DrinkData {
