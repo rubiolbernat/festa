@@ -4,25 +4,63 @@
   <br />
 
   <form (ngSubmit)="onSubmit()">
-    <div class="mb-3">
-      <label for="date" class="form-label">Data:</label>
-      <input
-        type="date"
-        class="form-control"
-        id="date"
-        name="date"
-        [(ngModel)]="drinkData.date"
-        (change)="updateDayOfWeek()"
-        required
-        #dateInput="ngModel"
-      />
-      <div
-        *ngIf="dateInput.invalid && (dateInput.dirty || dateInput.touched)"
-        class="text-danger form-text"
-      >
-        La data és obligatòria.
-      </div>
+    <div class="mb-3 row">
+      <!-- Cas amb select -->
+      @if (this.enrolledEvents.length > 0) {
+        <div class="col-md-6">
+          <label for="date" class="form-label">Data:</label>
+          <input
+            type="date"
+            class="form-control"
+            id="date"
+            name="date"
+            [(ngModel)]="drinkData.date"
+            (change)="updateDayOfWeek()"
+            required
+            #dateInput="ngModel"
+          />
+          <div
+            *ngIf="dateInput.invalid && (dateInput.dirty || dateInput.touched)"
+            class="text-danger form-text"
+          >
+            La data és obligatòria.
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Esdeveniment:</label>
+          <select class="form-select">
+            @for (event of enrolledEvents; track event.event_id) {
+              <option>
+                {{ event.nom }} | {{ event.data_inici | date: "dd/MM/yy" }} - {{ event.data_fi | date:"dd/MM/yy"}}
+              </option>
+            }
+          </select>
+        </div>
+      }
+      <!-- Cas sense select -->
+      @else {
+        <div class="col-12">
+          <label for="date" class="form-label">Data:</label>
+          <input
+            type="date"
+            class="form-control"
+            id="date"
+            name="date"
+            [(ngModel)]="drinkData.date"
+            (change)="updateDayOfWeek()"
+            required
+            #dateInput="ngModel"
+          />
+          <div
+            *ngIf="dateInput.invalid && (dateInput.dirty || dateInput.touched)"
+            class="text-danger form-text"
+          >
+            La data és obligatòria.
+          </div>
+        </div>
+      }
     </div>
+
 
     <!-- Lloc -->
     <div class="mb-3">

@@ -86,9 +86,6 @@ if ($method == 'GET') {
         echo json_encode(["message" => "Acció POST desconeguda: " . $action]);
         exit;
     }
-  } elseif ($resourceId === null) {
-    // Si no hi ha acció i no hi ha ID a la URL, és un POST per crear
-    createEventAction($conn);
   } else {
     // POST a una URL amb ID però sense acció vàlida? Error.
     http_response_code(400);
@@ -275,15 +272,19 @@ function getEventsPaginated($conn)
   $user_id = isset($_GET['user_id']) && is_numeric($_GET['user_id']) ? intval($_GET['user_id']) : null;
 
 
-  $sql = "
-        SELECT
-          de.event_id, de.nom, de.data_creacio, de.data_inici, de.data_fi,
-          de.opcions, de.created_by, fu.name AS created_by_name
-        FROM drink_event de
-        LEFT JOIN festa_users fu ON de.created_by = fu.user_id
-        ORDER BY de.data_inici DESC
-        LIMIT :limit OFFSET :offset
-    ";
+  $sql = "SELECT
+              de.event_id,de.nom, de.data_creacio,de.data_inici,de.data_fi,
+              de.opcions,de.created_by,fu.name AS created_by_name,
+              (
+                SELECT COUNT(*)
+                FROM event_users eu
+                WHERE eu.event_id = de.event_id
+              ) AS total_participants
+            FROM drink_event de
+            LEFT JOIN festa_users fu ON de.created_by = fu.user_id
+            WHERE de.data_fi > NOW()
+            ORDER BY de.data_inici ASC
+            LIMIT :limit OFFSET :offset";
 
   try {
     $stmt = $conn->prepare($sql);
@@ -301,7 +302,6 @@ function getEventsPaginated($conn)
       $sql_participants = "
                 SELECT eu.event_id, eu.user_id, eu.data_inscripcio,
                        fu.user_id AS participant_user_id, fu.name, fu.email
-                       /* Altres camps de fu si cal */
                 FROM event_users eu
                 INNER JOIN festa_users fu ON fu.user_id = eu.user_id
                 WHERE eu.event_id IN ($placeholders)
@@ -355,17 +355,17 @@ function getEventsPaginated($conn)
 
         // Comprovar si l'usuari actual està inscrit a l'event
         if ($user_id !== null && isset($participants_by_event[$event_id])) {
-            $event['enrrolled'] = false;
-            foreach ($participants_by_event[$event_id] as $participant) {
-                if ($participant['user_id'] === $user_id) {
-                    $event['enrrolled'] = true;
-                    break;
-                }
+          $event['enrrolled'] = false;
+          foreach ($participants_by_event[$event_id] as $participant) {
+            if ($participant['user_id'] === $user_id) {
+              $event['enrrolled'] = true;
+              break;
             }
+          }
         } else {
-            $event['enrrolled'] = false;
+          $event['enrrolled'] = false;
         }
-    }
+      }
       // Desfer la referència per seguretat després del bucle
       unset($event);
     }
@@ -514,16 +514,17 @@ function getMySubscribedEventsAction(PDO $conn): void
     // Consulta per obtenir els events als que l'usuari està subscrit
     // Fem un JOIN entre drink_event i event_users
     $query = "SELECT
-                de.event_id,  de.nom,  de.data_creacio,  de.data_inici,  de.data_fi,
-                de.opcions,  fu.name AS created_by_name,
-                (SELECT COUNT(*)
-                FROM event_users eu2
-                WHERE eu2.event_id = de.event_id) AS total_participants
-              FROM drink_event de
-              JOIN event_users eu ON de.event_id = eu.event_id
-              JOIN festa_users fu ON de.created_by = fu.user_id
-              WHERE eu.user_id = :user_id
-              ORDER BY de.data_inici ASC"; // O l'ordre que prefereixis
+                    de.event_id, de.nom, de.data_creacio, de.data_inici, de.data_fi,de.opcions, fu.name AS created_by_name,
+                    (SELECT COUNT(*)
+                    FROM event_users eu2
+                    WHERE eu2.event_id = de.event_id) AS total_participants
+                FROM drink_event de
+                JOIN event_users eu ON de.event_id = eu.event_id
+                JOIN festa_users fu ON de.created_by = fu.user_id
+                WHERE eu.user_id = :user_id
+                  AND de.data_inici <= NOW() + INTERVAL 2 DAY
+                  AND de.data_fi >= NOW() - INTERVAL 2 DAY
+                ORDER BY de.data_inici ASC;          ";
 
     $stmt = $conn->prepare($query);
     if ($stmt === false) {
@@ -614,111 +615,183 @@ function getMyActiveSubscribedEventsAction(PDO $conn): void
  */
 function createEventAction(PDO $conn): void
 {
-  // Llegir i validar JSON del body (IMPORTANT!)
+  // --- Llegir i validar JSON ---
   $json_data = file_get_contents('php://input');
   $data = json_decode($json_data, true);
-  if (json_last_error() !== JSON_ERROR_NONE) {
-    http_response_code(400);
-    error_log("Error decodificant JSON a createEventAction: " . json_last_error_msg());
-    echo json_encode(['message' => 'Cos de la petició invàlid: S\'esperava JSON.']);
-    exit;
-  }
-  if ($data === null) {
+  if (json_last_error() !== JSON_ERROR_NONE || $data === null) {
     http_response_code(400);
     echo json_encode(['message' => 'Cos de la petició JSON buit o invàlid.']);
     exit;
   }
 
-  // Validació de dades (igual que abans, però llegint de $data)
+  // --- Extreure i validar dades ---
   $nom = $data['nom'] ?? null;
   $data_inici_str = $data['data_inici'] ?? null;
   $data_fi_str = $data['data_fi'] ?? null;
   $opcions_input = $data['opcions'] ?? null;
-  if (empty($nom) || empty($data_inici_str) || empty($data_fi_str)) {
+  $created_by = $data['created_by'] ?? null; // ID de l'usuari des del JSON (INSEGUR!)
+
+  // Validació bàsica de camps obligatoris
+  if (empty($nom) || empty($data_inici_str) || empty($data_fi_str) || $created_by === null || !is_numeric($created_by) || $created_by <= 0) {
     http_response_code(400);
-    echo json_encode(["message" => "Falten camps obligatoris: nom, data_inici, data_fi."]);
+    echo json_encode(["message" => "Falten camps obligatoris (nom, data_inici, data_fi) o 'created_by' és invàlid."]);
     exit;
   }
+
+  // Validació de dates
   $ts_inici = strtotime($data_inici_str);
   $ts_fi = strtotime($data_fi_str);
-  if ($ts_inici === false || $ts_fi === false) {
+  if ($ts_inici === false || $ts_fi === false || $ts_fi < $ts_inici) {
     http_response_code(400);
-    echo json_encode(["message" => "Format de data invàlid."]);
-    exit;
-  }
-  if ($ts_fi < $ts_inici) {
-    http_response_code(400);
-    echo json_encode(["message" => "La data de fi no pot ser anterior a la d'inici."]);
+    echo json_encode(["message" => "Format de data invàlid o data de fi anterior a la d'inici."]);
     exit;
   }
   $formatted_inici = date('Y-m-d H:i:s', $ts_inici);
   $formatted_fi = date('Y-m-d H:i:s', $ts_fi);
-  $opcions_json = null; // Gestió d'opcions (igual que abans)
-  if ($opcions_input !== null) { /* ... (codi per gestionar opcions igual) ... */
+
+  // Gestió d'opcions
+  $opcions_json = null;
+  if ($opcions_input !== null) {
+    // ... (mateix codi per validar/codificar opcions) ...
     if (is_string($opcions_input)) {
       json_decode($opcions_input);
       if (json_last_error() === JSON_ERROR_NONE) {
         $opcions_json = $opcions_input;
+      } else {
+        http_response_code(400);
+        echo json_encode(["message" => "'opcions' string no és JSON vàlid."]);
+        exit;
       }
     } elseif (is_array($opcions_input) || is_object($opcions_input)) {
       $opcions_json = json_encode($opcions_input);
       if ($opcions_json === false) {
         http_response_code(400);
-        echo json_encode(["message" => "Error codificant 'opcions' a JSON."]);
+        echo json_encode(["message" => "Error codificant 'opcions'."]);
         exit;
       }
+    } else {
+      http_response_code(400);
+      echo json_encode(["message" => "Format d''opcions' invàlid."]);
+      exit;
     }
   }
 
+  // === INICI TRANSACCIÓ ===
+  $conn->beginTransaction();
+
   try {
-    // Usem paràmetres anònims (?) per consistència amb el teu codi original
-    $stmt = $conn->prepare("INSERT INTO drink_event (nom, data_inici, data_fi, opcions) VALUES (?, ?, ?, ?)");
-    if ($stmt === false) {
-      $errorInfo = $conn->errorInfo();
-      throw new Exception("Error preparant INSERT PDO: " . ($errorInfo[2] ?? 'Error'));
+    // 1. INSERTAR L'ESDEVENIMENT
+    //    *** ASSEGURA'T QUE LA COLUMNA 'created_by' EXISTEIX A 'drink_event' ***
+    $stmtEvent = $conn->prepare(
+      "INSERT INTO drink_event (nom, data_inici, data_fi, opcions, created_by)
+             VALUES (?, ?, ?, ?, ?)"
+    );
+    if ($stmtEvent === false) {
+      // No cal llençar excepció aquí si PDO està en mode excepció, prepare ja la llençaria
+      throw new Exception("Error preparant INSERT event: " . implode(", ", $conn->errorInfo()));
     }
 
-    // Sanititzem el nom (usant la teva funció 'sanitize')
-    $sanitized_nom = sanitize($nom); // <<-- CORREGIT: Utilitza la teva funció sanitize
+    $sanitized_nom = sanitize($nom); // Assegura't que sanitize() existeix
 
-    // Executem passant els paràmetres en un array
-    $success = $stmt->execute([$sanitized_nom, $formatted_inici, $formatted_fi, $opcions_json]);
+    // Execute amb els 5 paràmetres
+    $successEvent = $stmtEvent->execute([
+      $sanitized_nom,
+      $formatted_inici,
+      $formatted_fi,
+      $opcions_json,
+      $created_by
+    ]);
 
-    if ($success) {
-      $newEventId = $conn->lastInsertId();
+    // No cal comprovar $successEvent si PDO està en mode excepció (ERRMODE_EXCEPTION)
+    // if (!$successEvent) { throw new Exception(...); } // Redundant amb ERRMODE_EXCEPTION
 
-      // Recuperar i retornar l'event creat
-      $stmtSelect = $conn->prepare("SELECT * FROM drink_event WHERE event_id = ?");
-      if ($stmtSelect === false) { /* Gestionar error */
-        throw new Exception("Error SELECT post-insert");
-      }
-      $stmtSelect->execute([$newEventId]);
-      $newEvent = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+    $newEventId = $conn->lastInsertId();
+    if (!$newEventId) {
+      // Això no hauria de passar si l'INSERT va bé, però per seguretat:
+      throw new Exception("No s'ha pogut obtenir l'ID del nou esdeveniment després de l'INSERT.");
+    }
 
-      http_response_code(201);
-      echo json_encode(['message' => 'Esdeveniment creat correctament.', 'event' => $newEvent]);
-      exit;
+    // 2. INSCRIURE l'usuari creador a l'esdeveniment
+    $stmtUser = $conn->prepare("INSERT INTO event_users (event_id, user_id) VALUES (?, ?)");
+    if ($stmtUser === false) {
+      throw new Exception("Error preparant INSERT enrollment: " . implode(", ", $conn->errorInfo()));
+    }
+
+    $successEnroll = $stmtUser->execute([$newEventId, $created_by]);
+    // No cal comprovar $successEnroll si PDO està en mode excepció
+    // if (!$successEnroll) { throw new Exception(...); } // Redundant amb ERRMODE_EXCEPTION
+
+
+    // === COMMIT TRANSACCIÓ ===
+    // Si hem arribat aquí, tot ha anat bé
+    $conn->commit();
+
+
+    // 3. Recuperar l'esdeveniment creat per retornar-lo
+    $stmtSelect = $conn->prepare("SELECT * FROM drink_event WHERE event_id = ?");
+    if ($stmtSelect === false) {
+      throw new Exception("Error preparant SELECT post-commit.");
+    } // Poc probable, però per si de cas
+    $stmtSelect->execute([$newEventId]);
+    $newEvent = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+    if (!$newEvent) {
+      // Encara més improbable, però indica un problema greu si l'event no es troba just després de crear-lo
+      error_log("ALERTA: No s'ha pogut recuperar l'event ID $newEventId immediatament després de crear-lo.");
+      // Podries decidir retornar èxit igualment o llençar un error 500
+      http_response_code(201); // Encara considerem la creació exitosa
+      echo json_encode(['message' => 'Esdeveniment creat i inscrit, però hi ha hagut un problema recuperant les dades.', 'event_id' => $newEventId]);
     } else {
-      // Si execute() retorna false i no llença excepció (depèn de config PDO)
-      $errorInfo = $stmt->errorInfo();
-      throw new Exception("Error executant INSERT PDO: " . ($errorInfo[2] ?? 'Error desconegut'));
+      http_response_code(201); // Created
+      echo json_encode([
+        'message' => 'Esdeveniment creat i creador inscrit correctament.',
+        'event' => $newEvent
+      ]);
     }
+    exit; // Surt després de la resposta correcta
 
   } catch (PDOException $e) {
-    error_log("Error PDO a createEventAction: " . $e->getMessage());
-    // Comprovar codi d'error per duplicats (SQLSTATE 23000 sol ser integritat)
-    if ($e->getCode() == '23000') {
+    // === ROLLBACK EN CAS D'ERROR PDO ===
+    if ($conn->inTransaction()) { // Comprova si la transacció estava activa
+      $conn->rollBack();
+    }
+    error_log("Error PDO a createEventAction (transacció): " . $e->getMessage());
+    // Gestió específica d'errors PDO (com abans)
+    if ($e->getCode() == '23000') { // Violació d'integritat
       http_response_code(409); // Conflict
-      echo json_encode(["message" => "Conflicte: Ja existeix un esdeveniment amb aquestes característiques."]);
+      $errorMessage = "Conflicte de dades.";
+      // Intenta donar missatges més específics
+      if (strpos(strtolower($e->getMessage()), 'foreign key constraint fails') !== false) {
+        if (strpos($e->getMessage(), 'created_by') !== false || strpos($e->getMessage(), 'fk_event_creator') !== false) { // Adapta nom FK
+          $errorMessage = "Error: L'usuari creador especificat (created_by: $created_by) no existeix.";
+          http_response_code(400); // Bad request si l'usuari no existeix
+        } elseif (strpos($e->getMessage(), 'event_users') !== false) {
+          $errorMessage = "Error: L'usuari per a la inscripció (user_id: $created_by) no existeix.";
+          http_response_code(400);
+        }
+      } elseif (strpos(strtolower($e->getMessage()), 'duplicate entry') !== false) {
+        if (strpos($e->getMessage(), 'PRIMARY') !== false && strpos($e->getMessage(), 'event_users') !== false) {
+          $errorMessage = "Error: L'usuari (ID: $created_by) ja estava inscrit en aquest esdeveniment (ID: $newEventId ?? 'desconegut').";
+        } else { // Podria ser un índex UNIQUE a nom, etc.
+          $errorMessage = "Error: Ja existeix un registre amb alguna de les dades proporcionades (possiblement nom duplicat).";
+        }
+      }
+      echo json_encode(["message" => $errorMessage]);
+
     } else {
       http_response_code(500);
-      echo json_encode(["message" => "Error del servidor (PDO) al crear l'esdeveniment."]);
+      echo json_encode(["message" => "Error del servidor (PDO) al processar la creació."]);
     }
     exit;
+
   } catch (Exception $e) {
-    error_log("Error General a createEventAction: " . $e->getMessage());
+    // === ROLLBACK EN CAS D'ERROR GENERAL ===
+    if ($conn->inTransaction()) {
+      $conn->rollBack();
+    }
+    error_log("Error General a createEventAction (transacció): " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["message" => "Error general del servidor al crear l'esdeveniment."]);
+    // Dóna una mica més de detall si no és sensible
+    echo json_encode(["message" => "Error general del servidor: " . $e->getMessage()]);
     exit;
   }
 }
@@ -973,97 +1046,48 @@ function deleteEventAction(PDO $conn): void
  */
 function signUpToEventAction(PDO $conn): void
 {
-  // Validació event_id (igual que abans)
-  $event_id_input = $_GET['event_id'] ?? null;
-  $event_id = filter_var($event_id_input, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
-  if ($event_id === false || $event_id === null) { /* error 400 */
+  // Validar dades POST
+  if (!isset($_POST['user_id'], $_POST['event_id'])) {
     http_response_code(400);
-    echo json_encode(["message" => "event_id requerit/invàlid"]);
-    exit;
+    echo json_encode(['error' => 'Falten paràmetres']);
+    return;
   }
 
-  // Obtenir i validar user_id de la sessió
-  $user_id = $_GET['user_id'] ?? null;
-
-  if ($user_id === null) {
-    http_response_code(401); // Unauthorized
-    error_log("getMyActiveSubscribedEventsAction fail: Unauthenticated user.");
-    echo json_encode(["message" => "Autenticació requerida per veure les teves subscripcions actives."]);
-    exit;
-  }
+  $userId = (int) $_POST['user_id'];
+  $eventId = (int) $_POST['event_id'];
 
   try {
-    // Verificar si l'event existeix i està actiu
-    $now = date('Y-m-d H:i:s');
-    $stmtCheckEvent = $conn->prepare("SELECT event_id FROM drink_event WHERE event_id = :event_id AND data_fi >= :now");
-    if ($stmtCheckEvent === false) {
-      throw new Exception("Err prepare check event (signUp)");
-    }
-    $stmtCheckEvent->execute([':event_id' => $event_id, ':now' => $now]);
-    if ($stmtCheckEvent->fetchColumn() === false) {
-      http_response_code(404);
-      echo json_encode(["message" => "L'esdeveniment no existeix o ha finalitzat."]);
-      exit;
+    // Comprovar si ja hi és inscrit
+    $stmtCheck = $conn->prepare("
+            SELECT 1 FROM event_users
+            WHERE user_id = :user_id AND event_id = :event_id
+        ");
+    $stmtCheck->execute([
+      ':user_id' => $userId,
+      ':event_id' => $eventId
+    ]);
+
+    if ($stmtCheck->fetch()) {
+      http_response_code(200);
+      echo json_encode(['message' => 'Ja estàs inscrit a aquest esdeveniment.']);
+      return;
     }
 
-    // Comprovar si ja està inscrit
-    $stmtCheckSignUp = $conn->prepare("SELECT event_id FROM event_users WHERE event_id = :event_id AND user_id = :user_id");
-    if ($stmtCheckSignUp === false) {
-      throw new Exception("Err prepare check signup (signUp)");
-    }
-    $stmtCheckSignUp->execute([':event_id' => $event_id, ':user_id' => $user_id]);
-    if ($stmtCheckSignUp->fetchColumn() !== false) {
-      http_response_code(409); // Conflict
-      echo json_encode(["message" => "Ja estàs inscrit en aquest esdeveniment."]);
-      exit;
-    }
+    // Inserir inscripció
+    $stmtInsert = $conn->prepare("
+            INSERT INTO event_users (event_id, user_id)
+            VALUES (:event_id, :user_id)
+        ");
+    $stmtInsert->execute([
+      ':event_id' => $eventId,
+      ':user_id' => $userId
+    ]);
 
-    // Inscriure (INSERT IGNORE és més simple si només vols evitar errors de duplicat)
-    // $stmtInsert = $conn->prepare("INSERT INTO event_users (event_id, user_id) VALUES (:event_id, :user_id)");
-    $stmtInsert = $conn->prepare("INSERT IGNORE INTO event_users (event_id, user_id) VALUES (:event_id, :user_id)");
-    if ($stmtInsert === false) {
-      throw new Exception("Err prepare insert (signUp)");
-    }
-
-    $success = $stmtInsert->execute([':event_id' => $event_id, ':user_id' => $user_id]);
-
-    if ($success) {
-      // Si hem usat INSERT IGNORE, rowCount pot ser 0 si ja existia, o 1 si s'ha inserit.
-      // Si NO hem usat IGNORE, hauria d'haver donat error 23000 si existia.
-      if ($stmtInsert->rowCount() > 0) {
-        http_response_code(201); // Created
-        echo json_encode(['message' => 'Inscripció realitzada correctament.']);
-      } else {
-        // Si rowCount és 0 amb INSERT IGNORE, significa que ja existia
-        http_response_code(200); // OK (o 409 si prefereixes indicar conflicte)
-        echo json_encode(['message' => 'Ja estaves inscrit (INSERT IGNORE).']);
-      }
-    } else {
-      $errorInfo = $stmtInsert->errorInfo();
-      throw new Exception("Error executant INSERT signup PDO: " . ($errorInfo[2] ?? 'Error desconegut'));
-    }
-    exit;
-
+    http_response_code(201);
+    echo json_encode(['message' => 'Inscripció completada correctament.']);
   } catch (PDOException $e) {
-    $errorEventId = $event_id ?? ($event_id_input ?? 'INVALID');
-    $errorUserId = $user_id ?? ($user_id_auth ?? 'INVALID/UNAUTH');
-    error_log("Error PDO a signUpToEventAction (Event: $errorEventId, User: $errorUserId): " . $e->getMessage() . " Code: " . $e->getCode());
-    if ($e->getCode() == '23000') { // Integrity constraint (FK o duplicat si no hi ha IGNORE)
-      // Podria ser FK d'usuari o event no existent, O duplicat si no usem IGNORE
-      http_response_code(400); // O 404 o 409 depenent de la causa exacta
-      echo json_encode(["message" => "Error d'integritat: L'event/usuari no existeix o ja estaves inscrit."]);
-    } else {
-      http_response_code(500);
-      echo json_encode(["message" => "Error del servidor (PDO) durant la inscripció."]);
-    }
-    exit;
-  } catch (Exception $e) {
-    $errorEventId = $event_id ?? ($event_id_input ?? 'INVALID');
-    $errorUserId = $user_id ?? ($user_id_auth ?? 'INVALID/UNAUTH');
-    error_log("Error General a signUpToEventAction (Event: $errorEventId, User: $errorUserId): " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["message" => "Error general del servidor durant la inscripció."]);
-    exit;
+    echo json_encode(['error' => 'Error del servidor: ' . $e->getMessage()]);
   }
 }
 
@@ -1072,74 +1096,51 @@ function signUpToEventAction(PDO $conn): void
  */
 function unsignFromEventAction(PDO $conn): void
 {
-  // Validació event_id (igual)
-  $event_id_input = $_GET['event_id'] ?? null;
-  $event_id = filter_var($event_id_input, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]]);
-  if ($event_id === false || $event_id === null) { /* error 400 */
+  // Validar dades POST
+  if (!isset($_POST['user_id'], $_POST['event_id'])) {
     http_response_code(400);
-    echo json_encode(["message" => "event_id requerit/invàlid"]);
-    exit;
+    echo json_encode(['error' => 'Falten paràmetres']);
+    return;
   }
 
-  // Obtenir i validar user_id de la sessió
-  $user_id = $_GET['user_id'] ?? null;
-
-  if ($user_id === null) {
-    http_response_code(401); // Unauthorized
-    error_log("getMyActiveSubscribedEventsAction fail: Unauthenticated user.");
-    echo json_encode(["message" => "Autenticació requerida per veure les teves subscripcions actives."]);
-    exit;
-  }
+  $userId = (int) $_POST['user_id'];
+  $eventId = (int) $_POST['event_id'];
 
   try {
-    // Intentar eliminar la inscripció
-    $stmtDelete = $conn->prepare("DELETE FROM event_users WHERE event_id = :event_id AND user_id = :user_id");
-    if ($stmtDelete === false) {
-      throw new Exception("Err prepare delete (unsign)");
+    // Comprovar si la inscripció existeix
+    $stmtCheck = $conn->prepare("
+            SELECT 1 FROM event_users
+            WHERE user_id = :user_id AND event_id = :event_id
+        ");
+    $stmtCheck->execute([
+      ':user_id' => $userId,
+      ':event_id' => $eventId
+    ]);
+
+    if (!$stmtCheck->fetch()) {
+      http_response_code(404);
+      echo json_encode(['error' => 'No estàs inscrit a aquest esdeveniment.']);
+      return;
     }
 
-    $success = $stmtDelete->execute([':event_id' => $event_id, ':user_id' => $user_id]);
+    // Esborrar la inscripció
+    $stmtDelete = $conn->prepare("
+            DELETE FROM event_users
+            WHERE user_id = :user_id AND event_id = :event_id
+        ");
+    $stmtDelete->execute([
+      ':user_id' => $userId,
+      ':event_id' => $eventId
+    ]);
 
-    if ($success) {
-      if ($stmtDelete->rowCount() > 0) {
-        http_response_code(204); // No Content (Èxit)
-      } else {
-        // No s'ha eliminat res. Comprovar si era perquè l'event no existia o perquè no estava inscrit.
-        $stmtCheckEvent = $conn->prepare("SELECT event_id FROM drink_event WHERE event_id = :event_id");
-        if ($stmtCheckEvent === false) {
-          throw new Exception("Err prepare check event post-delete (unsign)");
-        }
-        $stmtCheckEvent->execute([':event_id' => $event_id]);
-        if ($stmtCheckEvent->fetchColumn() === false) {
-          http_response_code(404); // Event Not Found
-          echo json_encode(["message" => "L'esdeveniment no existeix."]);
-        } else {
-          http_response_code(404); // Signup Not Found
-          echo json_encode(["message" => "No estaves inscrit en aquest esdeveniment."]);
-        }
-      }
-    } else {
-      $errorInfo = $stmtDelete->errorInfo();
-      throw new Exception("Error executant DELETE unsign PDO: " . ($errorInfo[2] ?? 'Error desconegut'));
-    }
-    exit;
-
+    http_response_code(200);
+    echo json_encode(['message' => 'T\'has desinscrit correctament de l\'esdeveniment.']);
   } catch (PDOException $e) {
-    $errorEventId = $event_id ?? ($event_id_input ?? 'INVALID');
-    $errorUserId = $user_id ?? ($user_id_auth ?? 'INVALID/UNAUTH');
-    error_log("Error PDO a unsignFromEventAction (Event: $errorEventId, User: $errorUserId): " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["message" => "Error del servidor (PDO) al desapuntar-se."]);
-    exit;
-  } catch (Exception $e) {
-    $errorEventId = $event_id ?? ($event_id_input ?? 'INVALID');
-    $errorUserId = $user_id ?? ($user_id_auth ?? 'INVALID/UNAUTH');
-    error_log("Error General a unsignFromEventAction (Event: $errorEventId, User: $errorUserId): " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(["message" => "Error general del servidor al desapuntar-se."]);
-    exit;
+    echo json_encode(['error' => 'Error del servidor: ' . $e->getMessage()]);
   }
 }
+
 
 function getEventStats($conn)
 {

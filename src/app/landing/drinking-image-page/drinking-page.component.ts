@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { DrinkingDataService } from '../../core/services/drinking-data/drinking-data.service';
@@ -8,6 +8,9 @@ import { AlertService } from '../../core/services/alert/alert.service';
 import { RouterModule } from '@angular/router';
 import { HttpEventType } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
+import { DrinkEventsService } from '../../core/services/drink-events.service';
+import { AuthService } from '../../core/services/auth/auth.service';
+import { DrinkEvent } from '../../core/models/v2_drink-events.model';
 
 @Component({
   selector: 'app-drinking-page',
@@ -17,6 +20,9 @@ import { finalize } from 'rxjs/operators';
   styleUrls: ['./drinking-page.component.css']
 })
 export class DrinkingPageComponent implements OnInit, OnDestroy {
+
+  eventsService = inject(DrinkEventsService);
+  private authService = inject(AuthService);
 
   drinkData: DrinkData = {
     user_id: 0, // Considera obtenir-lo d'algun servei d'autenticació si cal
@@ -59,6 +65,7 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
   drinkSuggestions: string[] = [];
   private subscription: Subscription = new Subscription();
   hasGpsData: boolean = false;
+  enrolledEvents: DrinkEvent[] = []
 
   imageUrl: string | ArrayBuffer | null = null;
   imageFile: File | null = null; // Aquí es guardarà el fitxer de la foto o galeria
@@ -207,6 +214,20 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
       drinks => { this.lastDrinks = drinks; console.log('Last drinks loaded:', drinks); },
       error => console.error('Error loading last drinks:', error)
     ));
+    const userId = this.authService.getUser()?.id;
+    if (userId !== undefined) {
+      this.subscription.add(
+        this.eventsService.getEventsByUser(userId).subscribe({
+          next: (events) => {
+            this.enrolledEvents = events;
+            console.log('Events loaded:', events)
+          },
+          error: (error) => console.error('Error loading events:', error),
+        })
+      );
+    } else {
+      console.error('User ID is undefined. Cannot fetch events.');
+    }
   }
 
   getDayOfWeek(date: Date): number {
@@ -275,11 +296,11 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
 
         // Comprova el tipus MIME per assegurar que és una imatge
         if (!file.type.startsWith('image/')) {
-            this.alertService.showAlert('El fitxer capturat no és una imatge vàlida.', 'warning');
-            this.imageFile = null; // Neteja si hi havia alguna cosa abans
-            this.imageUrl = null;
-            fileInput.value = ''; // Reseteja l'input
-            return; // Atura l'execució aquí
+          this.alertService.showAlert('El fitxer capturat no és una imatge vàlida.', 'warning');
+          this.imageFile = null; // Neteja si hi havia alguna cosa abans
+          this.imageUrl = null;
+          fileInput.value = ''; // Reseteja l'input
+          return; // Atura l'execució aquí
         }
 
         // *** CORRECCIÓ CLAU: Guarda el fitxer i carrega la preview ***
@@ -407,10 +428,10 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
         console.log('Modifying image before upload...');
         fileToUpload = await this.modifyImage(this.imageFile); // Usa this.imageFile
         if (fileToUpload) {
-           console.log('Image modified successfully:', fileToUpload.name, fileToUpload.size);
+          console.log('Image modified successfully:', fileToUpload.name, fileToUpload.size);
         } else {
-             console.warn('Image modification resulted in null, upload will proceed without image.');
-             // fileToUpload ja és null en aquest cas
+          console.warn('Image modification resulted in null, upload will proceed without image.');
+          // fileToUpload ja és null en aquest cas
         }
       } catch (error) {
         console.error('Error modifying image:', error);
@@ -543,69 +564,69 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
   // Processa la imatge: redimensiona i comprimeix
   modifyImage(file: File): Promise<File | null> { // Modificat per permetre retorn null
     return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (event: ProgressEvent<FileReader>) => {
-            if (!event.target?.result || typeof event.target.result !== 'string') {
-                console.error('Error reading file for modification (no result).');
-                return resolve(null); // Resol amb null si falla la lectura
+      const reader = new FileReader();
+      reader.onload = (event: ProgressEvent<FileReader>) => {
+        if (!event.target?.result || typeof event.target.result !== 'string') {
+          console.error('Error reading file for modification (no result).');
+          return resolve(null); // Resol amb null si falla la lectura
+        }
+
+        const img = new Image();
+        img.onload = () => {
+          const MAX_WIDTH = 1024;
+          const MAX_HEIGHT = 1024;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round(height * MAX_WIDTH / width);
+              width = MAX_WIDTH;
             }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round(width * MAX_HEIGHT / height);
+              height = MAX_HEIGHT;
+            }
+          }
 
-            const img = new Image();
-            img.onload = () => {
-                const MAX_WIDTH = 1024;
-                const MAX_HEIGHT = 1024;
-                let width = img.width;
-                let height = img.height;
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
 
-                if (width > height) {
-                    if (width > MAX_WIDTH) {
-                        height = Math.round(height * MAX_WIDTH / width);
-                        width = MAX_WIDTH;
-                    }
-                } else {
-                    if (height > MAX_HEIGHT) {
-                        width = Math.round(width * MAX_HEIGHT / height);
-                        height = MAX_HEIGHT;
-                    }
-                }
+          if (!ctx) {
+            console.error('Could not get canvas context.');
+            return resolve(null); // Resol amb null si falla el context
+          }
 
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
 
-                if (!ctx) {
-                    console.error('Could not get canvas context.');
-                    return resolve(null); // Resol amb null si falla el context
-                }
-
-                ctx.drawImage(img, 0, 0, width, height);
-
-                canvas.toBlob((blob) => {
-                    if (blob) {
-                        const newFileName = file.name.replace(/\.[^/.]+$/, "") + '.jpg'; // Canvia extensió
-                        const newFile = new File([blob], newFileName, {
-                            type: 'image/jpeg',
-                            lastModified: Date.now()
-                        });
-                        resolve(newFile); // Resol amb el nou fitxer
-                    } else {
-                        console.error('Error converting canvas to Blob.');
-                        resolve(null); // Resol amb null si falla la conversió a Blob
-                    }
-                }, 'image/jpeg', 0.8); // Compressió JPEG al 80%
-            };
-            img.onerror = (error) => {
-                console.error('Error loading image for modification:', error);
-                resolve(null); // Resol amb null si falla la càrrega de l'<img>
-            };
-            img.src = event.target.result;
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const newFileName = file.name.replace(/\.[^/.]+$/, "") + '.jpg'; // Canvia extensió
+              const newFile = new File([blob], newFileName, {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              });
+              resolve(newFile); // Resol amb el nou fitxer
+            } else {
+              console.error('Error converting canvas to Blob.');
+              resolve(null); // Resol amb null si falla la conversió a Blob
+            }
+          }, 'image/jpeg', 0.8); // Compressió JPEG al 80%
         };
-        reader.onerror = (error) => {
-            console.error('FileReader error during modification:', error);
-            resolve(null); // Resol amb null si falla FileReader
+        img.onerror = (error) => {
+          console.error('Error loading image for modification:', error);
+          resolve(null); // Resol amb null si falla la càrrega de l'<img>
         };
-        reader.readAsDataURL(file);
+        img.src = event.target.result;
+      };
+      reader.onerror = (error) => {
+        console.error('FileReader error during modification:', error);
+        resolve(null); // Resol amb null si falla FileReader
+      };
+      reader.readAsDataURL(file);
     });
   }
 }

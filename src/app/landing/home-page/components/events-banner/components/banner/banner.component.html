@@ -35,9 +35,12 @@
     </div>
     <div class="box__col box__col--right">
       <!-- Opcional: Mostrar missatge mentre les dades carreguen -->
-      @if (!this.statsData()) {
+      @if (!this.statsData() ) {
       <div>Carregant estadístiques...</div>
-      } @else {
+      } @else if (this.statsData()?.generalStats?.total_litres <= 0) {
+        <div>Sense registres...</div>
+      }
+      @else {
       <!-- Només mostra les cards si statsData té valor -->
       <ng-container>
         <div class="box__card card">

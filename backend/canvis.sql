@@ -95,7 +95,8 @@ CREATE TABLE drink_event (
     data_creacio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     data_inici DATETIME NOT NULL,
     data_fi DATETIME NOT NULL,
-    opcions TEXT
+    opcions TEXT,
+    event_id INT NULL
 );
 
 CREATE TABLE event_users (

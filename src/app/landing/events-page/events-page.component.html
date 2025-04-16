@@ -5,7 +5,7 @@
         type="button"
         class="metallic-button-shine"
         style="margin-right: 8px"
-        routerLink="/events"
+        routerLink="/create-event"
       >
         Crea un esdeveniment
       </button>
@@ -55,12 +55,12 @@
                   <i class="bi bi-people-fill me-1"></i>
                   <!-- Utilitza ?. per seguretat si participants pot ser null/undefined inicialment -->
                   <strong>Participants:</strong>
-                  {{ event.participants?.length || 0 }}
+                  {{ event.total_participants || 0 }}
                 </p>
               </div>
             </div>
 
-            <!-- =============================================================== -->
+                        <!-- =============================================================== -->
             <!-- ================ ZONA D'ACCIONS (BOTONS) ====================== -->
             <!-- =============================================================== -->
             <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
@@ -71,85 +71,90 @@
                 class="btn btn-outline-secondary btn-sm"
                 data-bs-toggle="modal"
                 [attr.data-bs-target]="'#participantsModal-' + event.event_id"
-                [disabled]="
-                  actionLoading &&
-                  (actionLoading['enroll-' + event.event_id] ||
-                    actionLoading['unenroll-' + event.event_id])
-                "
+                [disabled]="actionLoading && (actionLoading['enroll-' + event.event_id] || actionLoading['unenroll-' + event.event_id])"
               >
-                <!-- Deshabilita si s'està processant inscripció/desinscripció -->
-                <i class="bi bi-list-ul me-1"></i>
-                Veure Participants
+                <i class="bi bi-list-ul me-1"></i> Veure Participants
               </button>
 
-              <!-- Botó Inscriure's: Mostrat si usuari loguejat i NO inscrit -->
+              <!-- Botó Inscriure's -->
               <button
                 *ngIf="currentUserId && !event.enrrolled"
                 type="button"
                 class="btn btn-success btn-sm"
                 (click)="enrollUser(event)"
-                [disabled]="
-                  actionLoading && actionLoading['enroll-' + event.event_id]
-                "
+                [disabled]="actionLoading && actionLoading['enroll-' + event.event_id]"
               >
-                <!-- Contingut Normal -->
-                <span
-                  *ngIf="
-                    !actionLoading || !actionLoading['enroll-' + event.event_id]
-                  "
-                >
+                <span *ngIf="!actionLoading || !actionLoading['enroll-' + event.event_id]">
                   <i class="bi bi-person-plus-fill me-1"></i> Inscriure's
                 </span>
-                <!-- Contingut durant la càrrega -->
-                <span
-                  *ngIf="
-                    actionLoading && actionLoading['enroll-' + event.event_id]
-                  "
-                >
-                  <span
-                    class="spinner-border spinner-border-sm"
-                    role="status"
-                    aria-hidden="true"
-                  ></span>
-                  Inscrivint...
+                <span *ngIf="actionLoading && actionLoading['enroll-' + event.event_id]">
+                  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Inscrivint...
                 </span>
               </button>
 
-              <!-- Botó Desinscriure's: Mostrat si usuari loguejat i SÍ inscrit -->
+              <!-- Botó Desinscriure's: MODIFICAT per obrir el modal -->
               <button
                 *ngIf="currentUserId && event.enrrolled"
                 type="button"
                 class="btn btn-danger btn-sm"
-                (click)="unenrollUser(event)"
-                [disabled]="
-                  actionLoading && actionLoading['unenroll-' + event.event_id]
-                "
+                data-bs-toggle="modal"
+                [attr.data-bs-target]="'#unenrollConfirmModal-' + event.event_id"
+                [disabled]="actionLoading && actionLoading['unenroll-' + event.event_id]"
               >
-                <!-- Contingut Normal -->
-                <span
-                  *ngIf="
-                    !actionLoading ||
-                    !actionLoading['unenroll-' + event.event_id]
-                  "
-                >
+                <!-- Contingut (el mateix que abans, però ara només obre el modal) -->
+                <span *ngIf="!actionLoading || !actionLoading['unenroll-' + event.event_id]">
                   <i class="bi bi-person-dash-fill me-1"></i> Desinscriure's
                 </span>
-                <!-- Contingut durant la càrrega -->
-                <span
-                  *ngIf="
-                    actionLoading && actionLoading['unenroll-' + event.event_id]
-                  "
-                >
-                  <span
-                    class="spinner-border spinner-border-sm"
-                    role="status"
-                    aria-hidden="true"
-                  ></span>
-                  Processant...
+                <span *ngIf="actionLoading && actionLoading['unenroll-' + event.event_id]">
+                  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processant...
                 </span>
               </button>
             </div>
             <!-- ================= Fi Zona d'Accions =========================== -->
+
+            <!-- =============================================================== -->
+            <!-- === MODAL DE CONFIRMACIÓ DESINSCRIURE (per aquest event) ====== -->
+            <!-- === (POSAT DINS DEL *ngFor per accedir a 'event') ========== -->
+            <!-- =============================================================== -->
+            <div class="modal fade" [id]="'unenrollConfirmModal-' + event.event_id" tabindex="-1" [attr.aria-labelledby]="'unenrollConfirmModalLabel-' + event.event_id" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" [id]="'unenrollConfirmModalLabel-' + event.event_id">
+                      <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar Desinscripció
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tancar"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p>Estàs segur que vols desinscriure't de l'esdeveniment <strong>{{ event.nom }}</strong>?</p>
+                    <p class="text-muted small">
+                      Si confirmes, la teva participació perdrà la connexió directa amb aquest esdeveniment.
+                    </p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                      <i class="bi bi-x-lg me-1"></i>Cancel·lar
+                    </button>
+                    <!-- Botó Confirmar: Crida unenrollUser amb l'event actual -->
+                    <button type="button" class="btn btn-danger btn-sm"
+                            (click)="unenrollUser(event)"
+                            [disabled]="actionLoading && actionLoading['unenroll-' + event.event_id]"
+                            data-bs-dismiss="modal">
+
+                       <!-- Spinner/Text del botó de confirmació -->
+                       <span *ngIf="!actionLoading || !actionLoading['unenroll-' + event.event_id]">
+                         <i class="bi bi-check-circle-fill me-1"></i>Confirmar
+                       </span>
+                       <span *ngIf="actionLoading && actionLoading['unenroll-' + event.event_id]">
+                           <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                           Processant...
+                       </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- ================= Fi Modal Confirmació ======================== -->
 
             <!-- Missatge si no hi ha participants -->
             <p

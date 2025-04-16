@@ -1,0 +1,161 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h2 class="h5 mb-0">
+            <i class="bi bi-calendar-plus-fill me-2"></i>Crea un Nou
+            Esdeveniment
+          </h2>
+        </div>
+        <div class="card-body">
+          <!-- Afegim una referència al formulari (#eventForm) i l'event (ngSubmit) -->
+          <form #eventForm="ngForm" (ngSubmit)="onSubmit()">
+            <!-- Missatge d'Error General -->
+            <div
+              *ngIf="formError"
+              class="alert alert-danger d-flex align-items-center"
+              role="alert"
+            >
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <div>{{ formError }}</div>
+            </div>
+
+            <!-- Camp Nom de l'Esdeveniment -->
+            <div class="mb-3">
+              <label for="eventName" class="form-label"
+                >Nom de l'Esdeveniment:</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="eventName"
+                name="eventName"
+                [(ngModel)]="newEvent.nom"
+                required
+                minlength="3"
+                maxlength="20"
+                #eventNameInput="ngModel"
+                [class.is-invalid]="
+                  eventNameInput.invalid &&
+                  (eventNameInput.dirty || eventNameInput.touched)
+                "
+                placeholder="Ex: Sopar d'estiu (màx 20 caràcters)"
+              />
+              <!-- Missatges d'Error per al Nom -->
+              <div
+                *ngIf="
+                  eventNameInput.invalid &&
+                  (eventNameInput.dirty || eventNameInput.touched)
+                "
+                class="invalid-feedback"
+              >
+                <div *ngIf="eventNameInput.errors?.['required']">
+                  El nom és obligatori.
+                </div>
+                <div *ngIf="eventNameInput.errors?.['minlength']">
+                  El nom ha de tenir almenys 3 caràcters.
+                </div>
+                <div *ngIf="eventNameInput.errors?.['maxlength']">
+                  <!-- ===== MISSATGE D'ERROR PER MAXLENGTH AFEGIT ===== -->
+                  El nom no pot superar els 20 caràcters.
+                </div>
+              </div>
+            </div>
+            <!-- Camp Data d'Inici -->
+            <div class="mb-3">
+              <label for="startDate" class="form-label">Data d'Inici:</label>
+              <input
+                type="date"
+                class="form-control"
+                id="startDate"
+                name="startDate"
+                [(ngModel)]="newEvent.data_inici"
+                (ngModelChange)="onStartDateChange()"
+                required
+                #startDateInput="ngModel"
+                [class.is-invalid]="
+                  startDateInput.invalid &&
+                  (startDateInput.dirty || startDateInput.touched)
+                "
+              />
+              <!-- Missatges d'Error per Data Inici -->
+              <div
+                *ngIf="
+                  startDateInput.invalid &&
+                  (startDateInput.dirty || startDateInput.touched)
+                "
+                class="invalid-feedback"
+              >
+                <div *ngIf="startDateInput.errors?.['required']">
+                  La data d'inici és obligatòria.
+                </div>
+              </div>
+            </div>
+
+            <!-- Camp Data de Fi -->
+            <div class="mb-3">
+              <label for="endDate" class="form-label">Data de Fi:</label>
+              <input
+                type="date"
+                class="form-control"
+                id="endDate"
+                name="endDate"
+                [(ngModel)]="newEvent.data_fi"
+                [min]="minEndDate"
+                required
+                #endDateInput="ngModel"
+                [class.is-invalid]="
+                  endDateInput.invalid &&
+                  (endDateInput.dirty || endDateInput.touched)
+                "
+              />
+              <!-- Missatges d'Error per Data Fi -->
+              <div
+                *ngIf="
+                  endDateInput.invalid &&
+                  (endDateInput.dirty || endDateInput.touched)
+                "
+                class="invalid-feedback"
+              >
+                <div *ngIf="endDateInput.errors?.['required']">
+                  La data de fi és obligatòria.
+                </div>
+                <div *ngIf="endDateInput.errors?.['min']">
+                  La data de fi no pot ser anterior a la data d'inici.
+                </div>
+              </div>
+            </div>
+
+            <!-- Botó d'Enviar -->
+            <div class="d-grid gap-2">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="eventForm.invalid || isLoading"
+              >
+                <span *ngIf="!isLoading">
+                  <i class="bi bi-check-circle-fill me-1"></i> Crear
+                  Esdeveniment
+                </span>
+                <span *ngIf="isLoading">
+                  <span
+                    class="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  Creant...
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+        <!-- Fi card-body -->
+      </div>
+      <!-- Fi card -->
+    </div>
+    <!-- Fi col -->
+  </div>
+  <!-- Fi row -->
+</div>
+<!-- Fi container -->

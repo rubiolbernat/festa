@@ -104,4 +104,9 @@ export class AuthService {
   getUserObser(): Observable<User | null> {
     return this.user$;
   }
+
+  getUserId(): number {
+    const user = this.getUser();
+    return user ? user.userId : -1; // Retorna -1 si no hi ha usuari
+  }
 }

@@ -77,8 +77,8 @@ export class DrinkEventsService {
     return this.http.get<EventUser[]>(`${this.apiUrl}?action=getEventParticipants&eventId=${eventId}`);
   }
 
-  createEvent(event: DrinkEvent): Observable<DrinkEvent> {
-    return this.http.post<DrinkEvent>(`${this.apiUrl}?action=createEvent`, event).pipe(
+  createEvent(event: any): Observable<DrinkEvent> {
+    return this.http.post<DrinkEvent>(`${this.apiUrl}?action=addEvent`, event).pipe(
       tap((newEvent: DrinkEvent) => console.log('New Event:', newEvent)),
       catchError((error: any) => {
         console.error('Error creating event:', error);
@@ -87,11 +87,16 @@ export class DrinkEventsService {
     );
   }
 
-  enrollInEvent(eventId: number, userId: number): Observable<any> { // Return type 'any' or a specific success model
+  enrollInEvent(eventId: number, userId: number | null): Observable<any> {
+    if (!userId) {
+      console.warn('Intent d’inscriure amb userId nul');
+      return throwError(() => new Error('Usuari no vàlid'));
+    }
+
     const body = new HttpParams()
-      .set('action', 'enrollUser')
+      .set('action', 'signUp')
       .set('event_id', eventId.toString())
-      .set('user_id', userId.toString()); // Consider if PHP should get user_id from session instead
+      .set('user_id', userId.toString());
 
     return this.http.post<any>(this.apiUrl, body, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
@@ -99,27 +104,18 @@ export class DrinkEventsService {
       tap(response => console.log('Enrollment response:', response)),
       catchError((error: any) => {
         console.error('Error enrolling in event:', error);
-        // Re-throw the error to be handled by the component
         throw error;
       })
     );
   }
 
-  unenrollFromEvent(eventId: number, userId: number): Observable<any> {
+
+  unenrollFromEvent(eventId: number, userId: number | null): Observable<any> {
     // Normalment les eliminacions es fan amb DELETE, però si l'API espera POST:
     const body = new HttpParams()
-      .set('action', 'unenrollUser') // Nova acció PHP
+      .set('action', 'unsign') // Nova acció PHP
       .set('event_id', eventId.toString())
-      .set('user_id', userId.toString()); // O obtenir de sessió/token a PHP
-
-    // Si l'API accepta DELETE (millor pràctica REST):
-    // return this.http.delete<any>(`${this.apiUrl}?action=unenrollUser&event_id=${eventId}&user_id=${userId}`).pipe(
-    //   tap(response => console.log('Unenrollment response:', response)),
-    //   catchError((error: any) => {
-    //     console.error('Error unenrolling from event:', error);
-    //     throw error;
-    //   })
-    // );
+      .set('user_id', userId ? userId.toString() : 0); // O obtenir de sessió/token a PHP
 
     // Utilitzant POST com per 'enroll':
     return this.http.post<any>(this.apiUrl, body, {
@@ -133,3 +129,7 @@ export class DrinkEventsService {
     );
   }
 }
+function throwError(arg0: () => Error): Observable<any> {
+  throw new Error('Function not implemented.');
+}
+
