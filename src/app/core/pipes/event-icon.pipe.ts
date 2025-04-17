@@ -17,11 +17,12 @@ export class EventIconPipe implements PipeTransform {
   // l'hauries de posar abans que "festa" si vols una icona diferent per a ella.
   private iconMappings: IconMapping[] = [
     // Celebracions Específiques
-    { keyword: 'aniverri', icon: '🎂' },
+    { keyword: 'aniversari', icon: '🎂' },
     { keyword: 'casament', icon: '💍' },
     { keyword: 'boda', icon: '💍' },
     { keyword: 'bateig', icon: '🕊️' },
     { keyword: 'comunió', icon: '✝️' },
+    { keyword: 'pas', icon: '✝️' },
     { keyword: 'graduació', icon: '🎓' },
     { keyword: 'jubilació', icon: '🧓' },
     { keyword: 'sant joan', icon: '🔥' },
@@ -37,7 +38,6 @@ export class EventIconPipe implements PipeTransform {
 
     // Activitats / Tipus Generals
     { keyword: 'festa', icon: '🎉' },
-    { keyword: 'transsegre', icon: '🛶' },
     { keyword: 'concert', icon: '🎵' },
     { keyword: 'música', icon: '🎶' },
     { keyword: 'dj', icon: '🎧' },
@@ -98,6 +98,10 @@ export class EventIconPipe implements PipeTransform {
     { keyword: 'trobada', icon: '👋' },
     { keyword: 'dia', icon: '☀️' },
     { keyword: 'nit', icon: '🌙' },
+
+    // Especifiques
+    { keyword: 'transsegre', icon: '🛶' },
+    { keyword: 'agronoms', icon: '🧑🏻‍🌾' },
   ];
 
   transform(eventName: string | undefined | null): string {
