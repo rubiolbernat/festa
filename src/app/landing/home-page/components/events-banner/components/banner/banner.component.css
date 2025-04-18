@@ -1,288 +1,326 @@
+/* Importa la font */
 @import "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;800&display=swap";
 
-.container {
-  display: flex;
-  flex-wrap: nowrap; /* Important: no permet que els ítems es trenquin en una nova línia */
-  overflow-x: auto; /* Activa el scroll horitzontal */
-  overflow-y: hidden; /* Evita el scroll vertical si no és necessari */
-  width: 100%;
-  height: auto;
-  gap: 1rem; /* Opcional: espai entre baners */
+/* Variables */
+:host {
+  --primary-color: #000;
+  --secondary-color: yellow;
+  --background-color: #fff; /* Color del fons del contingut */
+  --card-background: #e8e8e8;
+  --text-color: #000;
+  --text-on-primary: #fff;
+  --text-on-secondary: #000;
+  --border-color: #000;
+  --base-font-size: 15px;
+  --spacing-unit: 0.8rem;
+
+  /* === Variables Vora === */
+  --visual-border-thickness: 1.1rem; /* Gruix total groc desitjat */
+  --black-line-inset: 0.4rem;
+  --edge-font-size: 0.65rem;
+  --edge-text-padding-y: 0.1rem;
+  --edge-text-padding-x: 0.5rem;
+  /* === Nova Variable: Quant el contingut sobreposa la vora === */
+  --content-overlap: 0.3rem; /* Ajusta aquest valor (ex: 0.2rem, 0.4rem) */
+  /* Padding intern REAL necessari dins l'event-box */
+  /* Ha de ser suficient per contenir la vora VISIBLE + un petit marge */
+  --box-actual-padding: calc(
+    var(--visual-border-thickness) - var(--content-overlap) + 0.3rem
+  ); /* Vora visible + marge */
+  --edge-text-left-offset: calc(
+    var(--visual-border-thickness) + 1.5rem
+  ); /* Ajustat si cal */
 }
 
-.box {
-  min-width: 300px;
-  flex-shrink: 0;
-  cursor: pointer;
-  position: relative;
-  display: inline-block;
+/* Reset bàsic */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  height: 400px !important;
-  padding-bottom: 30vw;
-  margin: 1vw;
-  text-transform: uppercase;
-  font-weight: 800;
-  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
-@media (max-width: 768px) {
-  .box {
-    width: 46vw;
-    padding-bottom: 46vw;
-    height: 500px !important;
-  }
+body {
+  font-family: "Montserrat", sans-serif;
+  line-height: 1.5;
+  font-size: var(--base-font-size);
+  color: var(--text-color);
+  background-color: #f0f0f0;
+  padding: var(--spacing-unit);
 }
 
-.box--1 {
-  width: 80vw;
-  padding-bottom: 0;
-  background-color: #fff;
-  color: #000;
-}
-
-@media (max-width: 768px) {
-  .box--1 {
-    width: 94vw;
-    height: 100vh !important;
-    padding-bottom: 0;
-  }
-}
-
-.box:hover .box__btn {
-  background-color: yellow;
-  color: #000;
-}
-
-.box__title {
-  transition: all 0.3s;
-  transform: scale(1) translateY(0);
-}
-
-.box--1 .box__title {
-  text-align: center;
-  font-size: 3rem;
-}
-
-.box--1 .box__title span {
-  display: block;
-  font-size: 2.5rem;
-}
-
-.box__btn {
-  line-height: 4vw;
-  text-align: center;
-  max-width: 80%;
-  padding: 0 2vw;
-  font-size: 1.8rem;
-  margin-top: 1vw;
-  transition: all 0.3s;
-  transform: scale(1);
-  background-color: #000;
-  color: #fff;
-  border: 1px solid #000;
-}
-
-.box--1 .box__background {
-  position: absolute;
-  top: 0;
-  left: 0;
+/* Wrapper */
+.event-wrapper {
   width: 100%;
-  height: 100%;
-  outline: 3vw solid yellow;
-  outline-offset: -3vw;
+  /*max-width: 900px;*/
+  margin: 1.5rem auto;
 }
 
-.box--1 .box__background:before {
+/* Caixa principal */
+.event-box {
+  position: relative;
+  /* El padding ara és més petit, només l'espai real necessari */
+  padding: var(--box-actual-padding);
+  overflow: hidden; /* Important per contenir marges negatius */
+  height: 100%;
+}
+
+/* Capa de fons groc (::before) */
+.event-box::before {
   content: "";
   position: absolute;
-  border: 1px solid #000;
-  left: 1.5vw;
-  right: 1.5vw;
-  top: 1.5vw;
-  bottom: 1.5vw;
-}
-
-.box__text-line {
-  position: absolute;
-  font-size: 1rem;
-  text-align: center;
-  left: 3vw;
-  right: 50%;
-}
-
-.box__text-line--top {
-  top: 0;
-}
-
-.box__text-line--bottom {
-  bottom: 0;
-}
-
-.box__text-line span {
-  line-height: 3vw;
-  padding: 0 1.5vw;
-  background-color: yellow;
-}
-
-.box__content {
-  position: absolute;
+  /* Ocupa tot menys l'espai on començarà el contingut blanc */
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 2vw;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  align-content: center;
+  /* Podríem ajustar la mida aquí, però mantenir-lo al fons és més simple */
+  background-color: var(--secondary-color);
+  z-index: 0;
 }
 
-.box--1 .box__content {
-  padding: 3vw;
+/* Capa de la línia negra (::after) */
+.event-box::after {
+  content: "";
+  position: absolute;
+  top: var(--black-line-inset);
+  left: var(--black-line-inset);
+  right: var(--black-line-inset);
+  bottom: var(--black-line-inset);
+  border: 1px solid var(--border-color);
+  background-color: transparent;
+  z-index: 1;
 }
 
-.box__col {
-  width: 50%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-content: center;
-  align-items: center;
-  justify-content: center;
-}
-
-.card {
+/* Contingut principal (Text, Cards, etc.) - CORREGIT */
+.event-content {
   position: relative;
-  font-size: 1.5rem;
-  color: #000;
-  border: 1px solid #000;
-  background-color: #e8e8e8;
-  margin: 2%;
-  /* Prova amb min-height o una alçada més gran */
-  min-height: 28%; /* Permet que creixi si cal */
-  /* O augmenta el percentatge */
-  /* height: 50%; */
-  width: 88%;
+  background-color: var(--background-color);
+  z-index: 2;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--spacing-unit);
+  align-items: center;
+  /* === MARGE NEGATIU PER SOBREPOSAR === */
+  /* margin: calc(-1 * var(--content-overlap)); === */
+  /* === PADDING INTERN PER COMPENSAR MARGE === */
+  /* Afegeix l'espai que hem "robat" amb el marge negatiu */
+  padding: var(--content-overlap);
+}
+
+/* Text posicionat a les vores - AJUSTAT */
+.box-edge-info {
+  position: absolute;
+  left: var(--edge-text-left-offset);
+  font-size: var(--edge-font-size);
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 0.9;
+  z-index: 3;
+}
+.box-edge-info span {
+  background-color: var(--secondary-color);
+  color: var(--text-on-secondary);
+  padding: var(--edge-text-padding-y) var(--edge-text-padding-x);
+  display: inline-block;
+}
+/* Ajust vertical per centrar en la vora VISIBLE (més prima) */
+.box-edge-info.top-left {
+  top: calc(
+    var(--visual-border-thickness) * 0.15
+  ); /* Experimenta amb valors més petits: 0.15, 0.1 */
+}
+.box-edge-info.bottom-left {
+  bottom: calc(
+    var(--visual-border-thickness) * 0.15
+  ); /* Experimenta amb valors més petits: 0.15, 0.1 */
+}
+
+/* Columnes - Sense canvis */
+.event-col {
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Mantenir overflow: hidden de moment */
+  flex-basis: 50%;
+  flex-grow: 1;
+  flex-shrink: 1;
 }
-
-.card__top {
-  background-color: #000;
-  color: #fff;
-  text-align: center;
-  line-height: 1.2;
-}
-
-.card__title {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+.event-col--left {
+  flex-basis: 45%;
   justify-content: center;
-  flex: 1;
-  transition: all 0.3s;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 0 0.5rem;
+}
+.event-col--right {
+  flex-basis: 55%;
+  gap: 0.8rem;
 }
 
-.card__title span {
-  padding-right: 4%;
-  /* Prova un valor més petit */
-  font-size: 2rem; /* O 1.8rem, etc. */
+/* Títol, Botó, Dates - Sense canvis */
+.event-title {
+  font-size: clamp(1.3rem, 3.5vw, 2rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 1.1;
+  color: black;
+}
+.event-button {
+  display: inline-block;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  background-color: var(--primary-color);
+  color: var(--text-on-primary);
+  border: 1px solid var(--primary-color);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+.event-button i {
+  margin-left: 0.3rem;
+}
+.event-button:hover,
+.event-button:focus {
+  background-color: var(--secondary-color);
+  color: var(--text-on-secondary);
+  border-color: var(--border-color);
+}
+.event-dates {
+  font-size: 0.85rem;
+  color: #555;
 }
 
-.card__btn {
+/* Targetes - Sense canvis */
+.stats-card {
+  border: 1px solid var(--border-color);
+  background-color: var(--card-background);
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.card-header {
+  background-color: var(--primary-color);
+  color: var(--text-on-primary);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  text-align: center;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.card-body {
+  padding: 0.6rem;
+  text-align: center;
+  font-size: 0.95rem;
+  min-height: 30px;
+  transition: transform 0.3s ease;
+}
+.card-value {
+  font-size: 1.4em;
+  font-weight: 800;
+  line-height: 1;
+  display: inline;
+  margin: 0;
+  vertical-align: baseline;
+}
+.card-footer {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  line-height: 1.2;
-  transition: all 0.3s;
-  background-color: yellow;
-  color: #000;
-  border-top: 1px solid #000;
+  background-color: var(--secondary-color);
+  color: var(--text-on-secondary);
+  padding: 0.4rem 0.5rem;
   text-align: center;
+  font-size: 0.8rem;
+  border-top: 1px solid var(--border-color);
   transform: translateY(100%);
+  transition: transform 0.3s ease;
+  font-weight: bold;
 }
-
-.card:hover .card__title {
-  transform: translateY(-1vw);
+.card-footer a {
+  color: var(--text-on-secondary);
+  text-decoration: underline;
 }
-
-.card:hover .card__btn {
+.card-footer a:hover {
+  text-decoration: none;
+}
+.stats-card:hover .card-footer {
   transform: translateY(0);
 }
+.stats-card:hover .card-body {
+  transform: translateY(-5px);
+}
 
+/* === Media Queries per Responsivitat === */
 @media (max-width: 768px) {
-  .box__content {
-    padding: 2vw;
-    align-content: stretch;
-    gap: 2vw;
+  :host {
+    /* ... variables reduïdes ... */
+    --visual-border-thickness: 0.9rem;
+    --black-line-inset: 0.3rem;
+    --edge-font-size: 0.7rem;
+    --edge-text-padding-y: 0.05rem;
+    --edge-text-padding-x: 0.4rem;
+    --content-overlap: 0.25rem; /* Reduïm una mica l'overlap */
+    --box-actual-padding: calc(
+      var(--visual-border-thickness) - var(--content-overlap) + 0.2rem
+    );
+    --base-font-size: 14px;
+    --edge-text-left-offset: calc(var(--visual-border-thickness) + 1rem);
   }
+  .event-content {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .event-col {
+    flex-basis: 100%;
+  }
+  /* Ajust vertical text vora */
+  .box-edge-info.top-left {
+    top: calc(var(--visual-border-thickness) * 0.1);
+  }
+  .box-edge-info.bottom-left {
+    bottom: calc(var(--visual-border-thickness) * 0.1);
+  }
+}
 
-  .box__col {
-    width: 100%;
-    height: auto;
+@media (max-width: 480px) {
+  :host {
+    /* ... variables molt reduïdes ... */
+    --visual-border-thickness: 0.7rem;
+    --black-line-inset: 0.25rem;
+    --edge-font-size: 0.65rem;
+    --edge-text-padding-y: 0.05rem;
+    --edge-text-padding-x: 0.3rem;
+    --content-overlap: 0.2rem; /* Menys overlap encara */
+    --box-actual-padding: calc(
+      var(--visual-border-thickness) - var(--content-overlap) + 0.1rem
+    );
+    --base-font-size: 13px;
+    --edge-text-left-offset: calc(var(--visual-border-thickness) + 0.8rem);
   }
-
-  .box__col--right {
-    flex-direction: column !important;
-    justify-content: space-between;
-    align-items: center;
+  body {
+    padding: 0.5rem;
   }
-
-  .box__col:last-child {
-    flex-direction: row;
-    justify-content: space-around;
-    gap: 2vw;
+  .event-wrapper {
+    margin: 1rem auto;
   }
-
-  .card {
-    height: 98%;
-    min-height: 18vw;
-    width: 90%;
-    margin: 0;
+  /* Ajust vertical text vora */
+  .box-edge-info.top-left {
+    top: calc(var(--visual-border-thickness) * 0.05);
   }
-
-  .card__title {
-    font-size: 1.3rem;
-    flex-direction: column;
-    text-align: center;
+  .box-edge-info.bottom-left {
+    bottom: calc(var(--visual-border-thickness) * 0.05);
   }
-
-  .card__title span {
-    font-size: 2.5rem;
-    padding-right: 0;
-    margin-bottom: 0.5vw;
+  .event-title {
+    font-size: clamp(1.1rem, 4vw, 1.5rem);
   }
-
-  .card__btn {
-    font-size: 1.3rem;
-  }
-
-  .card__top {
-    font-size: 1.2rem;
-  }
-
-  .box--1 .box__title {
-    font-size: 4rem;
-  }
-
-  .box--1 .box__title span {
-    font-size: 3rem;
-  }
-
-  .box__btn {
-    font-size: 1.6rem;
-    line-height: 3.5vw;
-    padding: 0 1.5vw;
-  }
-
-  .card--user {
-    font-size: 10px !important;
-    display: block;
-  }
-  .card--user span {
-    font-size: 1.5rem !important;
+  .event-button {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
   }
 }

@@ -1,40 +1,20 @@
-@if (isloggedIn$) { @if(events.length==0){
-<div class="no-events">
-  <div class="position-relative">
-    <div class="position-absolute top-0 end-0">
-      <button
-        type="button"
-        class="btn metallic-button text-black mt-2 font-weight-bold metallic-spinner-button"
-        style="margin-right: 8px"
-        routerLink="/events"
-      >
-        Apunta't a un esdeveniment
-      </button>
-    </div>
-  </div>
-</div>
+@if (userEvents.length === 0) {
+<!-- Mostrem el breaking banner només si NO hi ha esdeveniments -->
+<app-breaking-banner [eventdata]="activeEvents"></app-breaking-banner>
 } @else {
-<!--<h2>Esdeveniments actius</h2>-->
-
+<!--<h2>Esdeveniments actius User</h2>-->
 <div class="container-special">
-  @for(event of events; track event.event_id) {
+  @for (event of userEvents; track event.event_id) {
   <app-banner [eventdata]="event"></app-banner>
   }
 </div>
-
-<div class="no-events">
-  <div class="position-relative">
-    <div class="position-absolute top-0 end-0" style="margin-top: 8px">
-      <button
-        type="button"
-        class="metallic-button-spinner"
-        style="margin-right: 8px"
-        routerLink="/events"
-      >
+}
+<section>
+  <div class="container position-relative">
+    <div class="position-absolute top-0 end-0 mt-3 me-3" style="z-index: 1000">
+      <button type="button" class="metallic-button-shine" routerLink="/events">
         Apunta't a un esdeveniment
       </button>
     </div>
   </div>
-</div>
-
-} } @else { }
+</section>

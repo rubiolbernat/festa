@@ -1,5 +1,5 @@
 import { StoryEventData } from './../../../../../../core/models/v2_drink-stories.model';
-import { Component, OnInit, signal, input, inject } from '@angular/core';
+import { Component, OnInit, signal, input, inject, ViewEncapsulation } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { DrinkingDataService } from '../../../../../../core/services/drinking-data/drinking-data.service';
 import { AuthService } from '../../../../../../core/services/auth/auth.service';
@@ -10,10 +10,10 @@ import { DrinkEventsService } from '../../../../../../core/services/drink-events
 
 @Component({
   selector: 'app-banner',
-  standalone: true,
   imports: [RouterModule, CommonModule, FormsModule],
+  styleUrls: ['./banner.component.css'],
   templateUrl: './banner.component.html',
-  styleUrl: './banner.component.css'
+  encapsulation: ViewEncapsulation.ShadowDom,
 })
 export class BannerComponent {
 

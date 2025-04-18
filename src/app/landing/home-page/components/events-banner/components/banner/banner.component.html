@@ -1,111 +1,137 @@
-@if (eventdata()) {
-<a class="box box--1">
-  <div class="box__background">
-    @if (this.eventdata()?.total_participants ?? 0 > 0) {
-    <div class="box__text-line box__text-line--top">
-      <span>
-        <span
-          style="
-            text-transform: capitalize;
-            padding-right: 2px;
-            padding-left: 0%;
-          "
-        >
-          Participants:</span
-        >
-        {{ this.eventdata()?.total_participants }}
-      </span>
+<!-- Utilitzem el wrapper per centrar i limitar amplada -->
+<div class="event-wrapper">
+  <!-- Condició principal per mostrar l'event -->
+  @if (eventdata()) {
+
+  <!-- Caixa principal de l'event -->
+  <div class="event-box">
+    <!-- Informació de la vora superior (Participants) -->
+    @if (eventdata()?.total_participants ?? 0 > 0) {
+    <div class="box-edge-info top-left">
+      <span>Participants: {{ eventdata()?.total_participants }}</span>
     </div>
     }
-    <div class="box__text-line box__text-line--bottom">
-      <!-- Accedeix al signal amb () i usa ?. per seguretat -->
-      <span>{{ this.eventdata()?.nom }}</span>
+
+    <!-- Informació de la vora inferior (Nom de l'event) -->
+    <div class="box-edge-info bottom-left">
+      <span>{{ eventdata()?.nom }}</span>
     </div>
-  </div>
-  <div class="box__content">
-    <div class="box__col">
-      <div class="box__title">{{ this.eventdata()?.nom }}</div>
-      <div class="box__btn" routerLink="/la_gran_aventura">
-        Registrar <i class="bi bi-plus-lg"></i>
+
+    <!-- Contingut principal (estarà per sobre de la vora groga/negra) -->
+    <div class="event-content">
+      <!-- Columna Esquerra: Info Event -->
+      <div class="event-col event-col--left">
+        <h2 class="event-title">{{ eventdata()?.nom }}</h2>
+        <!-- Botó amb routerLink (si és correcte) o (click) -->
+        <a class="event-button" routerLink="/la_gran_aventura">
+          <!-- O la ruta que correspongui -->
+          Registrar <i class="bi bi-plus-lg"></i>
+        </a>
+        <p class="event-dates">
+          <!-- Aplica els pipes de data si els necessites -->
+          {{ eventdata()?.data_inici | date : "dd/MM/yyyy" }} -
+          {{ eventdata()?.data_fi | date : "dd/MM/yyyy" }}
+        </p>
       </div>
-      <p>
-        {{ this.eventdata()?.data_inici | date : "dd/MM/yyyy" }} -
-        {{ this.eventdata()?.data_fi | date : "dd/MM/yyyy" }}
-      </p>
-    </div>
-    <div class="box__col box__col--right">
-      <!-- Opcional: Mostrar missatge mentre les dades carreguen -->
-      @if (!this.statsData() ) {
-      <div>Carregant estadístiques...</div>
-      } @else if (this.statsData()?.generalStats?.total_litres <= 0) {
-        <div>Sense registres...</div>
-      }
-      @else {
-      <!-- Només mostra les cards si statsData té valor -->
-      <ng-container>
-        <div class="box__card card">
-          <div class="card__top">Quantitat</div>
-          <div class="card__title">
-            <!-- Accedeix al signal amb () i usa ?. -->
-            <span>{{ statsData()?.generalStats?.total_litres }}</span> Litres
-          </div>
-          <div class="card__btn">
-            El més bevedor:
-            <!-- Comprova existència i longitud de l'array abans d'accedir -->
-            @if (statsData()?.topDrinker?.length > 0) {
-            <span>
-              {{ statsData()?.topDrinker[0]?.user_name }} -
-              {{ statsData()?.topDrinker?.[0]?.litres_totals }}L
-            </span>
-            } @if(!statsData()?.topDrinker || statsData()?.topDrinker?.length
-            === 0) {
-            <span> N/A </span>
-            }
-          </div>
-        </div>
 
-        <div class="box__card card">
-          <div class="card__top">PREU</div>
-          <div class="card__title">
-            <!-- Accedeix al signal amb () i usa ?. -->
-            <span> {{ statsData()?.generalStats?.total_preu }}</span> €
+      <!-- Columna Dreta: Estadístiques -->
+      <div class="event-col event-col--right">
+        <!-- Condicionals per mostrar estat de càrrega o dades -->
+        @if (!this.statsData()) {
+        <div class="loading-message">Carregant estadístiques...</div>
+        } @else if (this.statsData()?.generalStats?.total_litres <= 0) {
+        <div class="no-data-message">Sense registres...</div>
+        } @else {
+        <!-- Contenidor per quan hi ha dades -->
+        <ng-container>
+          <!-- Card: Quantitat Total -->
+          <div class="stats-card">
+            <div class="card-header">Quantitat Total</div>
+            <div class="card-body">
+              <span class="card-value">{{
+                statsData()?.generalStats?.total_litres
+              }}</span
+              > Litres
+            </div>
+            <div class="card-footer">
+              El més bevedor: @if (statsData()?.topDrinker &&
+              statsData()?.topDrinker.length > 0) {
+              <span>
+                {{ statsData()?.topDrinker[0]?.user_name }} -
+                {{ statsData()?.topDrinker[0]?.litres_totals }}L
+              </span>
+              } @else {
+              <span> N/A </span>
+              }
+            </div>
           </div>
-          <div class="card__btn">See more</div>
-        </div>
 
-        <!-- La sintaxi @if funciona directament amb signals cridats com a funcions -->
-        @if (statsData()?.generalUserStats?.begudes_totals > 0) {
-        <div class="box__card card card--user">
-          <div class="card__top">La meva info</div>
-          <div class="card__title card--user">
-            <!-- Accedeix als signals amb () i usa ?. -->
-            <span>{{ statsData()?.generalUserStats?.total_litres }}</span>
-            Litres -
-            <span>{{ statsData()?.generalUserStats?.total_preu }}</span> €
+          <!-- Card: Preu Total -->
+          <div class="stats-card">
+            <div class="card-header">PREU TOTAL</div>
+            <div class="card-body">
+              <span class="card-value">{{
+                statsData()?.generalStats?.total_preu
+              }}</span
+              > €
+            </div>
+            <div class="card-footer">
+              <!-- Pots posar un enllaç real aquí si cal -->
+              <a href="#">Veure més</a>
+            </div>
           </div>
-          <div class="card__btn">
-            <!-- Accedeix al signal amb () i usa ?. -->
-            Has pres:
-            {{ statsData()?.generalUserStats?.begudes_totals }} begudes
+
+          <!-- Card: Informació de l'Usuari (condicional) -->
+          @if (statsData()?.generalUserStats?.begudes_totals > 0) {
+          <div class="stats-card card--user">
+            <div class="card-header">La meva info</div>
+            <div class="card-body">
+              <span class="card-value">{{
+                statsData()?.generalUserStats?.total_litres
+              }}</span
+              >L - <span class="card-value">{{
+                statsData()?.generalUserStats?.total_preu
+              }}</span
+              >€
+            </div>
+            <div class="card-footer">
+              Has pres:
+              {{ statsData()?.generalUserStats?.begudes_totals }} begudes
+            </div>
           </div>
-        </div>
-        } @else if (true) {
-        <!-- Pots afegir un cas per quan està loguejat però no té begudes -->
-        <div class="box__card card">
-          <div class="card__top">La meva info</div>
-          <div class="card__title">No has registrat begudes</div>
-          <div class="card__btn" routerLink="/la_gran_aventura">Registrar</div>
-        </div>
+          } @else {
+          <!-- Cas: Usuari loggejat però sense begudes -->
+          <!-- AFEGEIX AQUÍ UNA CONDICIÓ EXTRA SI CAL SABER SI ESTÀ LOGGED IN -->
+          <!-- Exemple: @else if (isUserLoggedIn()) { -->
+          <div class="stats-card card--user">
+            <div class="card-header">La meva info</div>
+            <div class="card-body">No has registrat begudes</div>
+            <div class="card-footer">
+              <!-- Botó per anar a registrar -->
+              <a routerLink="/la_gran_aventura">Registrar</a>
+              <!-- O la ruta que toqui -->
+            </div>
+          </div>
+          <!-- } -->
+          }
+          <!-- Fi card usuari -->
+        </ng-container>
+        <!-- Fi ng-container de dades -->
         }
-        <!-- No cal un @else explícit si no vols mostrar res quan no està loguejat -->
-      </ng-container>
-      }
-      <!-- Fi del *ngIf="statsData()" -->
+        <!-- Fi condicionals @if/@else if/@else -->
+      </div>
+      <!-- Fi columna dreta -->
     </div>
+    <!-- Fi event-content -->
   </div>
-</a>
-} @else {
-<div class="banner">
-  <h1>No Event Data Available</h1>
+  <!-- Fi event-box -->
+
+  } @else {
+  <!-- Contingut a mostrar si no hi ha eventdata() -->
+  <div class="banner">
+    <h1>No hi ha dades de l'event disponibles</h1>
+  </div>
+  }
+  <!-- Fi condició principal @if (eventdata()) -->
 </div>
-}
+<!-- Fi event-wrapper -->

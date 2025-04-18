@@ -4,7 +4,7 @@ export const environment = {
   production: true,
   apiUrl: 'https://joc.feritja.cat/backend',
   assetsUrl: 'https://joc.feritja.cat/assets/uploads/',
-  storyExpirationHours: 24 * 15
+  storyExpirationHours: 24 * 16
 };
 
 //WEB
