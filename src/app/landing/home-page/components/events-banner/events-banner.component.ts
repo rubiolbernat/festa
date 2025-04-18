@@ -52,7 +52,7 @@ export class EventsBannerComponent {
 
   loadBreakingEvents() {
     this.breakingEventsBanner = true;
-    this.eventsService.getEvents().subscribe((events: DrinkEvent[]) => {
+    this.eventsService.getEvents2Weeks().subscribe((events: DrinkEvent[]) => {
       this.activeEvents = events;
       console.log('Breaking events:', events);
     }, error => {

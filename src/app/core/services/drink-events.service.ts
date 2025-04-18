@@ -22,6 +22,15 @@ export class DrinkEventsService {
       })
     );
   }
+  getEvents2Weeks(): Observable<DrinkEvent[]> {
+    return this.http.get<DrinkEvent[]>(`${this.apiUrl}?action=getFuture2WeeksEvents`).pipe(
+      tap((events: DrinkEvent[]) => console.log('Events:', events)),
+      catchError((error: any) => {
+        console.error('Error al carregar els esdeveniments:', error);
+        throw error;
+      })
+    );
+  }
 
   getEventsByUser(user_id: number): Observable<DrinkEvent[]> {
     return this.http.get<DrinkEvent[]>(`${this.apiUrl}?action=getMySubscriptions&user_id=${user_id}`).pipe(

@@ -34,6 +34,9 @@ if ($method == 'GET') {
       case 'getFutureEvents':
         getFutureEventsAction($conn);
         break;
+      case 'getFuture2WeeksEvents':
+        getFuture2WeeksEventsAction($conn);
+        break;
       case 'getPastEvents':
         getPastEventsAction($conn);
         break;
@@ -233,6 +236,50 @@ function getFutureEventsAction(PDO $conn): void
     exit;
   }
 }
+
+function getFuture2WeeksEventsAction(PDO $conn): void
+{
+  try {
+    $now = date('Y-m-d H:i:s');
+    $twoWeeksLater = date('Y-m-d H:i:s', strtotime('+2 weeks'));
+
+    $stmt = $conn->prepare("
+      SELECT event_id, nom, data_creacio, data_inici, data_fi, opcions
+      FROM drink_event
+      WHERE data_inici BETWEEN :now AND :twoWeeksLater
+      ORDER BY data_inici ASC
+    ");
+
+    if ($stmt === false) {
+      $errorInfo = $conn->errorInfo();
+      throw new Exception("Error preparant consulta PDO (getFuture2WeeksEvents): " . ($errorInfo[2] ?? 'Error desconegut'));
+    }
+
+    $stmt->execute([
+      ':now' => $now,
+      ':twoWeeksLater' => $twoWeeksLater
+    ]);
+
+    $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    http_response_code(200);
+    echo json_encode($events);
+    exit;
+
+  } catch (PDOException $e) {
+    error_log("Error PDO a getFuture2WeeksEventsAction: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message" => "Error del servidor (PDO) al recuperar esdeveniments futurs."]);
+    exit;
+
+  } catch (Exception $e) {
+    error_log("Error General a getFuture2WeeksEventsAction: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message" => "Error general del servidor al recuperar esdeveniments futurs."]);
+    exit;
+  }
+}
+
 
 /**
  * Obté esdeveniments passats (data fi < ara).

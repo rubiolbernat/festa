@@ -37,7 +37,7 @@ export class RelativeTimePipe implements PipeTransform {
         return `d'aquí ${absDiffDays} dies`;
       } else if (absDiffDays < 30) {
         const weeks = Math.floor(absDiffDays / 7);
-        return `d'aquí ${weeks} setmana${weeks > 1 ? 's' : ''}`;
+        return `d'aquí ${weeks} ${weeks > 1 ? 'setmanes' : 'setmana'}`;
       } else {
         const months = Math.floor(absDiffDays / 30);
         return `d'aquí ${months} mes${months > 1 ? 'os' : ''}`;
@@ -58,7 +58,7 @@ export class RelativeTimePipe implements PipeTransform {
         return `fa ${absDiffDays} dies`;
       } else if (absDiffDays < 30) {
         const weeks = Math.floor(absDiffDays / 7);
-        return `fa ${weeks} setmana${weeks > 1 ? 's' : ''}`;
+        return `fa ${weeks} ${weeks > 1 ? 'setmanes' : 'setmana'}`;
       } else {
         const months = Math.floor(absDiffDays / 30);
         return `fa ${months} mes${months > 1 ? 'os' : ''}`;
