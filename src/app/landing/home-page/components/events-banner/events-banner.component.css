@@ -7,7 +7,7 @@
   overflow-y: hidden;
   width: 100%;
   height: auto;
-  gap: 0.2rem;
+  gap: 1rem;
 }
 
 /* Per navegadors basats en WebKit (Chrome, Safari) */

@@ -15,6 +15,8 @@
     <!-- Informació de la vora inferior (Nom de l'event) -->
     <div class="box-edge-info bottom-left">
       <span>{{ eventdata()?.nom }}</span>
+      <span class="bottom-left-dates">{{ eventdata()?.data_inici | date : "dd/MM/yy" }} -
+        {{ eventdata()?.data_fi | date : "dd/MM/yy" }}</span>
     </div>
 
     <!-- Contingut principal (estarà per sobre de la vora groga/negra) -->
@@ -29,8 +31,8 @@
         </a>
         <p class="event-dates">
           <!-- Aplica els pipes de data si els necessites -->
-          {{ eventdata()?.data_inici | date : "dd/MM/yyyy" }} -
-          {{ eventdata()?.data_fi | date : "dd/MM/yyyy" }}
+          {{ eventdata()?.data_inici | date : "dd/MM/yy" }} -
+          {{ eventdata()?.data_fi | date : "dd/MM/yy" }}
         </p>
       </div>
 

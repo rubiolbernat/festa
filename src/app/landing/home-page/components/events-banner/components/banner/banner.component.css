@@ -52,7 +52,7 @@ body {
 
 /* Wrapper */
 .event-wrapper {
-  width: 100%;
+  width: 80vw;
   /*max-width: 900px;*/
   margin: 1.5rem auto;
 }
@@ -118,6 +118,7 @@ body {
   text-transform: uppercase;
   line-height: 0.9;
   z-index: 3;
+  display: flex;
 }
 .box-edge-info span {
   background-color: var(--secondary-color);
@@ -135,6 +136,10 @@ body {
   bottom: calc(
     var(--visual-border-thickness) * 0.15
   ); /* Experimenta amb valors més petits: 0.15, 0.1 */
+}
+
+.bottom-left-dates {
+  display: none !important;
 }
 
 /* Columnes - Sense canvis */
@@ -271,13 +276,23 @@ body {
     );
     --base-font-size: 14px;
     --edge-text-left-offset: calc(var(--visual-border-thickness) + 1rem);
-  }
+  } /*
   .event-content {
     flex-wrap: wrap;
     align-items: flex-start;
+  }*/
+  .event-wrapper {
+    width: 100%;
+    margin: 1rem auto;
   }
   .event-col {
     flex-basis: 100%;
+  }
+  .event-col--right {
+    flex-direction: row;
+  }
+  .stats-card {
+    width: max-content;
   }
   /* Ajust vertical text vora */
   .box-edge-info.top-left {
@@ -285,6 +300,10 @@ body {
   }
   .box-edge-info.bottom-left {
     bottom: calc(var(--visual-border-thickness) * 0.1);
+  }
+  .event-title {
+    font-size: clamp(1.2rem, 4vw, 1.8rem);
+    width: max-content;
   }
 }
 
@@ -307,6 +326,7 @@ body {
     padding: 0.5rem;
   }
   .event-wrapper {
+    width: 100%;
     margin: 1rem auto;
   }
   /* Ajust vertical text vora */
@@ -322,5 +342,11 @@ body {
   .event-button {
     padding: 0.3rem 0.7rem;
     font-size: 0.75rem;
+  }
+  .event-dates {
+    display: none;
+  }
+  .bottom-left-dates {
+    display: block !important;
   }
 }

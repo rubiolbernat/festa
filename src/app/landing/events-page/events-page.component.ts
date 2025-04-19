@@ -6,10 +6,11 @@ import { User } from '../../core/models/v2_user.model';
 import { DrinkEventsService } from '../../core/services/drink-events.service';
 import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { Route, RouterModule } from '@angular/router';
+import { RelativeTimePipe } from '../../core/pipes/relative-time.pipe';
 
 @Component({
   selector: 'app-events-page',
-  imports: [InfiniteScrollDirective, DatePipe, NgIf, NgFor, RouterModule],
+  imports: [InfiniteScrollDirective, DatePipe, NgIf, NgFor, RouterModule, RelativeTimePipe],
   templateUrl: './events-page.component.html',
   styleUrl: './events-page.component.css'
 })

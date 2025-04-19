@@ -21,6 +21,10 @@ export class RelativeTimePipe implements PipeTransform {
     const absDiffHours = Math.abs(diffHours);
     const absDiffDays = Math.abs(diffDays);
 
+    const years = Math.floor(absDiffDays / 365);
+    const months = Math.floor((absDiffDays % 365) / 30);
+    const weeks = Math.floor(absDiffDays / 7);
+
     if (diffMs > 0) {
       // FUTUR
       if (absDiffSeconds < 60) {
@@ -36,11 +40,11 @@ export class RelativeTimePipe implements PipeTransform {
       } else if (absDiffDays < 7) {
         return `d'aquí ${absDiffDays} dies`;
       } else if (absDiffDays < 30) {
-        const weeks = Math.floor(absDiffDays / 7);
         return `d'aquí ${weeks} ${weeks > 1 ? 'setmanes' : 'setmana'}`;
-      } else {
-        const months = Math.floor(absDiffDays / 30);
+      } else if (absDiffDays < 365) {
         return `d'aquí ${months} mes${months > 1 ? 'os' : ''}`;
+      } else {
+        return `d'aquí ${years} any${years > 1 ? 's' : ''}`;
       }
     } else {
       // PASSAT
@@ -57,11 +61,11 @@ export class RelativeTimePipe implements PipeTransform {
       } else if (absDiffDays < 7) {
         return `fa ${absDiffDays} dies`;
       } else if (absDiffDays < 30) {
-        const weeks = Math.floor(absDiffDays / 7);
         return `fa ${weeks} ${weeks > 1 ? 'setmanes' : 'setmana'}`;
-      } else {
-        const months = Math.floor(absDiffDays / 30);
+      } else if (absDiffDays < 365) {
         return `fa ${months} mes${months > 1 ? 'os' : ''}`;
+      } else {
+        return `fa ${years} any${years > 1 ? 's' : ''}`;
       }
     }
   }

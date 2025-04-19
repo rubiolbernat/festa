@@ -2,7 +2,7 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-metallic">
     <div class="container">
       <!-- Marca -->
-      <a class="navbar-brand fw-bold text-dark title-fades" routerLink="/home">FESTA JAMBO</a>
+      <a class="navbar-brand fw-bold text-dark title-fades" routerLink="/home">FESTA</a>
 
       <!-- Botó toggler per offcanvas i icona de carro per a mòbils -->
       <div class="d-flex align-items-center">
@@ -45,6 +45,11 @@
           <!-- Botó "Espai Personal" (només visible si estàs loguejat) -->
           @if (isLoggedIn) {
           <li class="nav-item">
+            <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/events"> <i class="bi bi-calendar-range"></i>
+              Events
+            </a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura">
               Afegir dades
             </a>
@@ -81,7 +86,7 @@
         aria-labelledby="offcanvasNavbarLabel">
         <div class="offcanvas-header text-dark">
           <h5 class="offcanvas-title title-fades" id="offcanvasNavbarLabel"><a
-              class="navbar-brand fw-bold text-dark title-fades" routerLink="/home">FESTA JAMBO</a></h5>
+              class="navbar-brand fw-bold text-dark title-fades" routerLink="/home">FESTA</a></h5>
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
@@ -114,6 +119,12 @@
             </li>
             <!-- Botó "Espai Personal" (només visible si estàs loguejat) - Offcanvas -->
             @if (isLoggedIn) {
+            <li class="closenav nav-item">
+              <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/events"
+                data-bs-dismiss="offcanvas" aria-label="Close"><i class="bi bi-calendar-range"></i>
+                Events
+              </a>
+            </li>
             <li class="closenav nav-item">
               <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura"
                 data-bs-dismiss="offcanvas" aria-label="Close">

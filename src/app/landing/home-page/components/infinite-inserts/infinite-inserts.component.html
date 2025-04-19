@@ -119,7 +119,11 @@
 
       <!-- Indicadors -->
       @if (loading) { No hi ha mes resultats } @if (allInsertsLoaded && !loading
-      && InfiniteDrinks.length > 0) { No hi ha mes resultats }
+      && InfiniteDrinks.length > 0) {
+      <div class="text-center text-muted mt-4 py-3 border-top">
+        <i class="bi bi-check-circle me-1"></i> Ja has vist totes les begudes!
+      </div>
+      }
     </div>
     <!-- Fi row principal -->
   </div>

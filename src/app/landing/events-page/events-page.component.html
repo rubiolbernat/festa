@@ -34,14 +34,14 @@
                 <p class="card-text mb-0" style="text-transform: capitalize">
                   <i class="bi bi-calendar-event text-primary me-1"></i>
                   <strong>Inici:</strong>
-                  {{ event.data_inici | date : "fullDate" }}
+                  {{ event.data_inici | date : "fullDate" }} - (Inici: {{ event.data_inici | relativeTime }})
                 </p>
               </div>
               <div class="col-md-6 mb-1">
                 <p class="card-text mb-0" style="text-transform: capitalize">
                   <i class="bi bi-calendar-check text-success me-1"></i>
                   <strong>Fi:</strong>
-                  {{ event.data_fi | date : "EEEE, dd 'del' MM 'de' yyyy" }}
+                  {{ event.data_fi | date : "EEEE, dd 'del' MM 'de' yyyy" }}  - (Acaba: {{ event.data_fi | relativeTime }})
                 </p>
               </div>
               <div class="col-md-6 mb-1">
