@@ -1,7 +1,7 @@
 /* drink-data-list-page.component.css */
 
 .table td:nth-child(7) { /* Apunta a la 7a columna (Altres) */
-  max-width: 30px; /* Defineix una amplada màxima */
+  max-width: 100px; /* Defineix una amplada màxima */
   overflow: hidden; /* Amaga el text que es desborda */
   text-overflow: ellipsis; /* Mostra "..." al final del text */
   white-space: nowrap; /* Evita que el text faci salt de línia */
@@ -17,6 +17,13 @@
 
 .table td:nth-child(2) { /* Apunta a la 7a columna (Altres) */
   max-width: 50px; /* Defineix una amplada màxima */
+  overflow: hidden; /* Amaga el text que es desborda */
+  text-overflow: ellipsis; /* Mostra "..." al final del text */
+  white-space: nowrap; /* Evita que el text faci salt de línia */
+}
+
+.table td:nth-child(1) { /* Apunta a la 7a columna (Altres) */
+  max-width: 90px; /* Defineix una amplada màxima */
   overflow: hidden; /* Amaga el text que es desborda */
   text-overflow: ellipsis; /* Mostra "..." al final del text */
   white-space: nowrap; /* Evita que el text faci salt de línia */

@@ -6,8 +6,8 @@ define('STORIES_UPLOAD_DIR', '../assets/uploads/');
 function sanitize($data)
 {
   $data = trim($data);
-  $data = stripslashes($data);
-  $data = htmlspecialchars($data);
+  //$data = stripslashes($data);
+  //$data = htmlspecialchars($data);
   return $data;
 }
 

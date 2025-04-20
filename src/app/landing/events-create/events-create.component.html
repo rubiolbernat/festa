@@ -34,13 +34,13 @@
                 [(ngModel)]="newEvent.nom"
                 required
                 minlength="3"
-                maxlength="20"
+                maxlength="40"
                 #eventNameInput="ngModel"
                 [class.is-invalid]="
                   eventNameInput.invalid &&
                   (eventNameInput.dirty || eventNameInput.touched)
                 "
-                placeholder="Ex: Sopar d'estiu (màx 20 caràcters)"
+                placeholder="Ex: Sopar d'estiu (màx 40 caràcters)"
               />
               <!-- Missatges d'Error per al Nom -->
               <div
@@ -58,7 +58,7 @@
                 </div>
                 <div *ngIf="eventNameInput.errors?.['maxlength']">
                   <!-- ===== MISSATGE D'ERROR PER MAXLENGTH AFEGIT ===== -->
-                  El nom no pot superar els 20 caràcters.
+                  El nom no pot superar els 40 caràcters.
                 </div>
               </div>
             </div>

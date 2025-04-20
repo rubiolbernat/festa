@@ -1,6 +1,6 @@
 <div class="container mt-4">
   <h2>Les meves dades de consum</h2>
-
+  <div class="table-responsive">
   <div *ngIf="drinkDataList.length > 0; else noData">
     <table class="table table-striped">
       <thead>
@@ -33,6 +33,7 @@
         }
       </tbody>
     </table>
+  </div>
   </div>
 
   <ng-template #noData>
