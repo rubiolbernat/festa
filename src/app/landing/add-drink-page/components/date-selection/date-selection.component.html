@@ -1,0 +1,74 @@
+<div class="mb-3 row">
+  <!-- Cas amb select -->
+  <div class="col-md-6">
+    <label for="date" class="form-label">Data:</label>
+    <!-- Assegura't que el teu input de data tingui (change) -->
+    <input
+      type="date"
+      class="form-control"
+      id="date"
+      name="date"
+      [(ngModel)]="this.dateInput"
+      (change)="onDateChange()"
+      required
+      #dateInput="ngModel"
+    />
+    <div
+      *ngIf="dateInput.invalid && (dateInput.dirty || dateInput.touched)"
+      class="text-danger form-text"
+    >
+      La data és obligatòria.
+    </div>
+  </div>
+  <div class="col-md-6">
+    <label for="event" class="form-label fw-semibold">
+      <i class="bi bi-calendar-event me-1"></i>Esdeveniment:
+      @if(this.eventsList().length > 0){
+      <small class="text-info" style="font-size: 0.65em"
+        ><i class="bi bi-info-circle"></i> Events disponibles:</small
+      >
+      }
+    </label>
+    <!-- <<<--- Afegit 'for' -->
+    <!-- <<<--- MODIFICAT EL SELECT ---<<< -->
+    <select
+      class="form-select"
+      id="event"
+      name="event"
+      [(ngModel)]="selectedEventId"
+      (ngModelChange)="updateDrinkDataEventId()"
+      [disabled]="this.eventsList().length === 0 || isLoading()"
+    >
+      <!-- Opcional: per mantenir drinkData actualitzat -->
+
+      <!-- Opció per no seleccionar cap esdeveniment -->
+      <option [ngValue]="null">Cap esdeveniment</option>
+      <!-- <<<--- AFEGIT: usa [ngValue] per a null -->
+      @for (event of this.eventsList(); track event.event_id) {
+      <option [value]="event.event_id">
+        <!-- Apliquem el Pipe per obtenir l'icona -->
+        <span class="icon me-1" aria-hidden="true">{{
+          event.nom | eventIcon
+        }}</span>
+        <!-- La resta del text -->
+        {{ event.nom }} | del {{ event.data_inici | date : "dd/MM/yy" }} al
+        {{ event.data_fi | date : "dd/MM/yy" }}
+      </option>
+      }
+    </select>
+  </div>
+</div>
+
+<!-- DEBUG (Opcional: per veure l'estat intern durant el desenvolupament) -->
+<!--<hr />
+<div class="small text-muted">
+  <p>Debug Info:</p>
+  <p>URL Event ID: {{ eventFromUrl ?? "N/A" }}</p>
+  <p>Event ID: {{ this.selectedEventId() ?? "null" }}</p>
+  <p>Date Input: {{ this.dateInput() }}</p>
+  <hr />
+  <h5>Dades a enviar:</h5>
+  <p>selectedDate: {{ this.selectedDate | date }}</p>
+  <p>dayOfWeek: {{ dayOfWeek }}</p>
+  <p>eventId: {{ this.selectedEventId() }}</p>
+</div> -->

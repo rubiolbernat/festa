@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { AuthService } from './auth/auth.service';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { catchError, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -10,6 +11,7 @@ import { DrinkEvent, EventUser, EventParticipants } from '../models/v2_drink-eve
 export class DrinkEventsService {
   private apiUrl = environment.apiUrl + '/v2/events_api.php';
   private assetsUrl = environment.assetsUrl;
+  private authService = inject(AuthService);
 
   constructor(private http: HttpClient) { }
 
@@ -41,6 +43,28 @@ export class DrinkEventsService {
       })
     );
   }
+
+  getEventsByUserId(): Observable<DrinkEvent[]> {
+    return this.http.get<DrinkEvent[]>(`${this.apiUrl}?action=getMySubscriptions&user_id=${this.authService.getUser()?.id}`).pipe(
+      tap((events: DrinkEvent[]) => console.log('Events:', events)),
+      catchError((error: any) => {
+        console.error('Error al carregar els esdeveniments:', error);
+        throw error;
+      })
+    );
+  }
+
+  getEventsByUserIdAndDate(date: string): Observable<DrinkEvent[]> {
+    return this.http.get<DrinkEvent[]>(`${this.apiUrl}?action=getMySubscriptionsByDate&user_id=${this.authService.getUser()?.id}&date=${date}`).pipe(
+      tap((events: DrinkEvent[]) => console.log('Events:', events)),
+      catchError((error: any) => {
+        console.error('Error al carregar els esdeveniments:', error);
+        throw error;
+      })
+    );
+  }
+
+
   /*
     getEventsPaginated(limit: number, offset: number, id:number): Observable<EventParticipants[]> {
       return this.http.get<EventParticipants[]>(`${this.apiUrl}?action=getEventsPaginated&limit=${limit}&offset=${offset}&user_id=${id}`)

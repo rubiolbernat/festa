@@ -46,6 +46,12 @@ export const LANDING_ROUTES: Routes = [
         path: 'veritatoprova',
         loadComponent: () => import('./games/trhuthdare-page/trhuthdare-page.component').then(m => m.TrhuthdarePageComponent)
       },
+      //NOU formulari
+      {
+        path: 'la_gran_aventura_v2',
+        loadComponent: () => import('./add-drink-page/add-drink-page.component').then(m => m.AddDrinkPageComponent),
+        canActivate: [AuthGuard], //Només accessible si estàs loguejat
+      },
       {
         path: 'la_gran_aventura',
         loadComponent: () => import('./drinking-image-page/drinking-page.component').then(m => m.DrinkingPageComponent),
