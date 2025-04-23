@@ -15,7 +15,7 @@ export interface DrinkData {
   others?: string; // Opcional
   price: number;
   num_drinks: number;
-  event_id?: number; //Opcional
+  event_id?: number | null; //Opcional
   storie: StorySlide;
 }
 

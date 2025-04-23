@@ -57,6 +57,14 @@ if ($method == 'GET') {
         }
         getMySubscribedEventsAction($conn);
         break;
+      case 'getMySubscriptionsByDate': // Nom d'acció suggerit
+        if (!isset($_GET['user_id']) || !isset($_GET['date'])) {
+          http_response_code(400);
+          echo json_encode(["message" => "Paràmetre 'user_id' requerit."]);
+          exit;
+        }
+        getMySubscribedEventsByDateAction($conn);
+        break;
       case 'getMyActiveSubscriptions': // Nom d'acció suggerit
         getMyActiveSubscribedEventsAction($conn);
         break;
@@ -604,6 +612,68 @@ function getMySubscribedEventsAction(PDO $conn): void
     exit;
   }
 }
+function getMySubscribedEventsByDateAction(PDO $conn): void
+{
+  $user_id = $_GET['user_id'] ?? null;
+  $date = $_GET['date'] ?? null;
+
+  if ($user_id === null || $date === null) {
+    http_response_code(400); // Bad Request
+    error_log("getMySubscribedEventsByDateAction fail: Missing user_id or date.");
+    echo json_encode(["message" => "Cal proporcionar l'usuari i la data per veure les subscripcions."]);
+    exit;
+  }
+
+  try {
+    // Afegim marge d'1 dia abans i després
+    $query = "SELECT
+                de.event_id, de.nom, de.data_creacio, de.data_inici, de.data_fi, de.opcions,
+                fu.name AS created_by_name,
+                (SELECT COUNT(*)
+                  FROM event_users eu2
+                  WHERE eu2.event_id = de.event_id) AS total_participants
+              FROM
+                drink_event de
+              JOIN
+                event_users eu ON de.event_id = eu.event_id
+              JOIN
+                festa_users fu ON de.created_by = fu.user_id
+              WHERE
+                eu.user_id = :user_id
+                AND DATE(:date) BETWEEN DATE(de.data_inici - INTERVAL 1 DAY) AND DATE(de.data_fi + INTERVAL 1 DAY)
+              ORDER BY
+                de.data_inici ASC;";
+
+    $stmt = $conn->prepare($query);
+    if ($stmt === false) {
+      $errorInfo = $conn->errorInfo();
+      throw new Exception("Error preparant consulta PDO: " . ($errorInfo[2] ?? 'Error desconegut'));
+    }
+
+    $stmt->execute([
+      ':user_id' => $user_id,
+      ':date' => $date,
+    ]);
+
+    $subscribedEvents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    http_response_code(200);
+    echo json_encode($subscribedEvents);
+    exit;
+
+  } catch (PDOException $e) {
+    error_log("Error PDO a getMySubscribedEventsByDateAction (User: $user_id): " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message" => "Error del servidor (PDO)."]);
+    exit;
+  } catch (Exception $e) {
+    error_log("Error general a getMySubscribedEventsByDateAction (User: $user_id): " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["message" => "Error general del servidor."]);
+    exit;
+  }
+}
+
 /**
  * Obté els esdeveniments ACTIUS als quals està subscrit l'usuari actual.
  * Un event es considera actiu si la seva data de fi encara no ha passat.

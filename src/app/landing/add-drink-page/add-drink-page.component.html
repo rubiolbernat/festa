@@ -1,0 +1,70 @@
+<div class="container">
+  <br />
+  <h1>Afegir consum <i class="bi bi-cup-straw"></i></h1>
+  <br />
+  <form (ngSubmit)="onSubmit()">
+    <!-- Data -->
+    <app-date-selection
+      (dateInfoChange)="onDateSelected($event)"
+    ></app-date-selection>
+    <!-- Lloc -->
+    <app-location-selection
+      (location)="onLocationSelected($event)"
+    ></app-location-selection>
+    <!-- Gps -->
+     <app-gps-input></app-gps-input>
+    <!-- Gps -->
+     <app-quantity-price></app-quantity-price>
+  </form>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">DEBUG</h5>
+      <h5>app-date-selection</h5>
+      <p class="card-text mb-1">
+        <strong>Data:</strong> {{ drinkEntry().date | date }}
+      </p>
+      <p class="card-text mb-1">
+        <strong>DOW:</strong> {{ drinkEntry().day_of_week }}
+      </p>
+      <p class="card-text">
+        <strong>Event:</strong> {{ drinkEntry().event_id ?? "null" }}
+      </p>
+      <hr />
+      <h5>app-location-selection</h5>
+      <p class="card-text">
+        <strong>Location:</strong> {{ drinkEntry().location }}
+      </p>
+      <hr />
+      <h5>app-gps-input</h5>
+      <p class="card-text mb-1">
+        <strong>Lat:</strong> {{ drinkEntry().latitude }}
+      </p>
+      <p class="card-text mb-1">
+        <strong>Lon:</strong> {{ drinkEntry().longitude }}
+      </p>
+      <hr />
+      <h5>app-quantity-price</h5>
+      <strong>Quantitat</strong>
+      <p class="card-text mb-1">
+        <strong>Litres:</strong> {{ drinkEntry().quantity }}
+      </p>
+      <p class="card-text mb-1">
+        <strong>Unitats:</strong> {{ drinkEntry().num_drinks }}
+      </p>
+      <strong>Preu</strong>
+      <p class="card-text mb-1">
+        <strong>Litres:</strong> {{ drinkEntry().price }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Modal de confirmació -->
+  <div
+    class="modal fade"
+    id="confirmationModal"
+    tabindex="-1"
+    aria-labelledby="confirmationModalLabel"
+    aria-hidden="true"
+  ></div>
+</div>

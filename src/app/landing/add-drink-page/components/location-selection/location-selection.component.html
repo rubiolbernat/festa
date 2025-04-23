@@ -1,0 +1,37 @@
+<!-- Lloc -->
+<div class="mb-3">
+  <label for="location" class="form-label">Lloc:</label>
+  <input
+    type="text"
+    class="form-control"
+    id="location"
+    name="location"
+    [(ngModel)]="this.selectedLocation"
+    (input)="filterLocations()"
+    required
+    #locationInput="ngModel"
+  />
+  @if(this.locationSuggestions().length > 0){
+  <ul class="list-group">
+    @for(suggestion of this.locationSuggestions();track suggestion ){
+    <li
+      class="list-group-item"
+      (click)="
+        selectedLocation.set(suggestion);
+        locationSuggestions.set([]);
+        this.sendData()
+      "
+    >
+      {{ suggestion }}
+    </li>
+    }
+  </ul>
+  }
+  <!-- NOU: Missatge d'error -->
+  @if (locationInput.invalid && (locationInput.dirty || locationInput.touched))
+  {
+  <div class="text-danger form-text small mt-1">
+    <i class="bi bi-exclamation-triangle"></i> El lloc és obligatori.
+  </div>
+  }
+</div>

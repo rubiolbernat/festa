@@ -15,8 +15,10 @@
     <!-- Informació de la vora inferior (Nom de l'event) -->
     <div class="box-edge-info bottom-left">
       <span>{{ eventdata()?.nom }}</span>
-      <span class="bottom-left-dates">{{ eventdata()?.data_inici | date : "dd/MM/yy" }} -
-        {{ eventdata()?.data_fi | date : "dd/MM/yy" }}</span>
+      <span class="bottom-left-dates"
+        >{{ eventdata()?.data_inici | date : "dd/MM/yy" }} -
+        {{ eventdata()?.data_fi | date : "dd/MM/yy" }}</span
+      >
     </div>
 
     <!-- Contingut principal (estarà per sobre de la vora groga/negra) -->
@@ -25,9 +27,12 @@
       <div class="event-col event-col--left">
         <h2 class="event-title">{{ eventdata()?.nom }}</h2>
         <!-- Botó amb routerLink (si és correcte) o (click) -->
-        <a class="event-button" routerLink="/la_gran_aventura">
-          <!-- O la ruta que correspongui -->
-          Registrar <i class="bi bi-plus-lg"></i>
+        <a
+          class="event-button"
+          [routerLink]="['/la_gran_aventura']"
+          [queryParams]="{ eventId: eventdata()?.event_id }"
+        >
+          Registrar
         </a>
         <p class="event-dates">
           <!-- Aplica els pipes de data si els necessites -->
@@ -110,7 +115,13 @@
             <div class="card-body">No has registrat begudes</div>
             <div class="card-footer">
               <!-- Botó per anar a registrar -->
-              <a routerLink="/la_gran_aventura">Registrar</a>
+              <a
+                [routerLink]="['/la_gran_aventura']"
+                [queryParams]="{ eventId: eventdata()?.event_id }"
+              >
+                Amb esdeveniment
+              </a>
+
               <!-- O la ruta que toqui -->
             </div>
           </div>
