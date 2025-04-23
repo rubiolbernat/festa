@@ -218,8 +218,25 @@ export class DrinkingPageComponent implements OnInit, OnDestroy {
 
   // Carrega dades inicials (localitzacions, begudes, esdeveniments)
   loadData() {
-    // ... càrrega de locations i drinks ...
+    this.subscription = this.drinkingDataService.getLastLocations().subscribe(
+      locations => {
+        this.lastLocations = locations;
+        console.log('Ubicacions obtingudes:', locations);
+      },
+      error => {
+        console.error('Error al carregar ubicacions anteriors:', error);
+      }
+    );
 
+    this.subscription.add(this.drinkingDataService.getLastDrinks().subscribe(
+      drinks => {
+        this.lastDrinks = drinks;
+        console.log('Begudes obtingudes:', drinks);
+      },
+      error => {
+        console.error('Error al carregar begudes anteriors:', error);
+      }
+    ));
     const userId = this.authService.getUser()?.id;
     if (userId !== undefined) {
       this.subscription.add(
