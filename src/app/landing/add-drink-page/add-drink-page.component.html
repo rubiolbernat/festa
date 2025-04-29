@@ -7,14 +7,14 @@
     <app-date-selection
       (dateInfoChange)="onDateSelected($event)"
     ></app-date-selection>
-    <!-- Lloc -->
+    <!-- Lloc & GPS -->
     <app-location-selection
       (location)="onLocationSelected($event)"
     ></app-location-selection>
-    <!-- Gps -->
-     <app-gps-input></app-gps-input>
-    <!-- Gps -->
-     <app-quantity-price></app-quantity-price>
+    <!-- Quantitat & Preu -->
+    <app-drink-quantity-price></app-drink-quantity-price>
+    <!-- Comentaris -->
+    <app-commentaries (others)="onCommentariesChange($event)"></app-commentaries>
   </form>
 
   <div class="card mb-3">
@@ -45,6 +45,9 @@
       </p>
       <hr />
       <h5>app-quantity-price</h5>
+      <p class="card-text mb-1">
+        <strong>Beguda:</strong> {{ drinkEntry().drink }}
+      </p>
       <strong>Quantitat</strong>
       <p class="card-text mb-1">
         <strong>Litres:</strong> {{ drinkEntry().quantity }}
@@ -55,6 +58,11 @@
       <strong>Preu</strong>
       <p class="card-text mb-1">
         <strong>Litres:</strong> {{ drinkEntry().price }}
+      </p>
+      <hr />
+      <h5>app-commentaries</h5>
+      <p class="card-text mb-1">
+        <strong>Comentaris:</strong> {{ drinkEntry().others }}
       </p>
     </div>
   </div>

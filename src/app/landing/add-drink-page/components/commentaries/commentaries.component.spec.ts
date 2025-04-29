@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { QuantityPriceComponent } from './quantity-price.component';
+import { CommentariesComponent } from './commentaries.component';
 
-describe('QuantityPriceComponent', () => {
-  let component: QuantityPriceComponent;
-  let fixture: ComponentFixture<QuantityPriceComponent>;
+describe('CommentariesComponent', () => {
+  let component: CommentariesComponent;
+  let fixture: ComponentFixture<CommentariesComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [QuantityPriceComponent]
+      imports: [CommentariesComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(QuantityPriceComponent);
+    fixture = TestBed.createComponent(CommentariesComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

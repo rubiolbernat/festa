@@ -1,37 +1,161 @@
-<!-- Lloc -->
-<div class="mb-3">
-  <label for="location" class="form-label">Lloc:</label>
-  <input
-    type="text"
-    class="form-control"
-    id="location"
-    name="location"
-    [(ngModel)]="this.selectedLocation"
-    (input)="filterLocations()"
-    required
-    #locationInput="ngModel"
-  />
-  @if(this.locationSuggestions().length > 0){
-  <ul class="list-group">
-    @for(suggestion of this.locationSuggestions();track suggestion ){
-    <li
-      class="list-group-item"
-      (click)="
-        selectedLocation.set(suggestion);
-        locationSuggestions.set([]);
-        this.sendData()
-      "
-    >
-      {{ suggestion }}
-    </li>
+<div class="p-3 border rounded shadow-sm mb-3">
+  <!-- Secció Input Lloc -->
+  <div class="mb-3 position-relative">
+    <label for="locationInput" class="form-label fw-bold">
+      <i class="bi bi-geo-alt"></i> Lloc:
+    </label>
+    <input
+      type="text"
+      class="form-control"
+      id="locationInput"
+      name="locationInput"
+      placeholder="Escriu el nom del lloc..."
+      [(ngModel)]="selectedLocation"
+      (ngModelChange)="filterLocations()"
+      (blur)="sendDataIfValid()"
+      required
+      #locationInput="ngModel"
+      aria-describedby="locationHelp locationError"
+    />
+    <small id="locationHelp" class="form-text text-muted">
+      Introdueix el lloc o selecciona'l al mapa.
+    </small>
+
+    <!-- Suggeriments d'Autocompletat -->
+    @if (locationSuggestions().length > 0) {
+      <ul class="list-group position-absolute w-100 mt-1" style="z-index: 1000;">
+        @for (suggestion of locationSuggestions(); track suggestion) {
+          <li
+            class="list-group-item list-group-item-action cursor-pointer"
+            (click)="selectSuggestion(suggestion)"
+            (mousedown)="$event.preventDefault()"
+          >
+            {{ suggestion }}
+          </li>
+        }
+      </ul>
     }
-  </ul>
-  }
-  <!-- NOU: Missatge d'error -->
-  @if (locationInput.invalid && (locationInput.dirty || locationInput.touched))
-  {
-  <div class="text-danger form-text small mt-1">
-    <i class="bi bi-exclamation-triangle"></i> El lloc és obligatori.
+
+    <!-- Missatge d'Error Validació -->
+    @if (locationInput.invalid && (locationInput.dirty || locationInput.touched)) {
+      <div id="locationError" class="invalid-feedback d-block mt-1"> <!-- d-block per mostrar sempre si és invàlid -->
+        <i class="bi bi-exclamation-triangle-fill"></i> El nom del lloc és obligatori.
+      </div>
+    }
   </div>
-  }
-</div>
+
+  <!-- Secció Coordenades i Botons -->
+  <div class="mb-3 p-3 border rounded">
+    <div class="row g-3 align-items-center">
+
+      <!-- Columna Coordenades -->
+      <div class="col-md-7 col-lg-8">
+        <div class="row g-2">
+          <div class="col-sm-6">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text" [class.bg-danger-subtle]="hasGpsData() === false">
+                <i class="bi bi-pin-map-fill"></i> Lat
+              </span>
+              <input
+                type="text"
+                class="form-control"
+                id="latitude"
+                name="latitude"
+                [value]="latitude() | number : '1.6-6'"
+                readonly
+                disabled
+
+                [class.bg-danger-subtle]="hasGpsData() === false"
+              />
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text" [class.bg-danger-subtle]="hasGpsData() === false">
+                <i class="bi bi-pin-map-fill"></i> Lon
+              </span>
+              <input
+                type="text"
+                class="form-control"
+                id="longitude"
+                name="longitude"
+                [value]="longitude() | number : '1.6-6'"
+                readonly
+                disabled
+                [class.bg-danger-subtle]="hasGpsData() === false"
+              />
+            </div>
+          </div>
+        </div>
+        <!-- Missatge Estat GPS -->
+        @if (hasGpsData() === false) {
+          <div class="form-text text-danger small mt-2">
+            <i class="bi bi-exclamation-triangle"></i> No s'ha pogut obtenir la ubicació GPS. Coordenades per defecte.
+          </div>
+        } @else if (hasGpsData() === true) {
+            <div class="form-text text-success small mt-2">
+                <i class="bi bi-check-circle"></i> Coordenades GPS obtingudes.
+            </div>
+        } @else if (hasGpsData() === null) {
+            <div class="form-text text-muted small mt-2">
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Obtenint ubicació GPS...
+            </div>
+        }
+      </div>
+
+      <!-- Columna Botons -->
+      <div class="col-md-5 col-lg-4 d-flex flex-column flex-sm-row gap-2 justify-content-md-end">
+        <button
+          type="button"
+          class="btn btn-outline-primary btn-sm flex-grow-1 flex-sm-grow-0"
+          (click)="getCurrentLocation()"
+          title="Obtenir Ubicació GPS Actual">
+          <i class="bi bi-arrow-clockwise"></i>
+          <span class="d-none d-md-inline"> Actualitzar GPS</span>
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm flex-grow-1 flex-sm-grow-0"
+          (click)="openMapModal()"
+          title="Seleccionar la ubicació en un mapa">
+          <i class="bi bi-map"></i>
+          <span class="d-none d-md-inline"> Obrir Mapa</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal del Mapa (Bootstrap) -->
+  <div class="modal fade" #mapModal tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered"> <!-- modal-lg per fer-lo més gran -->
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="mapModalLabel"><i class="bi bi-pin-map"></i> Selecciona la Ubicació al Mapa</h5>
+          <button type="button" class="btn-close" (click)="closeMapModal()" aria-label="Tancar"></button>
+        </div>
+        <div class="modal-body p-0"> <!-- p-0 per eliminar padding si el mapa ocupa tot -->
+          <!-- Contenidor per al mapa Leaflet -->
+          <div id="mapInModal" style="height: 450px; width: 100%;">
+            <!-- El mapa s'inicialitzarà aquí via TypeScript -->
+          </div>
+          <!-- Mostra coordenades dins del modal (opcional) -->
+          <div class="p-2 border-top text-center small">
+            Lat: {{ mapLat | number:'1.6-6' }} / Lon: {{ mapLng | number:'1.6-6' }}
+            <span class="ms-2 text-muted">(Fes clic o arrossega el marcador)</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeMapModal()" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg"></i> Cancel·lar
+          </button>
+          <button type="button" class="btn btn-primary" (click)="confirmMapSelection()">
+            <i class="bi bi-check-lg"></i> Confirmar Selecció
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div> <!-- Fi container principal -->

@@ -1,0 +1,34 @@
+/* Fa que els elements de la llista de suggeriments tinguin cursor de punter */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Força Leaflet a ocupar tota l'àrea disponible dins el modal */
+#mapInModal {
+  height: 100%;
+  width: 100%;
+  min-height: 400px;
+}
+
+/* Evita que l'input disabled tingui un aspecte massa 'apagat' */
+input:disabled.form-control {
+    cursor: default; /* Indica que no es pot interactuar */
+    /* background-color: #e9ecef;  Bootstrap ja ho fa, pots sobreescriure si vols */
+    /* opacity: 1; */
+}
+
+/* Estils pels colors de fons de l'input group span segons l'estat del GPS */
+.input-group-text.bg-success-subtle {
+    border-color: var(--bs-success-border-subtle);
+    color: var(--bs-success-text-emphasis);
+}
+.input-group-text.bg-danger-subtle {
+    border-color: var(--bs-danger-border-subtle);
+    color: var(--bs-danger-text-emphasis);
+}
+.form-control.bg-success-subtle {
+    border-color: var(--bs-success-border-subtle);
+}
+.form-control.bg-danger-subtle {
+    border-color: var(--bs-danger-border-subtle);
+}

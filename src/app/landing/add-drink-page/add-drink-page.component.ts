@@ -10,15 +10,14 @@ import { Router } from '@angular/router';
 
 // Form Children
 import { DateSelectionComponent, DateSelectionOutput } from './components/date-selection/date-selection.component';
-import { DrinkSelectionComponent } from './components/drink-selection/drink-selection.component';
-import { LocationSelectionComponent } from './components/location-selection/location-selection.component';
+import { LocationSelectionComponent, LocationSelectionOutput } from './components/location-selection/location-selection.component';
 import { MediaInputComponent } from './components/media-input/media-input.component';
-import { QuantityPriceComponent } from './components/quantity-price/quantity-price.component';
-import { GpsInputComponent } from './components/gps-input/gps-input.component';
+import { DrinkQuantityPriceComponent } from './components/drink-quantity-price/drink-quantity-price.component';
+import { CommentariesComponent } from './components/commentaries/commentaries.component';
 
 @Component({
   selector: 'app-add-drink-page',
-  imports: [FormsModule, CommonModule, DateSelectionComponent, DrinkSelectionComponent, LocationSelectionComponent, MediaInputComponent, QuantityPriceComponent, GpsInputComponent],
+  imports: [FormsModule, CommonModule, DateSelectionComponent, LocationSelectionComponent, MediaInputComponent, DrinkQuantityPriceComponent, CommentariesComponent],
   templateUrl: './add-drink-page.component.html',
   styleUrl: './add-drink-page.component.css'
 })
@@ -61,12 +60,22 @@ export class AddDrinkPageComponent {
     }));
   }
 
-  onLocationSelected(location: string) {
+  onLocationSelected(location: LocationSelectionOutput) {
     this.drinkEntry.update(value => ({
       ...value,
-      location: location
+      location: location.selectedLocation || '',
+      latitude: location.latitude || 0,
+      longitude: location.longitude || 0
     }));
   }
+
+  onCommentariesChange(comentari: string) {
+    this.drinkEntry.update(value => ({
+      ...value,
+      others: comentari || ''
+    }));
+  }
+
 
 
   //Enviar formulari

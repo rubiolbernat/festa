@@ -29,6 +29,7 @@
             ],
             "styles": [
               "src/styles.css",
+              "node_modules/leaflet/dist/leaflet.css",
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/bootstrap-icons/font/bootstrap-icons.min.css"
             ],
@@ -47,13 +48,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
+                  "maximumWarning": "1MB",
                   "maximumError": "5MB"
                 },
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "4kB",
-                  "maximumError": "9kB"
+                  "maximumError": "12kB"
                 }
               ],
               "outputHashing": "all"
