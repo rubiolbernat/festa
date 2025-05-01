@@ -13,7 +13,7 @@ import { DateSelectionComponent, DateSelectionOutput } from './components/date-s
 import { DrinkSelectionComponent } from './components/drink-selection/drink-selection.component';
 import { LocationSelectionComponent } from './components/location-selection/location-selection.component';
 import { MediaInputComponent } from './components/media-input/media-input.component';
-import { QuantityPriceComponent } from './components/quantity-price/quantity-price.component';
+import { QuantityPriceComponent, QuantityPriceDrinkOutput } from './components/quantity-price/quantity-price.component';
 import { GpsInputComponent } from './components/gps-input/gps-input.component';
 
 @Component({
@@ -68,6 +68,15 @@ export class AddDrinkPageComponent {
     }));
   }
 
+  onQuantityPriceDrinkSelected(info: QuantityPriceDrinkOutput) {
+    this.drinkEntry.update(value => ({
+      ...value,
+      quantity: info.quantity,
+      price: info.price,
+      num_drinks: info.units,
+      drink: info.name
+    }));
+  }
 
   //Enviar formulari
   onSubmit() {
