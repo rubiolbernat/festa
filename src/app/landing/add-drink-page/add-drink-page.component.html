@@ -12,9 +12,14 @@
       (location)="onLocationSelected($event)"
     ></app-location-selection>
     <!-- Gps -->
-     <app-gps-input></app-gps-input>
+    <app-gps-input></app-gps-input>
     <!-- Gps -->
-     <app-quantity-price (data)="onQuantityPriceDrinkSelected($event)"></app-quantity-price>
+    <app-quantity-price
+      (data)="onQuantityPriceDrinkSelected($event)"
+    ></app-quantity-price>
+    <!--Image-->
+    <app-media-input
+    (media)="handleMediaOutput($event)"></app-media-input>
   </form>
 
   <div class="card mb-3">
@@ -58,6 +63,28 @@
         <strong>Preu:</strong> {{ drinkEntry().price }}
       </p>
     </div>
+    @if (parentPreviewUrl) {
+      <div class="card" style="width: 18rem;">
+        <img [src]="parentPreviewUrl" class="card-img-top" alt="Previsualització de la imatge processada">
+        <div class="card-body">
+          <h5 class="card-title">Imatge rebuda</h5>
+          @if(selectedProcessedFile) {
+            <p class="card-text">
+              Nom: {{ selectedProcessedFile.name }} <br>
+              Tipus: {{ selectedProcessedFile.type }} <br>
+              Mida: {{ (selectedProcessedFile.size / 1024) | number:'1.0-1' }} KB
+            </p>
+            <button class="btn btn-success">
+              <i class="bi bi-upload"></i> Pujar aquesta Imatge 
+            </button>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="alert alert-secondary" role="alert">
+        Encara no s'ha seleccionat cap imatge en el component fill.
+      </div>
+    }
   </div>
 
   <!-- Modal de confirmació -->
