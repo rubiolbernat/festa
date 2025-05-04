@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
 import { DateSelectionComponent, DateSelectionOutput } from './components/date-selection/date-selection.component';
 import { LocationSelectionComponent, LocationSelectionOutput } from './components/location-selection/location-selection.component';
 import { MediaInputComponent } from './components/media-input/media-input.component';
-import { DrinkQuantityPriceComponent } from './components/drink-quantity-price/drink-quantity-price.component';
+import { DrinkQuantityPriceComponent, QuantityPriceDrinkOutput } from './components/quantity-price/quantity-price.component';
 import { CommentariesComponent } from './components/commentaries/commentaries.component';
 
 @Component({
@@ -51,6 +51,9 @@ export class AddDrinkPageComponent {
     }
   });
 
+  selectedProcessedFile: File | null = null;
+  parentPreviewUrl: string | null = null;
+
   onDateSelected(info: DateSelectionOutput) {
     this.drinkEntry.update(value => ({
       ...value,
@@ -76,6 +79,40 @@ export class AddDrinkPageComponent {
     }));
   }
 
+  onQuantityPriceDrinkSelected(info: QuantityPriceDrinkOutput) {
+    this.drinkEntry.update(value => ({
+      ...value,
+      quantity: info.quantity,
+      price: info.price,
+      num_drinks: info.units,
+      drink: info.name
+    }));
+  }
+
+  handleMediaOutput(file: File | null): void {
+    console.log('Parent received:', file);
+
+    // --- Gestió de la URL d'Objecte ---
+    // 1. Si ja teníem una URL de preview, l'hem de revocar per alliberar memòria
+    if (this.parentPreviewUrl) {
+      URL.revokeObjectURL(this.parentPreviewUrl);
+      console.log('Revoked previous object URL:', this.parentPreviewUrl);
+      this.parentPreviewUrl = null; // Neteja la URL antiga
+    }
+
+    // 2. Assigna el nou fitxer rebut
+    this.selectedProcessedFile = file;
+
+    // 3. Si hem rebut un fitxer vàlid, crea una nova URL d'objecte per la preview
+    if (this.selectedProcessedFile) {
+      // URL.createObjectURL crea una URL temporal que apunta a les dades del File en memòria
+      this.parentPreviewUrl = URL.createObjectURL(this.selectedProcessedFile);
+      console.log('Created new object URL:', this.parentPreviewUrl);
+    } else {
+      // Si hem rebut null, ens assegurem que la preview també és null
+      this.parentPreviewUrl = null;
+    }
+  }
 
 
   //Enviar formulari

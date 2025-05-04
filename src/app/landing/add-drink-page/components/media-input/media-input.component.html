@@ -1,1 +1,88 @@
-<p>media-input works!</p>
+<!-- Inputs ocults -->
+<input
+  type="file"
+  accept="image/jpeg, image/png, image/gif, image/webp"
+  #galleryInput
+  hidden
+  (change)="onFileSelected($event)"
+  [disabled]="isProcessing"
+/>
+<input
+  type="file"
+  accept="image/jpeg, image/png, image/gif, image/webp"
+  capture="environment"
+  #cameraInput
+  hidden
+  (change)="onFileSelected($event)"
+  [disabled]="isProcessing"
+/>
+
+<!-- Secció Imatge -->
+<div class="mb-4 shadow p-3 rounded border">
+  <h5 class="mb-3">
+    <i class="bi bi-camera"></i> Imatge
+    <span class="text-muted fw-normal">(Opcional)</span>
+  </h5>
+
+  <!-- Indicador de Processament -->
+  @if (isProcessing) {
+  <div class="text-center my-3">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Processant...</span>
+    </div>
+    <p class="mt-2 mb-0">Processant imatge...</p>
+    <!-- Opcional: Botó per cancel·lar el processament si triga massa -->
+    <!--
+      <button type="button" class="btn btn-sm btn-warning mt-2" (click)="cancelCurrentAction()">
+        Cancel·lar Processament
+      </button>
+      -->
+  </div>
+  }
+
+  <!-- Previsualització (només si no s'està processant i hi ha URL) -->
+  @if (imageUrl && !isProcessing) {
+  <div class="mb-3 text-center">
+    <img
+      [src]="imageUrl"
+      alt="Previsualització de la imatge processada"
+      class="img-thumbnail"
+      style="max-width: 250px; max-height: 250px; object-fit: contain"
+    />
+    <div>
+      <!-- Botó eliminar -->
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-danger mt-2"
+        (click)="clearSelection()"
+        title="Eliminar imatge seleccionada"
+        [disabled]="isProcessing"
+      >
+        <i class="bi bi-trash"></i> Eliminar Imatge
+      </button>
+    </div>
+  </div>
+  }
+
+  <!-- Botons d'acció (només si no hi ha imatge i no s'està processant) -->
+  @if (!imageUrl && !isProcessing) {
+  <div class="d-flex flex-wrap gap-2 justify-content-center mb-3">
+    <button
+      type="button"
+      class="btn btn-outline-primary"
+      (click)="openCamera()"
+      title="Fer una foto amb la càmera"
+    >
+      <i class="bi bi-camera-fill"></i> Fer Foto
+    </button>
+    <button
+      type="button"
+      class="btn btn-outline-secondary"
+      (click)="openGallery()"
+      title="Seleccionar una imatge de la galeria"
+    >
+      <i class="bi bi-image"></i> Obrir Galeria
+    </button>
+  </div>
+  }
+</div>

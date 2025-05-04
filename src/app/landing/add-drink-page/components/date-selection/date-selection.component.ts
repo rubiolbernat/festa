@@ -53,8 +53,8 @@ export class DateSelectionComponent implements OnInit {
     });
     this.dateInput.set(this.formatTodayAsDateString());
     this.dayOfWeek = this.getDayOfWeek(this.selectedDate);
-    console.log('date', this.selectedDate);
-    console.log('day of week', this.dayOfWeek);
+    //console.log('date', this.selectedDate);
+    //console.log('day of week', this.dayOfWeek);
 
     this.loadInitialData();
   }
@@ -71,49 +71,50 @@ export class DateSelectionComponent implements OnInit {
 
   onDateChange() {
     if (this.isDateInPast(this.dateInput())) {
-      //Si la data es inferior a la data actual carregar tots els events
-
+      // Si la data és inferior a la data actual carregar tots els events
       this.loadActiveEventsByDate(this.dateInput());
-      this.eventsList.set([]);
-      this.findEventIdForDate(this.dateInput(), this.eventsList());
-      console.log('events list data anterior', this.eventsList());
     } else {
-      // Si la data es superior a la data actual carregar els events
+      // Si la data és superior a la data actual carregar els events
       this.eventsList.set(this.cacheEventsList());
       this.findEventIdForDate(this.dateInput(), this.eventsList());
     }
+
     this.sendDataToParent();
   }
 
+
   findEventIdForDate(date: string, events: DrinkEvent[]) {
-    if (events.length === 0) {
+    if (!date || events.length === 0) {
       this.selectedEventId.set(null);
       return;
     }
 
-    const currentSelectedId = this.selectedEventId();
-
-    const stillExists = events.some(event => event.event_id === currentSelectedId);
-    if (currentSelectedId !== null && stillExists) {
-      // Encara que existeixi, tornem a fer el set per assegurar reacció
-      this.selectedEventId.set(currentSelectedId);
-      return;
-    }
-
-    const targetDate = new Date(date);
-    const matchingEvent = events.find(event => {
-      const start = new Date(event.data_inici);
-      const end = new Date(event.data_fi);
+    const targetDate = this.stripTime(new Date(date));
+    const matchingEvents = events.filter(event => {
+      const start = this.stripTime(new Date(event.data_inici));
+      const end = this.stripTime(new Date(event.data_fi));
       return start <= targetDate && targetDate <= end;
     });
 
-    if (matchingEvent) {
-      this.selectedEventId.set(matchingEvent.event_id);
+    //console.log('Esdeveniments coincidents amb la data', date, ':', matchingEvents);
+
+    if (matchingEvents.length > 0) {
+      matchingEvents.sort((a, b) => new Date(a.data_inici).getTime() - new Date(b.data_inici).getTime());
+      const selectedEvent = matchingEvents[0];
+      //console.log('Esdeveniment seleccionat:', selectedEvent.event_id);
+      this.selectedEventId.set(selectedEvent.event_id);
     } else {
+      console.log('Cap esdeveniment coincideix amb la data:', date);
       this.selectedEventId.set(null);
     }
+
     this.sendDataToParent();
   }
+
+  stripTime(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
 
   updateDrinkDataEventId() {
     this.sendDataToParent();
@@ -170,15 +171,17 @@ export class DateSelectionComponent implements OnInit {
   loadActiveEventsByDate(date: string) {
     this.EventsService.getEventsByUserIdAndDate(date).subscribe({
       next: (events) => {
+        //console.log('Esdeveniments carregats per data:', events); // DEBUG
         this.eventsList.set(events || []);
         this.isLoading.set(false);
         this.findEventIdForDate(this.dateInput(), this.eventsList());
       },
       error: (error) => {
-        console.error('Error loading events:', error);
+        //console.error('Error loading events:', error);
         this.eventsList.set([]);
       },
     });
+
   }
 
   getDayOfWeek(date: Date): number {

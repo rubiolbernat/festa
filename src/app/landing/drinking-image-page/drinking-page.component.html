@@ -6,7 +6,7 @@
   <form (ngSubmit)="onSubmit()">
     <div class="mb-3 row">
       <!-- Cas amb select -->
-      @if (this.enrolledEvents.length > 0) {
+      <!--  @if (this.enrolledEvents.length > 0) {-->
       <div class="col-md-6">
         <label for="date" class="form-label">Data:</label>
         <!-- Assegura't que el teu input de data tingui (change) -->
@@ -46,19 +46,21 @@
           <option [ngValue]="null">Cap esdeveniment</option>
           <!-- <<<--- AFEGIT: usa [ngValue] per a null -->
           @for (event of enrolledEvents; track event.event_id) {
-            <option [value]="event.event_id">
-               <!-- Apliquem el Pipe per obtenir l'icona -->
-              <span class="icon me-1" aria-hidden="true">{{ event.nom | eventIcon }}</span>
-              <!-- La resta del text -->
-              {{ event.nom }} | del {{ event.data_inici | date : "dd/MM/yy" }} al
-              {{ event.data_fi | date : "dd/MM/yy" }}
-            </option>
+          <option [value]="event.event_id">
+            <!-- Apliquem el Pipe per obtenir l'icona -->
+            <span class="icon me-1" aria-hidden="true">{{
+              event.nom | eventIcon
+            }}</span>
+            <!-- La resta del text -->
+            {{ event.nom }} | del {{ event.data_inici | date : "dd/MM/yy" }} al
+            {{ event.data_fi | date : "dd/MM/yy" }}
+          </option>
           }
         </select>
       </div>
-      }
+      <!--  }-->
       <!-- Cas sense select -->
-      @else {
+      <!--   @else {
       <div class="col-12">
         <label for="date" class="form-label">Data:</label>
         <input
@@ -78,7 +80,7 @@
           La data és obligatòria.
         </div>
       </div>
-      }
+      }-->
     </div>
 
     <!-- ... resta de la plantilla ... -->

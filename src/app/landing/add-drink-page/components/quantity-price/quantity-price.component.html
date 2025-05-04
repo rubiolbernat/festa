@@ -1,0 +1,285 @@
+<!-- Quantitat -->
+<div class="mb-3 shadow p-3 rounded border">
+  <!-- Agrupat visualment -->
+  <h5 class="mb-3">Quantitat</h5>
+  <div class="row g-3 align-items-start">
+    <!-- align-items-end per alinear bé els labels i inputs -->
+    <!-- Quantitat L local - NOMÉS visible en pantalles grans-->
+
+    <div
+      class="col-lg-2 col-md-3 col-6 order-lg-1 order-md-1 order-1 d-none d-md-block"
+    >
+      <label for="totalliters" class="form-label fw-bold">Total:</label>
+      <div class="input-group">
+        <input
+          type="text"
+          class="form-control bg-secondary text-white"
+          id="totalliters"
+          name="totalliters"
+          [value]="totalLiters() | number : '1.2-2'"
+          readonly
+        />
+        <span class="input-group-text">L</span>
+      </div>
+    </div>
+    <!-- Preu Total en format text - NOMÉS visible en pantalles petites -->
+    <div class="col-12 d-block d-md-none">
+      <p class="fw-bold mb-0">
+        Total: {{ totalLiters() | number : "1.2-2" }} L
+      </p>
+    </div>
+
+    <!-- Input Manual (Condicional) -->
+    @if (this.manualQuantity()) {
+    <div class="col-lg-3 col-md-4 col-6 order-lg-2 order-md-3 order-3">
+      <label for="manualQuantity" class="form-label"
+        >Quantitat Manual (L):</label
+      >
+      <div class="input-group">
+        <input
+          type="number"
+          class="form-control"
+          id="manualQuantity"
+          name="manualQuantity"
+          [(ngModel)]="manualQuantityValue"
+          required
+          step="0.01"
+          min="0.01"
+          (ngModelChange)="onQuantityChange($event)"
+          #manualQtyInput="ngModel"
+        />
+        <span class="input-group-text">L</span>
+      </div>
+      @if (this.manualQuantityValue() > 1.5) {
+      <div class="form-text text-warning small mt-1">
+        <i class="bi bi-info-circle"></i> Quantitat elevada, assegura't que són
+        litres.
+      </div>
+      } @if (manualQtyInput.invalid && (manualQtyInput.dirty ||
+      manualQtyInput.touched)) {
+      <div class="text-danger form-text small mt-1">
+        Quantitat invàlida (mín 0.01 L).
+      </div>
+      }
+    </div>
+    }
+
+    <!-- Selector Predefinit -->
+    <div class="col-lg-4 col-md-5 col-12 order-lg-3 order-md-2 order-2">
+      <label for="drinkSelect" class="form-label">Selecció Ràpida:</label>
+      <div class="input-group">
+        <select
+          id="drinkSelect"
+          class="form-select"
+          (change)="onDrinkQuantityChange($event)"
+          [ngModel]="selectedDrink().name"
+          name="drinkSelector"
+          [ngClass]="{ 'bg-warning text-dark fw-bold': this.manualQuantity() }"
+        >
+          @for (drink of drinks; track drink.name) {
+          <option
+            [value]="drink.name"
+            [selected]="drink.name === selectedDrink.name"
+            [ngClass]="{
+              'bg-warning text-dark fw-bold': drink.name === 'Manual',
+              'bg-dark text-light': drink.name != 'Manual',
+              'text-muted': drink.name === 'Selecciona'
+            }"
+          >
+            {{ drink.name }}
+            @if (drink.name !== 'Manual' && drink.name !== 'Selecciona') {
+            <span class="text-muted small"> ({{ drink.descr }})</span>
+            }
+          </option>
+          }
+        </select>
+        @if (selectedDrink().name !== 'Manual' && selectedDrink().name !==
+        'Selecciona') {
+        <span class="input-group-text">{{ this.Quantity() }} L</span>
+        }
+      </div>
+    </div>
+
+    <!-- Nombre de Begudes -->
+    <div class="col-lg-3 col-md-4 col-6 order-lg-4 order-md-4 order-4">
+      <label for="num_drinks" class="form-label">Unitats:</label>
+      <div class="input-group">
+        <button
+          class="btn btn-outline-secondary"
+          type="button"
+          (click)="onUnitsChange(-1)"
+          [disabled]="this.units() <= 1"
+        >
+          −
+        </button>
+        <input
+          type="number"
+          class="form-control text-center no-spin"
+          id="num_drinks"
+          name="num_drinks"
+          [(ngModel)]="units"
+          required
+          step="1"
+          min="1"
+          (ngModelChange)="onNumDrinksChange($event)"
+          #numDrinksInput="ngModel"
+          oninput="this.value = Math.floor(this.value)"
+        />
+        <button
+          class="btn btn-outline-secondary"
+          type="button"
+          (click)="onUnitsChange(1)"
+        >
+          +
+        </button>
+      </div>
+      @if ((numDrinksInput.invalid && (numDrinksInput.dirty ||
+      numDrinksInput.touched))) {
+      <div class="text-danger form-text small mt-1">
+        Ha de ser 1 o superior.
+      </div>
+      } @if (this.units() > 1) {
+      <div class="form-text text-info small mt-1">
+        <i class="bi bi-info-circle"></i> Més d'una unitat seleccionada. Si és
+        un pack, selecciona el preu total.
+      </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Beguda -->
+<div class="mb-3 shadow p-3 rounded border">
+  <h5 class="mb-3">Beguda:</h5>
+  <div class="mb-3">
+    <!--<label for="drink" class="form-label">Beguda:</label>-->
+    <input
+      type="text"
+      class="form-control"
+      id="drink"
+      name="drink"
+      [(ngModel)]="drinkName"
+      (input)="filterDrinks()"
+      [value]="
+        drinkName ||
+        (selectedDrink.name !== 'Manual' && selectedDrink.name !== 'Selecciona'
+          ? selectedDrink.name
+          : '')
+      "
+      (click)="drinkNameChanged = true"
+      (ngModelChange)="onDrinkInputChange($event)"
+      required
+      #drinkInput="ngModel"
+    />
+    @if (drinkSuggestions().length > 0) {
+    <ul class="list-group">
+      @for (suggestion of this.drinkSuggestions(); track suggestion) {
+      <li
+        class="list-group-item"
+        (click)="
+          drinkName.set(suggestion);
+          this.drinkSuggestions.set([]);
+          drinkNameChanged = true
+        "
+      >
+        {{ suggestion }}
+      </li>
+      }
+    </ul>
+    }
+    <!-- NOU: Missatge d'error -->
+    @if (drinkInput.invalid && (drinkInput.dirty || drinkInput.touched) ||
+    this.drinkName() === '') {
+    <div class="text-danger form-text small mt-1">
+      <i class="bi bi-exclamation-triangle"></i> La beguda és obligatòria.
+    </div>
+    }
+  </div>
+</div>
+
+<!-- Preu -->
+<div class="mb-3 shadow p-3 rounded border">
+  <h5 class="mb-3">Preu</h5>
+  <div class="row g-3 align-items-end">
+    <!-- Preu Total Calculat - NOMÉS visible en pantalles grans -->
+    <div
+      class="col-lg-2 col-md-3 col-6 order-lg-1 order-md-1 order-1 d-none d-md-block"
+    >
+      <label for="totalprice" class="form-label fw-bold">Total:</label>
+      <div class="input-group">
+        <input
+          type="text"
+          class="form-control bg-secondary text-white"
+          id="totalprice"
+          name="totalprice"
+          [value]="this.totalPrice() | number : '1.2-2'"
+          readonly
+        />
+        <span class="input-group-text">€</span>
+      </div>
+    </div>
+
+    <!-- Preu Total en format text - NOMÉS visible en pantalles petites -->
+    <div class="col-12 d-block d-md-none">
+      <p class="fw-bold mb-0">Total: {{ totalPrice() | number : "1.2-2" }} €</p>
+    </div>
+
+    <!-- Input Preu -->
+    <div class="col-lg-3 col-md-4 col-6 order-lg-2 order-md-3 order-3">
+      <label for="price" class="form-label">Preu:</label>
+      <div class="input-group">
+        <input
+          type="number"
+          class="form-control"
+          id="price"
+          name="price"
+          [(ngModel)]="price"
+          (ngModelChange)="onPriceChange($event)"
+          required
+          min="0"
+          step="0.01"
+          #priceInput="ngModel"
+        />
+        <span class="input-group-text"
+          ><i class="bi bi-currency-euro"></i
+        ></span>
+      </div>
+      @if(priceInput.invalid && (priceInput.dirty || priceInput.touched)){
+      <div class="text-danger form-text small mt-1">
+        El preu és obligatori i no pot ser negatiu.
+      </div>
+      }
+    </div>
+
+    <!-- Tipus de Preu (Radios) -->
+    <div class="col-lg-4 col-md-5 col-12 order-lg-3 order-md-2 order-2">
+      <label class="form-label d-block mb-2">El preu introduït és:</label>
+      <div class="form-check form-check-inline">
+        <input
+          class="form-check-input"
+          type="radio"
+          id="individualPriceRadio"
+          name="priceType"
+          [(ngModel)]="isPriceUnitary"
+          [value]="true"
+          (change)="onPriceTypeChange(true)"
+        />
+        <label class="form-check-label" for="individualPriceRadio"
+          >Per Unitat</label
+        >
+      </div>
+      <div class="form-check form-check-inline">
+        <input
+          class="form-check-input"
+          type="radio"
+          id="totalPriceRadio"
+          name="priceType"
+          [(ngModel)]="isPriceUnitary"
+          [value]="false"
+          (change)="onPriceTypeChange(false)"
+        />
+        <label class="form-check-label" for="totalPriceRadio">El Total</label>
+      </div>
+    </div>
+  </div>
+</div>
