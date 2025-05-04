@@ -21,7 +21,7 @@ interface Drink {
   templateUrl: './quantity-price.component.html',
   styleUrl: './quantity-price.component.css'
 })
-export class QuantityPriceComponent implements OnInit {
+export class DrinkQuantityPriceComponent implements OnInit {
 
   private drinkingDataService = inject(DrinkingDataService);
 
