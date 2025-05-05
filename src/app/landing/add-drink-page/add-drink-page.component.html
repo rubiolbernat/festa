@@ -15,11 +15,153 @@
     <app-quantity-price
       (data)="onQuantityPriceDrinkSelected($event)"
     ></app-quantity-price>
+    <!--Notes-->
+    <app-commentaries
+      (others)="onCommentariesChange($event)"
+    ></app-commentaries>
     <!--Image-->
     <app-media-input (media)="handleMediaOutput($event)"></app-media-input>
-  </form>
 
-  <div class="card mb-3">
+    <!--Modal de confirmació-->
+    <div class="d-flex justify-content-center gap-2">
+      <button
+        type="button"
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#confirmationModal"
+        [disabled]="
+          this.drinkEntry().price < 0 ||
+          !this.drinkEntry().quantity ||
+          !this.drinkEntry().location ||
+          this.drinkEntry().location.trim() === '' ||
+          !this.drinkEntry().drink ||
+          this.drinkEntry().drink.trim() === ''
+        "
+      >
+        <i class="bi bi-plus-circle-fill"></i> Afegir
+      </button>
+      <a routerLink="/la_gran_aventura-list" class="btn btn-warning"
+        >Editar dades</a
+      >
+    </div>
+  </form>
+  <!-- Modal de confirmació -->
+  <div
+    class="modal fade"
+    id="confirmationModal"
+    tabindex="-1"
+    aria-labelledby="confirmationModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <!-- Centrat verticalment -->
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="confirmationModalLabel">
+            <i class="bi bi-check2-circle"></i> Confirmar Dades
+          </h5>
+          <button
+            type="button"
+            class="btn-close btn-close-white"
+            data-bs-dismiss="modal"
+            aria-label="Tancar"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-3">Si us plau, revisa les dades abans d'enviar:</p>
+          <ul class="list-group list-group-flush">
+            <!-- Llista per millor format -->
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Data:</strong>
+              {{ this.drinkEntry().date | date : "dd/MM/yyyy" }}
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Lloc:</strong> {{ this.drinkEntry().location || "-" }}
+            </li>
+            @if (this.drinkEntry().latitude!=0) {
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>GPS:</strong> Lat:
+              {{ this.drinkEntry().latitude | number : "1.4-4" }}, Lon:
+              {{ this.drinkEntry().longitude | number : "1.4-4" }}
+            </li>
+            }
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Beguda:</strong> {{ this.drinkEntry().drink }}
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Unitats:</strong> {{ this.drinkEntry().num_drinks }}
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Quantitat Total:</strong>
+              {{ this.drinkEntry().quantity | number : "1.2-2" }} L
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Preu Introduït:</strong>
+              <span
+                >@if (this.drinkEntry().num_drinks>1) {
+                {{
+                  this.drinkEntry().price / this.drinkEntry().num_drinks
+                    | number : "1.2-2"
+                }}(per unitat) € } @else {
+                {{ this.drinkEntry().price | number : "1.2-2" }}(total) €
+                }</span
+              >
+              <!-- Mostra tipus de preu -->
+            </li>
+            <li class="list-group-item d-flex justify-content-between fw-bold">
+              <strong>Preu Total Calculat:</strong>
+              <span>{{ this.drinkEntry().price | number : "1.2-2" }} €</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Notes:</strong> {{ this.drinkEntry().others || "-" }}
+            </li>
+            @if (parentPreviewUrl) {
+            <li
+              class="list-group-item d-flex justify-content-between text-success"
+            >
+              @if (selectedProcessedFile) {
+              <strong>Imatge:</strong>
+              <span
+                >Fitxer seleccionat ({{ selectedProcessedFile.name }}
+                <small>{{ selectedProcessedFile.type }}</small> )
+                <img
+                  [src]="parentPreviewUrl"
+                  class="card-img-top"
+                  style="width: 50px"
+                  alt="Previsualització de la imatge processada" /></span
+              >}
+            </li>
+            } @else {
+            <li
+              class="list-group-item d-flex justify-content-between text-muted"
+            >
+              <strong>Imatge:</strong> <span>No seleccionada</span>
+            </li>
+            }
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            <i class="bi bi-x-lg"></i> Cancel·lar
+          </button>
+          <!-- Crida a prepareAndSendData (o el nom final al teu component) -->
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="onSubmit()"
+            data-bs-dismiss="modal"
+          >
+            <i class="bi bi-send-check-fill"></i> Confirmar i Enviar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--<div class="card mb-3">
     <div class="card-body">
       <h5 class="card-title">DEBUG</h5>
       <h5>app-date-selection</h5>
@@ -89,14 +231,5 @@
       Encara no s'ha seleccionat cap imatge en el component fill.
     </div>
     }
-  </div>
-
-  <!-- Modal de confirmació -->
-  <div
-    class="modal fade"
-    id="confirmationModal"
-    tabindex="-1"
-    aria-labelledby="confirmationModalLabel"
-    aria-hidden="true"
-  ></div>
+  </div>-->
 </div>
