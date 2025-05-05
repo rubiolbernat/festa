@@ -1,74 +1,69 @@
-<div class="mb-3 row">
-  <!-- Cas amb select -->
+<div class="mb-3 row g-2">
+  <!-- Input de Data -->
   <div class="col-md-6">
     <label for="date" class="form-label">Data:</label>
-    <!-- Assegura't que el teu input de data tingui (change) -->
     <input
       type="date"
       class="form-control"
       id="date"
       name="date"
-      [(ngModel)]="this.dateInput"
-      (change)="onDateChange()"
+      [ngModel]="this.dateInput()"
+      (ngModelChange)="this.dateInput.set($event); onDateChange()"
       required
-      #dateInput="ngModel"
+      #dateNgModel="ngModel"
     />
-    <div
-      *ngIf="dateInput.invalid && (dateInput.dirty || dateInput.touched)"
-      class="text-danger form-text"
-    >
-      La data és obligatòria.
+    @if (dateNgModel.invalid && (dateNgModel.dirty || dateNgModel.touched)) {
+    <div class="text-danger form-text mt-1" style="font-size: 0.8em">
+      <i class="bi bi-exclamation-triangle"></i> La data és obligatòria.
     </div>
+    }
   </div>
+
+  <!-- Select d'Esdeveniments -->
   <div class="col-md-6">
-    <label for="event" class="form-label fw-semibold">
-      <i class="bi bi-calendar-event me-1"></i>Esdeveniment:
-      @if(this.eventsList().length > 0){
+    <label for="event" class="form-label">
+      Esdeveniment: @if(this.eventsList().length > 0){
       <small class="text-info" style="font-size: 0.65em"
         ><i class="bi bi-info-circle"></i> Hi ha events disponibles:</small
       >
       }
     </label>
-    <!-- <<<--- Afegit 'for' -->
-    <!-- <<<--- MODIFICAT EL SELECT ---<<< -->
-    <select
-      class="form-select"
-      id="event"
-      name="event"
-      [(ngModel)]="selectedEventId"
-      (ngModelChange)="updateDrinkDataEventId()"
-      [disabled]="this.eventsList().length === 0 || isLoading()"
-    >
-      <!-- Opcional: per mantenir drinkData actualitzat -->
-
-      <!-- Opció per no seleccionar cap esdeveniment -->
-      <option [ngValue]="null">Cap esdeveniment</option>
-      <!-- <<<--- AFEGIT: usa [ngValue] per a null -->
-      @for (event of this.eventsList(); track event.event_id) {
-      <option [value]="event.event_id">
-        <!-- Apliquem el Pipe per obtenir l'icona -->
-        <span class="icon me-1" aria-hidden="true">{{
-          event.nom | eventIcon
-        }}</span>
-        <!-- La resta del text -->
-        {{ event.nom }} | del {{ event.data_inici | date : "dd/MM/yy" }} al
-        {{ event.data_fi | date : "dd/MM/yy" }}
-      </option>
+    <div class="input-group">
+      @if (isLoading()) {
+      <span class="input-group-text">
+        <span
+          class="spinner-border spinner-border-sm"
+          role="status"
+          aria-hidden="true"
+          title="Carregant esdeveniments..."
+        ></span>
+      </span>
       }
-    </select>
+      <select
+        class="form-select"
+        id="event"
+        name="event"
+        [ngModel]="selectedEventId()"
+        (ngModelChange)="selectedEventId.set($event); updateDrinkDataEventId()"
+        [disabled]="this.eventsList().length === 0 || this.isLoading()"
+        aria-label="Selecciona un esdeveniment associat"
+      >
+        <option [ngValue]="null">Cap esdeveniment</option>
+        @for (event of eventsList(); track event.event_id) {
+        <option [ngValue]="event.event_id">
+          <span class="icon me-1" aria-hidden="true">{{
+            event.nom | eventIcon
+          }}</span>
+          {{ event.nom }} ({{ event.data_inici | date : "dd/MM/yy" }} -
+          {{ event.data_fi | date : "dd/MM/yy" }})
+        </option>
+        }
+      </select>
+    </div>
+    @if (this.eventsList().length === 0 && !this.isLoading()) {
+    <div class="form-text text-muted mt-1" style="font-size: 0.8em">
+      No hi ha esdeveniments actius disponibles.
+    </div>
+    }
   </div>
 </div>
-
-<!-- DEBUG (Opcional: per veure l'estat intern durant el desenvolupament) -->
-<!--<hr />
-<div class="small text-muted">
-  <p>Debug Info:</p>
-  <p>URL Event ID: {{ eventFromUrl ?? "N/A" }}</p>
-  <p>Event ID: {{ this.selectedEventId() ?? "null" }}</p>
-  <p>Date Input: {{ this.dateInput() }}</p>
-  <hr />
-  <h5>Dades a enviar:</h5>
-  <p>selectedDate: {{ this.selectedDate | date }}</p>
-  <p>dayOfWeek: {{ dayOfWeek }}</p>
-  <p>eventId: {{ this.selectedEventId() }}</p>
-</div> -->

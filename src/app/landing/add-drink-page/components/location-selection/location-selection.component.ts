@@ -54,20 +54,20 @@ export class LocationSelectionComponent implements OnInit, OnDestroy {
 
   // Listener per a 'shown.bs.modal' (sense canvis interns)
   private modalShownListener = () => {
-      console.log('[shown.bs.modal] Event triggered. Iniciant inicialització/actualització del mapa.');
-      if (!this.mapContainer) {
-           this.mapContainer = this.elRef.nativeElement.querySelector('#mapInModal');
-           console.log('[shown.bs.modal] Contenidor del mapa trobat:', this.mapContainer);
-      }
-      if (this.mapContainer) {
-           console.log(`[shown.bs.modal] Dimensions del contenidor ABANS d'inicialitzar: W=${this.mapContainer.offsetWidth}, H=${this.mapContainer.offsetHeight}`);
-           this.initializeOrUpdateMap();
-           setTimeout(() => this.triggerMapResize(), 50);
-           setTimeout(() => this.triggerMapResize(), 250);
-           setTimeout(() => this.triggerMapResize(), 500);
-      } else {
-           console.error('[shown.bs.modal] ERROR: Contenidor del mapa #mapInModal NO TROBAT dins del listener!');
-      }
+    //console.log('[shown.bs.modal] Event triggered. Iniciant inicialització/actualització del mapa.');
+    if (!this.mapContainer) {
+      this.mapContainer = this.elRef.nativeElement.querySelector('#mapInModal');
+      console.log('[shown.bs.modal] Contenidor del mapa trobat:', this.mapContainer);
+    }
+    if (this.mapContainer) {
+      console.log(`[shown.bs.modal] Dimensions del contenidor ABANS d'inicialitzar: W=${this.mapContainer.offsetWidth}, H=${this.mapContainer.offsetHeight}`);
+      this.initializeOrUpdateMap();
+      setTimeout(() => this.triggerMapResize(), 50);
+      setTimeout(() => this.triggerMapResize(), 250);
+      setTimeout(() => this.triggerMapResize(), 500);
+    } else {
+      console.error('[shown.bs.modal] ERROR: Contenidor del mapa #mapInModal NO TROBAT dins del listener!');
+    }
   };
 
   constructor() { // (Sense canvis)
@@ -100,7 +100,10 @@ export class LocationSelectionComponent implements OnInit, OnDestroy {
 
   loadLastLocations() { // (Sense canvis)
     this.drinkingDataService.getLastLocations().subscribe({
-      next: locations => { this.lastLocations.set(locations); console.log('Ubicacions anteriors carregades:', locations); },
+      next: locations => {
+        this.lastLocations.set(locations);
+        //console.log('Ubicacions anteriors carregades:', locations);
+      },
       error: error => { console.error('Error al carregar ubicacions anteriors:', error); this.lastLocations.set([]); }
     });
   }
@@ -150,98 +153,98 @@ export class LocationSelectionComponent implements OnInit, OnDestroy {
 
   initializeOrUpdateMap() {
     if (!this.mapContainer) {
-        this.mapContainer = this.elRef.nativeElement.querySelector('#mapInModal');
-        if (!this.mapContainer) {
-            console.error("initializeOrUpdateMap: ERROR CRÍTIC: Contenidor null!");
-            return;
-        }
+      this.mapContainer = this.elRef.nativeElement.querySelector('#mapInModal');
+      if (!this.mapContainer) {
+        console.error("initializeOrUpdateMap: ERROR CRÍTIC: Contenidor null!");
+        return;
+      }
     }
     console.log(`initializeOrUpdateMap: Dimensions del contenidor: W=${this.mapContainer.offsetWidth}, H=${this.mapContainer.offsetHeight}`);
 
     // Si NO hi ha instància de mapa i L existeix
     if (!this.mapInstance && L) {
-        console.log(`initializeOrUpdateMap: Creant mapa nou a [${this.mapLat}, ${this.mapLng}]...`);
-        try {
-            // *** CORRECCIÓ AQUÍ: Afegides les opcions 'center', 'zoom' i 'layers' ***
-            this.mapInstance = L.map(this.mapContainer, {
-                center: [this.mapLat, this.mapLng], // Centre inicial
-                zoom: this.zoom(),                 // Zoom inicial
-                layers: [                           // Capa de tiles (mapa base)
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        maxZoom: 19,
-                        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    })
-                ]
-                // Pots afegir altres opcions aquí si cal (zoomControl: false, etc.)
-            });
-            // *** FI CORRECCIÓ ***
+      console.log(`initializeOrUpdateMap: Creant mapa nou a [${this.mapLat}, ${this.mapLng}]...`);
+      try {
+        // *** CORRECCIÓ AQUÍ: Afegides les opcions 'center', 'zoom' i 'layers' ***
+        this.mapInstance = L.map(this.mapContainer, {
+          center: [this.mapLat, this.mapLng], // Centre inicial
+          zoom: this.zoom(),                 // Zoom inicial
+          layers: [                           // Capa de tiles (mapa base)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 19,
+              attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            })
+          ]
+          // Pots afegir altres opcions aquí si cal (zoomControl: false, etc.)
+        });
+        // *** FI CORRECCIÓ ***
 
-            console.log("initializeOrUpdateMap: Instància de mapa CREADA:", this.mapInstance);
+        console.log("initializeOrUpdateMap: Instància de mapa CREADA:", this.mapInstance);
 
-            this.mapMarker = L.marker([this.mapLat, this.mapLng], { draggable: true }).addTo(this.mapInstance);
-            console.log("initializeOrUpdateMap: Marcador afegit.");
+        this.mapMarker = L.marker([this.mapLat, this.mapLng], { draggable: true }).addTo(this.mapInstance);
+        console.log("initializeOrUpdateMap: Marcador afegit.");
 
-            // --- Listener CLICK modificat ---
-            this.mapInstance.on('click', (e: L.LeafletMouseEvent) => {
-                const { lat, lng } = e.latlng;
-                console.log(`--- MAPA CLICAT --- a: [${lat}, ${lng}]`);
-                this.mapLat = lat;
-                this.mapLng = lng;
-                this.mapMarker?.setLatLng([lat, lng]);
-                console.log('Forçant detecció de canvis després del clic...');
-                this.cdr.detectChanges();
-            });
-            console.log("initializeOrUpdateMap: Listener 'click' afegit al mapa.");
+        // --- Listener CLICK modificat ---
+        this.mapInstance.on('click', (e: L.LeafletMouseEvent) => {
+          const { lat, lng } = e.latlng;
+          console.log(`--- MAPA CLICAT --- a: [${lat}, ${lng}]`);
+          this.mapLat = lat;
+          this.mapLng = lng;
+          this.mapMarker?.setLatLng([lat, lng]);
+          console.log('Forçant detecció de canvis després del clic...');
+          this.cdr.detectChanges();
+        });
+        console.log("initializeOrUpdateMap: Listener 'click' afegit al mapa.");
 
-            // --- Listener DRAGEND modificat ---
-            this.mapMarker.on('dragend', () => {
-                if (this.mapMarker) {
-                    const pos = this.mapMarker.getLatLng();
-                    console.log(`--- MARCADOR ARROSSEGAT --- a: [${pos.lat}, ${pos.lng}]`);
-                    this.mapLat = pos.lat;
-                    this.mapLng = pos.lng;
-                    console.log('Forçant detecció de canvis després d\'arrossegar...');
-                    this.cdr.detectChanges();
-                }
-            });
-            console.log("initializeOrUpdateMap: Listener 'dragend' afegit al marcador.");
+        // --- Listener DRAGEND modificat ---
+        this.mapMarker.on('dragend', () => {
+          if (this.mapMarker) {
+            const pos = this.mapMarker.getLatLng();
+            console.log(`--- MARCADOR ARROSSEGAT --- a: [${pos.lat}, ${pos.lng}]`);
+            this.mapLat = pos.lat;
+            this.mapLng = pos.lng;
+            console.log('Forçant detecció de canvis després d\'arrossegar...');
+            this.cdr.detectChanges();
+          }
+        });
+        console.log("initializeOrUpdateMap: Listener 'dragend' afegit al marcador.");
 
-            // Cridem invalidateSize just després de crear
-            this.triggerMapResize();
+        // Cridem invalidateSize just després de crear
+        this.triggerMapResize();
 
-        } catch (error) {
-            console.error("initializeOrUpdateMap: ERROR durant la inicialització:", error);
-        }
+      } catch (error) {
+        console.error("initializeOrUpdateMap: ERROR durant la inicialització:", error);
+      }
     }
     // Si JA hi ha instància de mapa
     else if (this.mapInstance) {
-        console.log(`initializeOrUpdateMap: Actualitzant vista a [${this.mapLat}, ${this.mapLng}].`);
-        this.updateMapAndView(this.mapLat, this.mapLng);
+      console.log(`initializeOrUpdateMap: Actualitzant vista a [${this.mapLat}, ${this.mapLng}].`);
+      this.updateMapAndView(this.mapLat, this.mapLng);
     }
     // Si L no està disponible o hi ha un altre problema
     else {
-        console.error("initializeOrUpdateMap: No s'ha pogut crear/actualitzar mapa (L no disponible o instància no creada).");
+      console.error("initializeOrUpdateMap: No s'ha pogut crear/actualitzar mapa (L no disponible o instància no creada).");
     }
     console.log("initializeOrUpdateMap: Finalitzada.");
   }
   updateMapAndView(lat: number, lng: number) { // (Sense canvis interns)
     if (this.mapInstance) {
-       console.log(`updateMapAndView: Centrant mapa a [${lat}, ${lng}], zoom ${this.zoom()}`);
-       this.mapInstance.setView([lat, lng], this.zoom());
-       this.mapMarker?.setLatLng([lat, lng]);
-       console.log(`updateMapAndView: Vista i marcador actualitzats.`);
-       this.triggerMapResize();
+      console.log(`updateMapAndView: Centrant mapa a [${lat}, ${lng}], zoom ${this.zoom()}`);
+      this.mapInstance.setView([lat, lng], this.zoom());
+      this.mapMarker?.setLatLng([lat, lng]);
+      console.log(`updateMapAndView: Vista i marcador actualitzats.`);
+      this.triggerMapResize();
     } else { console.warn("updateMapAndView: Intent d'actualitzar vista sense instància."); }
   }
 
   triggerMapResize() { // (Sense canvis interns, però la comprovació d'alçada és útil)
-      if (this.mapInstance) {
-          console.log(`triggerMapResize: Cridant invalidateSize()...`);
-          if (this.mapContainer && this.mapContainer.offsetHeight > 0) {
-              this.mapInstance.invalidateSize({ animate: false });
-              console.log(`triggerMapResize: invalidateSize() cridat (Contenidor H=${this.mapContainer.offsetHeight}).`);
-          } else { console.warn(`triggerMapResize: No s'ha cridat invalidateSize() per falta d'alçada (H=${this.mapContainer?.offsetHeight}).`); }
-      } else { console.log("triggerMapResize: No hi ha instància."); }
+    if (this.mapInstance) {
+      console.log(`triggerMapResize: Cridant invalidateSize()...`);
+      if (this.mapContainer && this.mapContainer.offsetHeight > 0) {
+        this.mapInstance.invalidateSize({ animate: false });
+        console.log(`triggerMapResize: invalidateSize() cridat (Contenidor H=${this.mapContainer.offsetHeight}).`);
+      } else { console.warn(`triggerMapResize: No s'ha cridat invalidateSize() per falta d'alçada (H=${this.mapContainer?.offsetHeight}).`); }
+    } else { console.log("triggerMapResize: No hi ha instància."); }
   }
 
   confirmMapSelection() { // (Sense canvis)
@@ -262,7 +265,7 @@ export class LocationSelectionComponent implements OnInit, OnDestroy {
     const formattedLocation = locationName ? locationName.charAt(0).toUpperCase() + locationName.slice(1) : '';
     const outputData: LocationSelectionOutput = { selectedLocation: formattedLocation, latitude: this.latitude(), longitude: this.longitude() };
     if (outputData.latitude === 0 && outputData.longitude === 0 && this.hasGpsData() !== false) { console.warn("sendData: S'estan emetent coordenades (0,0)..."); }
-    console.log('sendData: Emetent dades (location.emit):', outputData);
+    // console.log('sendData: Emetent dades (location.emit):', outputData);
     this.location.emit(outputData);
   }
 }

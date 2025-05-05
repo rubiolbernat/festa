@@ -16,7 +16,7 @@ import { DrinkingDataService } from '../../core/services/drinking-data/drinking-
 import { DateSelectionComponent, DateSelectionOutput } from './components/date-selection/date-selection.component';
 import { LocationSelectionComponent, LocationSelectionOutput } from './components/location-selection/location-selection.component';
 import { MediaInputComponent } from './components/media-input/media-input.component';
-import { DrinkQuantityPriceComponent, QuantityPriceDrinkOutput } from './components/quantity-price/quantity-price.component';
+import { DrinkQuantityPriceComponent, QuantityPriceDrinkOutput } from './components/drink-quantity-price/quantity-price.component';
 import { CommentariesComponent } from './components/commentaries/commentaries.component';
 
 @Component({
@@ -241,6 +241,7 @@ export class AddDrinkPageComponent implements OnDestroy { // Implementa OnDestro
   // --- La teva funció resetForm original (està buida, implementa-la si cal) ---
   resetForm() {
     console.log("Resetting form");
+    this.router.navigate(['/home'])
   }
 
   // --- Gestió de la desubscripció ---

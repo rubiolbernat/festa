@@ -68,7 +68,7 @@ export class DrinkQuantityPriceComponent implements OnInit {
     this.drinkingDataService.getLastDrinks().subscribe(
       drinks => {
         this.lastDrinks.set(drinks);
-        console.log('Begudes obtingudes:', drinks);
+        //console.log('Begudes obtingudes:', drinks);
       },
       error => {
         console.error('Error al carregar begudes anteriors:', error);
@@ -212,7 +212,7 @@ export class DrinkQuantityPriceComponent implements OnInit {
   }
   onDrinkInputChange(newValue: string) {
     //this.drinkData.drink = newValue;
-    console.log('Drink input changed:', newValue);
+    //console.log('Drink input changed:', newValue);
     this.filterDrinks();
   }
 

@@ -49,12 +49,13 @@ export const LANDING_ROUTES: Routes = [
       //NOU formulari
       {
         path: 'la_gran_aventura_v2',
-        loadComponent: () => import('./add-drink-page/add-drink-page.component').then(m => m.AddDrinkPageComponent),
+        loadComponent: () => import('./drinking-image-page/drinking-page.component').then(m => m.DrinkingPageComponent),
+
         canActivate: [AuthGuard], //Només accessible si estàs loguejat
       },
       {
         path: 'la_gran_aventura',
-        loadComponent: () => import('./drinking-image-page/drinking-page.component').then(m => m.DrinkingPageComponent),
+        loadComponent: () => import('./add-drink-page/add-drink-page.component').then(m => m.AddDrinkPageComponent),
 
         canActivate: [AuthGuard], //Només accessible si estàs loguejat
       }, {
