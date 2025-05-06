@@ -5,12 +5,20 @@ import { CommonModule } from '@angular/common';
 import { EventIconPipe } from '../../../../core/pipes/event-icon.pipe';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import * as L from 'leaflet';
 
 export interface DateSelectionOutput {
   selectedDate: Date | null;
   dayOfWeek: number | null;
   eventId: number | null;
 }
+
+const customIcon = L.icon({
+  iconUrl: 'here-icon.png',
+  iconSize: [32, 32], // ajusta segons la mida de la imatge
+  iconAnchor: [16, 32] // ajusta segons el centre que vulguis
+});
+L.Marker.prototype.options.icon = customIcon;
 
 
 @Component({
