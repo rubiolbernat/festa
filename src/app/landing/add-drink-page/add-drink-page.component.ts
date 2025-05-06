@@ -5,7 +5,7 @@ import { Component, inject, signal, OnDestroy } from '@angular/core'; // Afegit 
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { DrinkData } from '../../core/models/v2_drink-data.model';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { HttpEventType, HttpEvent } from '@angular/common/http'; // Import necessari
 import { Subscription } from 'rxjs'; // Import necessari
 import { finalize } from 'rxjs/operators'; // Import necessari
@@ -22,7 +22,7 @@ import { CommentariesComponent } from './components/commentaries/commentaries.co
 @Component({
   selector: 'app-add-drink-page',
   // standalone: true, // Considera fer-lo standalone si és un component nou
-  imports: [FormsModule, CommonModule, DateSelectionComponent, LocationSelectionComponent, MediaInputComponent, DrinkQuantityPriceComponent, CommentariesComponent],
+  imports: [FormsModule, CommonModule, DateSelectionComponent, LocationSelectionComponent, MediaInputComponent, DrinkQuantityPriceComponent, CommentariesComponent, RouterModule],
   templateUrl: './add-drink-page.component.html',
   styleUrls: ['./add-drink-page.component.css'] // Corregit a styleUrls
 })
