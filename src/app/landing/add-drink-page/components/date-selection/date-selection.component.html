@@ -45,7 +45,7 @@
         name="event"
         [ngModel]="selectedEventId()"
         (ngModelChange)="selectedEventId.set($event); updateDrinkDataEventId()"
-        [disabled]="this.eventsList().length === 0 || this.isLoading()"
+        [disabled]="this.eventsList().length == 0 || this.isLoading()"
         aria-label="Selecciona un esdeveniment associat"
       >
         <option [ngValue]="null">Cap esdeveniment</option>
