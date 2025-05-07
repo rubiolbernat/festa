@@ -40,8 +40,8 @@ export class LocationSelectionComponent implements OnInit, OnDestroy {
   lastLocations = signal<string[]>([]);
   selectedLocation = signal<string>('');
   hasGpsData = signal<boolean | null>(null);
-  latitude = signal<number>(41.3851);
-  longitude = signal<number>(2.1734);
+  latitude = signal<number>(0);
+  longitude = signal<number>(0);
   zoom = signal<number>(13);
   mapInstance: L.Map | null = null;
   mapMarker: L.Marker | null = null;
