@@ -1,39 +1,84 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ca" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <title>FESTA</title>
 
-<head>
-  <meta charset="utf-8">
-  <title>FESTA</title>
+    <meta
+      name="description"
+      content="Porta el control de la beguda i comparteix amb els amics"
+    />
+    <meta name="keywords" content="Drink, game, friends" />
+    <meta name="author" content="BR" />
 
-  <meta name="description" content="Porta el control de la beguda i comparteix amb els amics">
-  <meta name="keywords" content="Drink, game, friends">
-  <meta name="author" content="BR">
+    <base href="./" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon" href="image.png" />
 
-  <base href="./">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="image.png">
+    <!-- Open graph -->
+    <meta property="og:title" content="FESTA" />
+    <meta property="og:url" content="https://joc.feritja.cat/" />
+    <meta property="og:image" content="https://joc.feritja.cat/image.png" />
+    <meta
+      property="og:description"
+      content="Porta el control de la beguda i comparteix amb els amics"
+    />
+    <meta property="og:type" content="website" />
 
- <!-- Open graph -->
-  <meta property="og:title" content="FESTA" />
-  <meta property="og:url" content="https://joc.feritja.cat/" />
-  <meta property="og:image" content="https://joc.feritja.cat/image.png" />
-  <meta property="og:description" content="Porta el control de la beguda i comparteix amb els amics" />
-  <meta property="og:type" content="website" />
+    <link rel="apple-touch-icon" href="https://joc.feritja.cat/image.png" />
 
-  <link rel="apple-touch-icon" href="https://joc.feritja.cat/image.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nosifer&family=Roboto:ital,wght@0,500;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nosifer&family=Roboto:ital,wght@0,500;0,700;1,400&display=swap"
-    rel="stylesheet">
-</head>
+  <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript
+      ><iframe
+        src="https://www.googletagmanager.com/ns.html?id=GTM-WS7GJHV4"
+        height="0"
+        width="0"
+        style="display: none; visibility: hidden"
+      ></iframe
+    ></noscript>
+    <!-- End Google Tag Manager (noscript) -->
 
-<body>
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WS7GJHV4" height="0" width="0"
-      style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
-  <app-root></app-root>
-</body>
+    <!-- Missatge que es mostrarà si el navegador és antic -->
+    <div
+      id="update-message"
+      style="
+        display: none;
+        background: #f44336;
+        color: white;
+        padding: 15px;
+        text-align: center;
+      "
+    >
+      <strong>Actualitza el teu navegador</strong>: El navegador que estàs
+      utilitzant no és compatible amb les últimes funcions web.
+      <p>Si us plau,
+      actualitza el teu navegador per gaudir d'una millor experiència.</p>
+    </div>
 
+    <script>
+      // Funció per detectar IE11 o navegadors antics
+      function checkOldBrowser() {
+        const isOldBrowser = /MSIE \d|Trident.*rv:/.test(
+          window.navigator.userAgent
+        );
+        if (isOldBrowser) {
+          document.getElementById("update-message").style.display = "block";
+        }
+      }
+
+      // Comprovar si el navegador és antic en carregar la pàgina
+      window.onload = checkOldBrowser;
+    </script>
+
+    <app-root></app-root>
+  </body>
 </html>
