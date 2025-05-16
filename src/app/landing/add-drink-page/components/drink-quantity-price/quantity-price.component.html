@@ -166,7 +166,7 @@
           ? selectedDrink.name
           : '')
       "
-      (click)="drinkNameChanged = true"
+      (click)="drinkNameChanged = true; this.calculateData()"
       (ngModelChange)="onDrinkInputChange($event)"
       required
       #drinkInput="ngModel"
@@ -174,14 +174,7 @@
     @if (drinkSuggestions().length > 0) {
     <ul class="list-group">
       @for (suggestion of this.drinkSuggestions(); track suggestion) {
-      <li
-        class="list-group-item"
-        (click)="
-          drinkName.set(suggestion);
-          this.drinkSuggestions.set([]);
-          drinkNameChanged = true
-        "
-      >
+      <li class="list-group-item" (click)="onDrinkSuggestionsClick(suggestion)">
         {{ suggestion }}
       </li>
       }

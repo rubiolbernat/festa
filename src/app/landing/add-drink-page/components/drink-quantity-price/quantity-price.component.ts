@@ -90,7 +90,7 @@ export class DrinkQuantityPriceComponent implements OnInit {
 
   sendData() {
     let formattedName: string;
-    if(this.drinkName().length > 0){
+    if (this.drinkName().length > 0) {
       formattedName = this.drinkName()[0].toUpperCase() + this.drinkName().slice(1);
     } else {
       formattedName = this.drinkName();
@@ -216,4 +216,11 @@ export class DrinkQuantityPriceComponent implements OnInit {
     this.filterDrinks();
   }
 
+  onDrinkSuggestionsClick(suggestion: string): void {
+    this.drinkName.set(suggestion);
+    this.drinkSuggestions.set([]);
+    this.drinkNameChanged = true;
+
+    this.sendData();
+  }
 }
