@@ -28,6 +28,20 @@
             <p>
               <b>Begudes totals:</b> {{ statsData.generalStats.begudes_totals }}
             </p>
+            <p>
+              <b>Preu per litre:</b>
+              {{
+                statsData.generalStats.total_preu /
+                  statsData.generalStats.total_litres | number : "1.2-2"
+              }}€
+            </p>
+            <p>
+              <b>Preu per copa:</b>
+              {{
+                statsData.generalStats.total_preu /
+                  statsData.generalStats.begudes_totals | number : "1.2-2"
+              }}€
+            </p>
           </div>
         </div>
       </div>
@@ -45,6 +59,13 @@
               <b>Quantitat litres:</b> {{ statsData.topDay.quantitat_litres }}
             </p>
             <p><b>Preu total:</b> {{ statsData.topDay.preu_total }} €</p>
+            <p>
+              <b>Preu per litre:</b>
+              {{
+                statsData.topDay.preu_total / statsData.topDay.quantitat_litres
+                  | number : "1.2-2"
+              }}€
+            </p>
           </div>
         </div>
       </div>
@@ -62,6 +83,13 @@
             <p>
               <b>Quantitat litres:</b>
               {{ statsData.topSpendingDay.sum_quantitat }}
+            </p>
+            <p>
+              <b>Preu per litre:</b>
+              {{
+                statsData.topSpendingDay.sum_preu /
+                  statsData.topSpendingDay.sum_quantitat | number : "1.2-2"
+              }}€
             </p>
           </div>
         </div>
@@ -93,7 +121,7 @@
                     <th>Total (L)</th>
                     <!-- Abreujat -->
                     <th>Mitjana (L)</th>
-                    <th>Total (€) </th>
+                    <th>Total (€)</th>
                     <th>Mitjana (€)</th>
                   </tr>
                 </thead>
