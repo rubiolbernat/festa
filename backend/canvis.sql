@@ -135,3 +135,19 @@ ADD CONSTRAINT fk_created_by
 FOREIGN KEY (created_by) REFERENCES festa_users(user_id)
 ON DELETE SET NULL
 ON UPDATE CASCADE;
+
+
+DELIMITER //
+
+CREATE TRIGGER before_insert_drink_data
+BEFORE INSERT ON drink_data
+FOR EACH ROW
+BEGIN
+  -- Si el valor que s'insereix és 0, el canviem a 7
+  IF NEW.day_of_week = 0 THEN
+    SET NEW.day_of_week = 7;
+  END IF;
+END;
+//
+
+DELIMITER ;
