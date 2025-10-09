@@ -29,18 +29,15 @@
               <b>Begudes totals:</b> {{ statsData.generalStats.begudes_totals }}
             </p>
             <p>
-              <b>Preu per litre:</b>
               {{
                 statsData.generalStats.total_preu /
                   statsData.generalStats.total_litres | number : "1.2-2"
-              }}€
-            </p>
-            <p>
-              <b>Preu per copa:</b>
+              }}
+              <b>€/litre</b> --
               {{
                 statsData.generalStats.total_preu /
                   statsData.generalStats.begudes_totals | number : "1.2-2"
-              }}€
+              }}<b>€/copa</b>
             </p>
           </div>
         </div>
