@@ -33,6 +33,10 @@
               {{
                 statsData.generalStats.total_preu /
                   statsData.generalStats.total_litres | number : "1.2-2"
+              }}
+              <b>€/litre</b> --
+              statsData.generalStats.total_preu /
+              statsData.generalStats.total_litres | number : "1.2-2"
               }}€
             </p>
             <p>
@@ -40,6 +44,9 @@
               {{
                 statsData.generalStats.total_preu /
                   statsData.generalStats.begudes_totals | number : "1.2-2"
+              }}<b>€/copa</b>
+              statsData.generalStats.total_preu /
+              statsData.generalStats.begudes_totals | number : "1.2-2"
               }}€
             </p>
           </div>
