@@ -22,6 +22,9 @@
             <a class="nav-link text-dark" routerLink="/home" routerLinkActive="text-active"
               [routerLinkActiveOptions]="{ exact: true }">Inici</a>
           </li>
+          <li class="nav-item">
+            <app-wrapped-button [showOnlyEndOfYear]="true"></app-wrapped-button>
+          </li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle text-dark" href="#" id="jocsDropdown" role="button"
               data-bs-toggle="dropdown" aria-expanded="false">
@@ -45,7 +48,8 @@
           <!-- Botó "Espai Personal" (només visible si estàs loguejat) -->
           @if (isLoggedIn) {
           <li class="nav-item">
-            <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/events"> <i class="bi bi-calendar-range"></i>
+            <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/events"> <i
+                class="bi bi-calendar-range"></i>
               Events
             </a>
           </li>
@@ -95,6 +99,9 @@
               <a class="nav-link text-dark" routerLink="/home" routerLinkActive="text-active"
                 [routerLinkActiveOptions]="{ exact: true }">Inici</a>
             </li>
+            <li class="nav-item">
+              <app-wrapped-button [showOnlyEndOfYear]="true"></app-wrapped-button>
+            </li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle text-dark" href="#" id="jocsDropdown" role="button"
                 data-bs-toggle="dropdown" aria-expanded="false">
@@ -113,7 +120,8 @@
                 </li>
                 <li>
                   <a class="subnav-item dropdown-item" routerLink="/ruleta" routerLinkActive="active"
-                    [routerLinkActiveOptions]="{ exact: true }" data-bs-dismiss="offcanvas" aria-label="Close">Ruleta</a>
+                    [routerLinkActiveOptions]="{ exact: true }" data-bs-dismiss="offcanvas"
+                    aria-label="Close">Ruleta</a>
                 </li>
               </ul>
             </li>
@@ -141,11 +149,11 @@
 
             <!-- Botó "Dashboard" (només visible si ets admin o vendor) - Offcanvas -->
             @if (isAdminOrVendor) {
-              <li class="nav-item">
-                <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura_v2">
-                  La gran aventura v2
-                </a>
-              </li>
+            <li class="nav-item">
+              <a class="nav-link text-dark" routerLinkActive="text-active" routerLink="/la_gran_aventura_v2">
+                La gran aventura v2
+              </a>
+            </li>
             }
           </ul>
           <div class="d-flex mt-3">

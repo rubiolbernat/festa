@@ -5,6 +5,7 @@ import { CartStateService } from '../../../core/services/CartState/cart-state.se
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { NgIf } from '@angular/common';
 import { Subscription } from 'rxjs';
+import { WrappedButtonComponent } from '../../../shared/components/wrapped-button/wrapped-button.component';
 
 declare var bootstrap: any; // Afegeix aquesta línia per evitar errors amb Bootstrap
 
@@ -17,7 +18,7 @@ interface User {
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterModule, RouterLinkActive, NgIf],
+  imports: [RouterModule, RouterLinkActive, NgIf, WrappedButtonComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
 })

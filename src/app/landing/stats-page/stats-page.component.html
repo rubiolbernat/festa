@@ -1,6 +1,7 @@
 <div class="container mt-5">
   <h1 class="text-center mb-5">Les Meves Estadístiques de Consum 🍹</h1>
 
+  <app-wrapped-button></app-wrapped-button>
   <!-- Spinner de càrrega -->
   <div *ngIf="!statsData" class="text-center my-5">
     <div class="spinner-border text-primary" role="status">
@@ -32,12 +33,14 @@
               {{
                 statsData.generalStats.total_preu /
                   statsData.generalStats.total_litres | number : "1.2-2"
-              }}
-              <b>€/litre</b> --
+              }}€
+            </p>
+            <p>
+              <b>Preu per copa:</b>
               {{
                 statsData.generalStats.total_preu /
                   statsData.generalStats.begudes_totals | number : "1.2-2"
-              }}<b>€/copa</b>
+              }}€
             </p>
           </div>
         </div>
@@ -59,8 +62,8 @@
             <p>
               <b>Preu per litre:</b>
               {{
-                statsData.topDay.preu_total / statsData.topDay.quantitat_litres
-                  | number : "1.2-2"
+              statsData.topDay.preu_total / statsData.topDay.quantitat_litres
+              | number : "1.2-2"
               }}€
             </p>
           </div>
@@ -84,8 +87,8 @@
             <p>
               <b>Preu per litre:</b>
               {{
-                statsData.topSpendingDay.sum_preu /
-                  statsData.topSpendingDay.sum_quantitat | number : "1.2-2"
+              statsData.topSpendingDay.sum_preu /
+              statsData.topSpendingDay.sum_quantitat | number : "1.2-2"
               }}€
             </p>
           </div>
@@ -124,16 +127,11 @@
                 </thead>
                 <tbody>
                   <!-- Mostra un missatge si no hi ha dades -->
-                  <tr
-                    *ngIf="
+                  <tr *ngIf="
                       !statsData?.weeklyStats ||
                       statsData.weeklyStats.length === 0
-                    "
-                  >
-                    <td
-                      colspan="7"
-                      class="text-center text-muted fst-italic py-3"
-                    >
+                    ">
+                    <td colspan="7" class="text-center text-muted fst-italic py-3">
                       No hi ha dades setmanals disponibles.
                     </td>
                   </tr>
@@ -158,36 +156,25 @@
       <!-- Gràfic Setmanal -->
       <div class="col-12">
         <div class="card shadow-sm">
-          <div
-            class="card-header bg-light text-dark d-flex justify-content-between align-items-center"
-          >
+          <div class="card-header bg-light text-dark d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">
               <i class="bi bi-graph-up"></i> Gràfic setmanal
             </h5>
-            <button
-              class="btn btn-sm btn-outline-secondary"
-              (click)="toggleFullscreen(weeklyChartContainer)"
-              title="Pantalla Completa"
-            >
+            <button class="btn btn-sm btn-outline-secondary" (click)="toggleFullscreen(weeklyChartContainer)"
+              title="Pantalla Completa">
               <i class="bi bi-arrows-fullscreen"></i>
             </button>
           </div>
           <!-- Contenidor amb Referència i Botó de Tancar -->
           <div class="card-body position-relative" #weeklyChartContainer>
             <!-- Botó Tancar (inicialment ocult per CSS) -->
-            <button
-              class="btn btn-danger btn-sm fullscreen-close-button"
-              (click)="toggleFullscreen(weeklyChartContainer)"
-              title="Tancar Pantalla Completa"
-            >
+            <button class="btn btn-danger btn-sm fullscreen-close-button"
+              (click)="toggleFullscreen(weeklyChartContainer)" title="Tancar Pantalla Completa">
               <i class="bi bi-x-lg"></i>
             </button>
             <!-- Component del gràfic amb @ViewChild reference -->
-            <app-chart-week
-              #chartWeekComponent
-              *ngIf="statsData?.weeklyStats"
-              [weeklyStats]="statsData.weeklyStats"
-            ></app-chart-week>
+            <app-chart-week #chartWeekComponent *ngIf="statsData?.weeklyStats"
+              [weeklyStats]="statsData.weeklyStats"></app-chart-week>
           </div>
         </div>
       </div>
@@ -227,36 +214,25 @@
       <!-- Gràfic Mensual -->
       <div class="col-12">
         <div class="card shadow-sm">
-          <div
-            class="card-header bg-light text-dark d-flex justify-content-between align-items-center"
-          >
+          <div class="card-header bg-light text-dark d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">
               <i class="bi bi-pie-chart"></i> Gràfic mensual
             </h5>
-            <button
-              class="btn btn-sm btn-outline-secondary"
-              (click)="toggleFullscreen(monthlyChartContainer)"
-              title="Pantalla Completa"
-            >
+            <button class="btn btn-sm btn-outline-secondary" (click)="toggleFullscreen(monthlyChartContainer)"
+              title="Pantalla Completa">
               <i class="bi bi-arrows-fullscreen"></i>
             </button>
           </div>
           <!-- Contenidor amb Referència i Botó de Tancar -->
           <div class="card-body position-relative" #monthlyChartContainer>
             <!-- Botó Tancar (inicialment ocult per CSS) -->
-            <button
-              class="btn btn-danger btn-sm fullscreen-close-button"
-              (click)="toggleFullscreen(monthlyChartContainer)"
-              title="Tancar Pantalla Completa"
-            >
+            <button class="btn btn-danger btn-sm fullscreen-close-button"
+              (click)="toggleFullscreen(monthlyChartContainer)" title="Tancar Pantalla Completa">
               <i class="bi bi-x-lg"></i>
             </button>
             <!-- Component del gràfic amb @ViewChild reference -->
-            <app-chart-month
-              #chartMonthComponent
-              *ngIf="statsData?.monthlySummary"
-              [monthlySummary]="statsData.monthlySummary"
-            ></app-chart-month>
+            <app-chart-month #chartMonthComponent *ngIf="statsData?.monthlySummary"
+              [monthlySummary]="statsData.monthlySummary"></app-chart-month>
           </div>
         </div>
       </div>
@@ -287,12 +263,10 @@
                   <!-- Format -->
                 </tr>
                 <!-- Missatge si no hi ha dades -->
-                <tr
-                  *ngIf="
+                <tr *ngIf="
                     !statsData.topDrinkerMonth ||
                     statsData.topDrinkerMonth.length === 0
-                  "
-                >
+                  ">
                   <td colspan="2" class="text-center text-muted fst-italic">
                     No hi ha dades de consum per aquest mes al grup.
                   </td>

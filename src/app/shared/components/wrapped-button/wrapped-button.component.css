@@ -1,0 +1,73 @@
+.container {
+  max-width: 300px;
+  text-align: center;
+}
+
+/* Botó principal */
+.wrapped-btn {
+  position: relative;
+  padding: 15px 35px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: white;
+  background: linear-gradient(45deg, #ff0057, #ff8c00, #ffed00, #00ff66, #0066ff, #cc00ff);
+  background-size: 400% 400%;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  animation: gradientMove 8s ease infinite, pulse 2s infinite;
+  width: 100%;
+}
+
+.wrapped-btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+}
+
+.wrapped-btn:active {
+  transform: scale(0.97);
+}
+
+/* Efecte llamp */
+.lightning {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: transparent;
+  background-image: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.7), transparent);
+  transform: rotate(45deg);
+  opacity: 0;
+  pointer-events: none;
+  animation: lightning 4s infinite;
+}
+
+/* Animacions */
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+  50% { box-shadow: 0 0 25px rgba(255,0,87,0.6); }
+  100% { box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+}
+@keyframes lightning {
+  0% { opacity: 0; left: -50%; }
+  5% { opacity: 1; }
+  10% { opacity: 0; left: 150%; }
+  100% { opacity: 0; }
+}
+
+.wrapped-btn {
+  padding: 10px 20px;   /* abans era 15px 35px */
+  font-size: 1rem;      /* abans era 1.5rem */
+  border-radius: 8px;   /* més petit i arrodonit */
+}
