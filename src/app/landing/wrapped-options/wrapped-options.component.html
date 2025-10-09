@@ -1,0 +1,51 @@
+<div class="container">
+  <div class="date-selector show">
+    <h2>Selecciona el període</h2>
+
+    <div class="option-group">
+      <button
+        class="option-btn"
+        [class.active]="selectedOption === 'this-year'"
+        (click)="selectOption('this-year')"
+      >
+        <i class="bi bi-calendar"></i>
+        <span>Aquest any</span>
+      </button>
+
+      <button
+        class="option-btn"
+        [class.active]="selectedOption === 'all-time'"
+        (click)="selectOption('all-time')"
+      >
+        <i class="bi bi-infinity"></i>
+        <span>Des de que hi ha registres</span>
+      </button>
+
+      <button
+        class="option-btn"
+        [class.active]="selectedOption === 'custom'"
+        (click)="selectOption('custom')"
+      >
+        <i class="bi bi-calendar-range"></i>
+        <span>Personalitzat</span>
+      </button>
+    </div>
+
+    @if (selectedOption === 'custom') {
+    <div class="date-inputs">
+      <div class="input-group">
+        <label for="start-date">Data d'inici</label>
+        <input type="date" id="start-date" [(ngModel)]="startDate" />
+      </div>
+
+      <div class="input-group">
+        <label for="end-date">Data de fi</label>
+        <input type="date" id="end-date" [(ngModel)]="endDate" />
+      </div>
+    </div>
+    }
+    <button class="generate-btn" (click)="generateWrapped()">
+      Generar Wrapped
+    </button>
+  </div>
+</div>

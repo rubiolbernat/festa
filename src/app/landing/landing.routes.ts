@@ -83,6 +83,14 @@ export const LANDING_ROUTES: Routes = [
         path: 'create-event',
         loadComponent: () => import('./events-create/events-create.component').then(m => m.EventsCreateComponent),
         canActivate: [AuthGuard],
+      }, {
+        path: 'wrapped-options',
+        loadComponent: () => import('./wrapped-options/wrapped-options.component').then(m => m.WrappedOptionsComponent),
+        canActivate: [AuthGuard],
+      }, {
+        path: 'wrapped',
+        loadComponent: () => import('./wrapped-cards/wrapped-cards.component').then(m => m.WrappedCardsComponent),
+        canActivate: [AuthGuard],
       }
     ]
   },

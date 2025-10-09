@@ -1,0 +1,67 @@
+<div class="story-container">
+      <!-- Elementos de fondo decorativos -->
+      <div class="background-elements"></div>
+
+      <!-- Logo -->
+      <div class="logo">
+        <i class="bi bi-glass-cheers"></i>
+      </div>
+
+      <!-- Contador de tiempo -->
+      <div class="timer">{{ '0:' + (Math.floor(timeLeftDisplay) < 10 ? '0' : '') + Math.floor(timeLeftDisplay+1) }}</div>
+
+      <!-- Barras de progreso -->
+      <div class="progress-container">
+        <div class="progress-bar" *ngFor="let story of stories; let i = index">
+          <div class="progress-fill" [style.width]="getProgressBarWidth(i)"></div>
+        </div>
+      </div>
+
+      <!-- Stories -->
+      <div
+        class="story"
+        [id]="'story-' + (i + 1)"
+        [ngClass]="{ 'active': i === currentStoryIndex }"
+        [ngStyle]="{'background': story.background}"
+        *ngFor="let story of stories; let i = index"
+      >
+        <div class="story-content">
+          <div class="story-icon" [ngStyle]="{'background': story.iconBg, 'color': story.iconColor}">
+            <i class="{{ story.icon }}"></i>
+          </div>
+          <h2 class="story-title" [ngStyle]="{'color': story.titleColor}">{{ story.title }}</h2>
+          <p class="story-subtitle">{{ story.subtitle }}</p>
+
+          <!-- Componente anidado (Placeholder) -->
+          <div *ngIf="story.component" class="nested-component-container">
+            <!-- Aquí iría tu componente Leaflet/Heatmap o cualquier otro -->
+            <ng-container *ngComponentOutlet="story.component"></ng-container>
+          </div>
+
+          <div *ngIf="story.highlight" class="highlight" [ngStyle]="{'color': story.highlightColor}">{{ story.highlight }}</div>
+
+          <div *ngIf="story.stats && story.stats.length > 0" class="stats-container">
+            <div class="stat-item" *ngFor="let stat of story.stats">
+              <span class="stat-label">{{ stat.label }}</span>
+              <span class="stat-value" [ngStyle]="{'color': story.statValueColor}">{{ stat.value }}</span>
+            </div>
+          </div>
+          <p *ngIf="story.footerSubtitle" class="story-subtitle">{{ story.footerSubtitle }}</p>
+        </div>
+      </div>
+
+      <!-- Botones de navegación -->
+      <div class="navigation">
+        <div class="nav-btn" (click)="previousStory()">
+          <i class="bi bi-arrow-left"></i>
+        </div>
+        <div class="nav-btn" (click)="nextStory()">
+          <i class="bi bi-arrow-right"></i>
+        </div>
+      </div>
+
+      <!-- Botón de captura de pantalla -->
+      <div class="screenshot-btn" (click)="takeScreenshot()">
+        <i class="bi bi-camera"></i>
+      </div>
+    </div>
