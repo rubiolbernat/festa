@@ -1,14 +1,14 @@
 <div class="story-container">
-      <!-- Elementos de fondo decorativos -->
-      <div class="background-elements"></div>
+  <!-- Elementos de fondo decorativos -->
+  <div class="background-elements"></div>
 
-      <!-- Logo -->
-      <div class="logo">
-        <i class="bi bi-glass-cheers"></i>
-      </div>
+  <!-- Logo -->
+  <div class="logo">
+    <i class="bi bi-glass-cheers"></i>
+  </div>
 
-      <!-- Contador de tiempo -->
-      <div class="timer">{{ '0:' + (Math.floor(timeLeftDisplay) < 10 ? '0' : '') + Math.floor(timeLeftDisplay+1) }}</div>
+  <!-- Contador de tiempo -->
+  <div class="timer">{{ '0:' + (Math.floor(timeLeftDisplay) < 10 ? '0' : '' ) + Math.floor(timeLeftDisplay+1) }}</div>
 
       <!-- Barras de progreso -->
       <div class="progress-container">
@@ -18,13 +18,8 @@
       </div>
 
       <!-- Stories -->
-      <div
-        class="story"
-        [id]="'story-' + (i + 1)"
-        [ngClass]="{ 'active': i === currentStoryIndex }"
-        [ngStyle]="{'background': story.background}"
-        *ngFor="let story of stories; let i = index"
-      >
+      <div class="story" [id]="'story-' + (i + 1)" [ngClass]="{ 'active': i === currentStoryIndex }"
+        [ngStyle]="{'background': story.background}" *ngFor="let story of stories; let i = index">
         <div class="story-content">
           <div class="story-icon" [ngStyle]="{'background': story.iconBg, 'color': story.iconColor}">
             <i class="{{ story.icon }}"></i>
@@ -38,7 +33,8 @@
             <ng-container *ngComponentOutlet="story.component"></ng-container>
           </div>
 
-          <div *ngIf="story.highlight" class="highlight" [ngStyle]="{'color': story.highlightColor}">{{ story.highlight }}</div>
+          <div *ngIf="story.highlight" class="highlight" [ngStyle]="{'color': story.highlightColor}">{{ story.highlight
+            }}</div>
 
           <div *ngIf="story.stats && story.stats.length > 0" class="stats-container">
             <div class="stat-item" *ngFor="let stat of story.stats">
@@ -60,8 +56,11 @@
         </div>
       </div>
 
-      <!-- Botón de captura de pantalla -->
-      <div class="screenshot-btn" (click)="takeScreenshot()">
-        <i class="bi bi-camera"></i>
+      <div class="screenshot-btn" (click)="togglePause()">
+        @if (pauseStory()) {
+        <i class="bi bi-play-fill"></i>
+        } @else {
+        <i class="bi bi-pause-fill"></i>
+        }
       </div>
-    </div>
+  </div>

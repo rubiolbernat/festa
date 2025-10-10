@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, AfterViewInit, Renderer2, ElementRef, ViewChildren, QueryList, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, Renderer2, ElementRef, ViewChildren, QueryList, HostListener, signal } from '@angular/core';
 import { HeatmapComponent } from './heatmap/heatmap.component';
 
 @Component({
@@ -17,6 +17,8 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
   timeLeft: number = 5; // 5 segundos por story
   storyDuration: number = 50; // Duración de cada historia en segundos
   timeLeftDisplay: number = 5;
+  pauseStory = signal<boolean>(false);
+
 
   private updateFrequencyMs: number = 50;
 
@@ -146,7 +148,7 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChildren('story') storyElements!: QueryList<ElementRef>;
   @ViewChildren('progressBarFill') progressBarFills!: QueryList<ElementRef>;
 
-  constructor(private renderer: Renderer2, private el: ElementRef) {}
+  constructor(private renderer: Renderer2, private el: ElementRef) { }
 
   ngOnInit(): void {
     this.totalStories = this.stories.length;
@@ -223,6 +225,9 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.timeLeftDisplay = this.storyDuration; // Reinicia el display del temps
 
     this.timerInterval = setInterval(() => {
+      if (this.pauseStory()) {
+        return; // Si està pausat, no decrementa el temps ni fa res
+      }
       // Decrementem el temps en funció de la freqüència d'actualització
       this.timeLeft -= (this.updateFrequencyMs / 1000);
       this.timeLeftDisplay = Math.max(0, this.timeLeft); // Assegura que no mostra valors negatius
@@ -242,6 +247,11 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
   resetTimer(): void {
     clearInterval(this.timerInterval);
     this.startTimer();
+  }
+
+  togglePause(): void {
+    this.pauseStory.set(!this.pauseStory());
+    console.log('Pause?', this.pauseStory());
   }
 
   changeStory(newIndex: number): void {

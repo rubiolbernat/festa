@@ -255,7 +255,7 @@ body {
   border-radius: 15px;
   padding: 20px;
   margin-top: 25px;
-  height: 300px; /* Alçada per defecte, es pot ajustar */
+  height: 50vh; /* Alçada per defecte, es pot ajustar */
   display: flex;
   justify-content: center;
   align-items: center;
