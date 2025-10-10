@@ -15,7 +15,7 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
   totalStories: number = 0;
   timerInterval: any;
   timeLeft: number = 5; // 5 segundos por story
-  storyDuration: number = 5; // Duración de cada historia en segundos
+  storyDuration: number = 50; // Duración de cada historia en segundos
   timeLeftDisplay: number = 5;
 
   private updateFrequencyMs: number = 50;
@@ -27,7 +27,7 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
       progressFillColor: '#0f3460',
       iconBg: '#0f3460',
       iconColor: '#ffde7d',
-      icon: 'bi bi-glass-cheers',
+      icon: 'bi bi-cup-straw',
       title: 'El Teu Any de Festa',
       titleColor: '#ffde7d',
       subtitle: 'Resum de les teves nits amb amics',
@@ -61,7 +61,7 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
       progressFillColor: '#533483',
       iconBg: '#533483',
       iconColor: '#ffb6b6',
-      icon: 'bi bi-wine-bottle',
+      icon: 'bi bi-geo-alt',
       title: 'Heatmap',
       titleColor: '#ffb6b6',
       highlightColor: '#ffb6b6',
@@ -74,7 +74,7 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
       progressFillColor: '#e94560',
       iconBg: '#e94560',
       iconColor: '#533483',
-      icon: 'bi bi-euro-sign',
+      icon: 'bi bi-currency-euro',
       title: 'Despesa Total',
       titleColor: '#533483',
       subtitle: 'El que has invertit en diversió',
@@ -92,7 +92,7 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
       progressFillColor: '#ff7c7c',
       iconBg: '#ff7c7c',
       iconColor: '#0f3460',
-      icon: 'bi bi-calendar-alt',
+      icon: 'bi bi-calendar-event',
       title: 'Dies de Sortida',
       titleColor: '#0f3460',
       subtitle: 'Els teus moments preferits',
@@ -110,7 +110,7 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
       progressFillColor: '#ffb6b6',
       iconBg: '#ffb6b6',
       iconColor: '#e94560',
-      icon: 'bi bi-ticket-alt',
+      icon: 'bi bi-ticket-perforated',
       title: 'Events Especials',
       titleColor: '#e94560',
       subtitle: 'Celebracions inoblidables',

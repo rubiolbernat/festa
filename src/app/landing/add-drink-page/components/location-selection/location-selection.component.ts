@@ -3,7 +3,6 @@ import { Component, signal, inject, output, OnInit, OnDestroy, ViewChild, Elemen
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DrinkingDataService } from '../../../../core/services/drinking-data/drinking-data.service';
-import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import * as L from 'leaflet';
 import { Modal } from 'bootstrap';
 
@@ -14,11 +13,18 @@ export interface LocationSelectionOutput {
   longitude: number;
 }
 
+declare module 'leaflet' {
+  interface MapOptions {
+    fullscreenControl?: boolean;
+    fullscreenControlOptions?: any;
+  }
+}
+
 @Component({
   selector: 'app-location-selection',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, LeafletModule, DecimalPipe
+    CommonModule, FormsModule,  DecimalPipe
   ],
   templateUrl: './location-selection.component.html',
   styleUrls: [

@@ -1,0 +1,13 @@
+/* heatmap.component.css */
+#map {
+  width: 900px;
+  height: 900px; /* o qualsevol alçada que necessitis */
+}
+
+
+.btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+}
