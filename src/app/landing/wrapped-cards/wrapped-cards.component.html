@@ -1,66 +1,94 @@
 <div class="story-container">
-  <!-- Elementos de fondo decorativos -->
-  <div class="background-elements"></div>
 
-  <!-- Logo -->
-  <div class="logo">
-    <i class="bi bi-glass-cheers"></i>
+  <!-- Mostra spinner de càrrega -->
+  <div *ngIf="isLoading" class="loading-overlay d-flex flex-column align-items-center justify-content-center text-center">
+    <div class="spinner-border text-light mb-3" style="width: 4rem; height: 4rem;" role="status">
+      <span class="visually-hidden">Carregant...</span>
+    </div>
+    <h5 class="text-light fw-semibold">Carregant les teves dades...</h5>
+    <p class="text-secondary">Això pot trigar uns segons</p>
   </div>
 
-  <!-- Contador de tiempo -->
-  <div class="timer">{{ '0:' + (Math.floor(timeLeftDisplay) < 10 ? '0' : '' ) + Math.floor(timeLeftDisplay+1) }}</div>
+  <!-- Contingut principal (només quan s'han carregat les dades) -->
+  <ng-container *ngIf="!isLoading">
 
-      <!-- Barras de progreso -->
-      <div class="progress-container">
-        <div class="progress-bar" *ngFor="let story of stories; let i = index">
-          <div class="progress-fill" [style.width]="getProgressBarWidth(i)"></div>
-        </div>
+    <!-- Elementos de fondo decorativos -->
+    <div class="background-elements"></div>
+
+    <!-- Logo -->
+    <div class="logo">
+      <i class="bi bi-glass-cheers"></i>
+    </div>
+
+    <!-- Contador de tiempo -->
+    <div class="timer">{{ '0:' + (Math.floor(timeLeftDisplay) < 10 ? '0' : '' ) + Math.floor(timeLeftDisplay+1) }}</div>
+
+    <!-- Barras de progreso -->
+    <div class="progress-container">
+      <div class="progress-bar" *ngFor="let story of stories; let i = index">
+        <div class="progress-fill" [style.width]="getProgressBarWidth(i)"></div>
       </div>
+    </div>
 
-      <!-- Stories -->
-      <div class="story" [id]="'story-' + (i + 1)" [ngClass]="{ 'active': i === currentStoryIndex }"
-        [ngStyle]="{'background': story.background}" *ngFor="let story of stories; let i = index">
-        <div class="story-content">
-          <div class="story-icon" [ngStyle]="{'background': story.iconBg, 'color': story.iconColor}">
-            <i class="{{ story.icon }}"></i>
-          </div>
-          <h2 class="story-title" [ngStyle]="{'color': story.titleColor}">{{ story.title }}</h2>
-          <p class="story-subtitle">{{ story.subtitle }}</p>
+    <!-- Stories -->
+    <div class="story" [id]="'story-' + (i + 1)" [ngClass]="{ 'active': i === currentStoryIndex }"
+      [ngStyle]="{'background': story.background}" *ngFor="let story of stories; let i = index">
+      <div class="story-content">
+        <div class="story-icon" [ngStyle]="{'background': story.iconBg, 'color': story.iconColor}">
+          <i class="{{ story.icon }}"></i>
+        </div>
+        <h2 class="story-title" [ngStyle]="{'color': story.titleColor}">{{ story.title }}</h2>
+        <p class="story-subtitle">{{ story.subtitle }}</p>
 
-          <!-- Componente anidado (Placeholder) -->
-          <div *ngIf="story.component" class="nested-component-container">
-            <!-- Aquí iría tu componente Leaflet/Heatmap o cualquier otro -->
-            <ng-container *ngComponentOutlet="story.component"></ng-container>
-          </div>
+        <div *ngIf="story.component" class="nested-component-container">
+          <ng-container *ngComponentOutlet="story.component"></ng-container>
+        </div>
 
-          <div *ngIf="story.highlight" class="highlight" [ngStyle]="{'color': story.highlightColor}">{{ story.highlight
-            }}</div>
+        <div *ngIf="story.highlight" class="highlight" [ngStyle]="{'color': story.highlightColor}">
+          {{ story.highlight }}
+        </div>
 
-          <div *ngIf="story.stats && story.stats.length > 0" class="stats-container">
+        <div *ngIf="story.stats && story.stats.length > 0" class="stats-outer">
+          <div class="stats-container overflow-auto">
             <div class="stat-item" *ngFor="let stat of story.stats">
-              <span class="stat-label">{{ stat.label }}</span>
-              <span class="stat-value" [ngStyle]="{'color': story.statValueColor}">{{ stat.value }}</span>
+              <!-- Fila principal: label + value -->
+              <div class="d-flex justify-content-between">
+                <span class="stat-label">{{ stat.label }}</span>
+                <span class="stat-value" [ngStyle]="{'color': story.statValueColor}">
+                  {{ stat.value }}
+                </span>
+              </div>
+
+              <!-- Fila nova per detail, opcional -->
+              <div *ngIf="stat.detail" class="stat-detail">
+                {{ stat.detail }}
+              </div>
             </div>
           </div>
-          <p *ngIf="story.footerSubtitle" class="story-subtitle">{{ story.footerSubtitle }}</p>
         </div>
-      </div>
 
-      <!-- Botones de navegación -->
-      <div class="navigation">
-        <div class="nav-btn" (click)="previousStory()">
-          <i class="bi bi-arrow-left"></i>
-        </div>
-        <div class="nav-btn" (click)="nextStory()">
-          <i class="bi bi-arrow-right"></i>
-        </div>
+        <p *ngIf="story.footerSubtitle" class="story-subtitle">{{ story.footerSubtitle }}</p>
       </div>
+    </div>
 
-      <div class="screenshot-btn" (click)="togglePause()">
-        @if (pauseStory()) {
-        <i class="bi bi-play-fill"></i>
-        } @else {
-        <i class="bi bi-pause-fill"></i>
-        }
+    <!-- Botones de navegación -->
+    <div class="navigation">
+      <div class="nav-btn" (click)="previousStory()">
+        <i class="bi bi-arrow-left"></i>
       </div>
-  </div>
+      <div class="nav-btn" (click)="nextStory()">
+        <i class="bi bi-arrow-right"></i>
+      </div>
+    </div>
+
+    <!-- Botó de pausa/play -->
+    <div class="screenshot-btn" (click)="togglePause()">
+      @if (pauseStory()) {
+      <i class="bi bi-play-fill"></i>
+      } @else {
+      <i class="bi bi-pause-fill"></i>
+      }
+    </div>
+
+  </ng-container>
+</div>

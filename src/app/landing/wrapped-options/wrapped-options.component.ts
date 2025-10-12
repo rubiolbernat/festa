@@ -34,9 +34,17 @@ export class WrappedOptionsComponent implements OnInit {
   }
 
   generateWrapped(): void {
-    this.wrappedService.generateWrapped(this.selectedOption, this.startDate, this.endDate);
-    //alert(`Generant Wrapped per a: ${this.selectedOption}`);
-    this.router.navigate(['/wrapped']);
+    this.wrappedService
+      .loadWrappedData(this.selectedOption, this.startDate, this.endDate)
+      .subscribe({
+        next: data => {
+          console.log('Dades del Wrapped rebudes al component:', data);
+          this.router.navigate(['/wrapped']);
+        },
+        error: err => {
+          console.error('Error en carregar el Wrapped:', err);
+        }
+      });
   }
 
   private formatDate(date: Date): string {

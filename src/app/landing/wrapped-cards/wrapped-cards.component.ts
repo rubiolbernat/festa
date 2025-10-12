@@ -1,156 +1,220 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, AfterViewInit, Renderer2, ElementRef, ViewChildren, QueryList, HostListener, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, Renderer2, ElementRef, ViewChildren, QueryList, HostListener, signal, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { HeatmapComponent } from './heatmap/heatmap.component';
+import { WrappedService } from '../../core/services/wrapped/wrapped.service';
+import { UserStatsResponse } from '../../core/services/wrapped/wrapped.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-wrapped-cards',
-  imports: [CommonModule, HeatmapComponent],
+  imports: [CommonModule, HeatmapComponent, CommonModule],
   templateUrl: './wrapped-cards.component.html',
   styleUrl: './wrapped-cards.component.css'
 })
 export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly Math = Math;
 
+  private wrappedService = inject(WrappedService);
+  wrappedData: UserStatsResponse | null = null;
+  isLoading: boolean = true;
+
   currentStoryIndex: number = 0;
   totalStories: number = 0;
   timerInterval: any;
   timeLeft: number = 5; // 5 segundos por story
-  storyDuration: number = 50; // Duración de cada historia en segundos
+  storyDuration: number = 5; // Duración de cada historia en segundos
   timeLeftDisplay: number = 5;
   pauseStory = signal<boolean>(false);
+  private destroy$ = new Subject<void>(); // Per desubscriure's automàticament
+  stories: any[] = [];
 
 
   private updateFrequencyMs: number = 50;
 
   // Inventa les dades per veure com queda
-  stories: any[] = [
-    {
-      background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-      progressFillColor: '#0f3460',
-      iconBg: '#0f3460',
-      iconColor: '#ffde7d',
-      icon: 'bi bi-cup-straw',
-      title: 'El Teu Any de Festa',
-      titleColor: '#ffde7d',
-      subtitle: 'Resum de les teves nits amb amics',
-      statValueColor: '#ffde7d',
-      stats: [
-        { label: 'Nits totals', value: '78' },
-        { label: 'Amics diferents', value: '24' },
-        { label: 'Locals visitats', value: '15' }
-      ]
-    },
-    {
-      background: 'linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%)',
-      progressFillColor: '#533483',
-      iconBg: '#533483',
-      iconColor: '#ffb6b6',
-      icon: 'bi bi-wine-bottle',
-      title: 'Litres Beguts',
-      titleColor: '#ffb6b6',
-      subtitle: 'El que has consumit aquest any',
-      highlight: '142 Litres',
-      highlightColor: '#ffb6b6',
-      statValueColor: '#ffb6b6',
-      stats: [
-        { label: 'Cerveses', value: '87L' },
-        { label: 'Vi', value: '32L' },
-        { label: 'Còctels', value: '23L' }
-      ]
-    },
-    {
-      background: 'linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%)',
-      progressFillColor: '#533483',
-      iconBg: '#533483',
-      iconColor: '#ffb6b6',
-      icon: 'bi bi-geo-alt',
-      title: 'Heatmap',
-      titleColor: '#ffb6b6',
-      highlightColor: '#ffb6b6',
-      statValueColor: '#ffb6b6',
-      component: HeatmapComponent
+  private buildStories(): void {
+    const maxDayData = this.wrappedService.getMaxDayOfWeek();
+    const maxDayName = this.wrappedService.getMaxDayName();
 
-    },
-    {
-      background: 'linear-gradient(135deg, #533483 0%, #0f3460 100%)',
-      progressFillColor: '#e94560',
-      iconBg: '#e94560',
-      iconColor: '#533483',
-      icon: 'bi bi-currency-euro',
-      title: 'Despesa Total',
-      titleColor: '#533483',
-      subtitle: 'El que has invertit en diversió',
-      highlight: '1.847€',
-      highlightColor: '#533483',
-      statValueColor: '#533483',
-      stats: [
-        { label: 'Mitjana per nit', value: '23,68€' },
-        { label: 'Nit més cara', value: '127€' },
-        { label: 'Estalvis possibles', value: '~420€' }
-      ]
-    },
-    {
-      background: 'linear-gradient(135deg, #e94560 0%, #533483 100%)',
-      progressFillColor: '#ff7c7c',
-      iconBg: '#ff7c7c',
-      iconColor: '#0f3460',
-      icon: 'bi bi-calendar-event',
-      title: 'Dies de Sortida',
-      titleColor: '#0f3460',
-      subtitle: 'Els teus moments preferits',
-      highlight: 'Divendres',
-      highlightColor: '#0f3460',
-      statValueColor: '#0f3460',
-      stats: [
-        { label: 'Dies que més surts', value: 'Divendres (32)' },
-        { label: 'Hora mitjana d\'inici', value: '21:47' },
-        { label: 'Hora mitjana de tornada', value: '03:26' }
-      ]
-    },
-    {
-      background: 'linear-gradient(135deg, #ff7c7c 0%, #e94560 100%)',
-      progressFillColor: '#ffb6b6',
-      iconBg: '#ffb6b6',
-      iconColor: '#e94560',
-      icon: 'bi bi-ticket-perforated',
-      title: 'Events Especials',
-      titleColor: '#e94560',
-      subtitle: 'Celebracions inoblidables',
-      highlight: '15 Events',
-      highlightColor: '#e94560',
-      statValueColor: '#e94560',
-      stats: [
-        { label: 'Aniversaris', value: '6' },
-        { label: 'Concerts', value: '4' },
-        { label: 'Festes temàtiques', value: '5' }
-      ]
-    },
-    {
-      background: 'linear-gradient(135deg, #ffb6b6 0%, #ff7c7c 100%)',
-      progressFillColor: '#ffde7d',
-      iconBg: '#ffde7d',
-      iconColor: '#1a1a2e',
-      icon: 'bi bi-trophy',
-      title: 'El Teu Any',
-      titleColor: '#1a1a2e',
-      subtitle: 'En xifres',
-      statValueColor: '#1a1a2e',
-      stats: [
-        { label: 'Nits eivissenques', value: '7' },
-        { label: 'Amics nous', value: '11' },
-        { label: 'Fotos amb amics', value: '284' },
-        { label: 'Històries divertides', value: 'Infinites' }
-      ],
-      footerSubtitle: 'Gràcies per un any increïble!'
-    }
-  ];
+    // 🔹 Helper per limitar decimals
+    const formatNum = (value: any): string => {
+      const num = parseFloat(value);
+      return isNaN(num) ? value : num.toFixed(2);
+    };
+
+    this.stories = [
+      {
+        display: true,
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+        progressFillColor: '#0f3460',
+        iconBg: '#0f3460',
+        iconColor: '#ffde7d',
+        icon: 'bi bi-cup-straw',
+        title: 'El Teu Any de Festa',
+        titleColor: '#ffde7d',
+        subtitle: 'Resum de les teves nits amb amics',
+        statValueColor: '#ffde7d',
+        stats: [
+          { label: 'Nits totals', value: '78' },
+          { label: 'Amics diferents', value: '24' },
+          { label: 'Locals visitats', value: '15' }
+        ]
+      },
+      {
+        display: !!this.wrappedData?.mostConsumedDrinks?.length, // només si hi ha dades
+        background: 'linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%)',
+        progressFillColor: '#533483',
+        iconBg: '#533483',
+        iconColor: '#ffb6b6',
+        icon: 'bi bi-flask',
+        title: 'Litres Beguts',
+        titleColor: '#ffb6b6',
+        subtitle: 'Tens un fetge de ferro:',
+        highlight: this.wrappedData?.generalStats?.total_litres + ' Litres',
+        highlightColor: '#ffb6b6',
+        statValueColor: '#ffb6b6',
+        stats: this.wrappedData?.mostConsumedDrinks.map(d => ({
+          label: d.drink,
+          value: d.total_litres + 'L',
+          detail: d.num_vegades_pres + " Unitats " + d.total_preu + "€"
+        }))
+      },
+      {
+        display: true,
+        background: 'linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%)',
+        progressFillColor: '#533483',
+        iconBg: '#533483',
+        iconColor: '#ffb6b6',
+        icon: 'bi bi-geo-alt',
+        title: 'Heatmap',
+        titleColor: '#ffb6b6',
+        highlightColor: '#ffb6b6',
+        statValueColor: '#ffb6b6',
+        subtitle: 'T\'has mogut com una baldufa',
+        component: HeatmapComponent
+
+      },
+      {
+        display: true,
+        background: 'linear-gradient(135deg, #533483 0%, #0f3460 100%)',
+        progressFillColor: '#e94560',
+        iconBg: '#e94560',
+        iconColor: '#533483',
+        icon: 'bi bi-currency-euro',
+        title: 'Despesa Total',
+        titleColor: '#533483',
+        subtitle: 'El que has invertit en diversió',
+        highlight: '1.847€',
+        highlightColor: '#533483',
+        statValueColor: '#533483',
+        stats: [
+          { label: 'Total gastat', value: this.wrappedData?.generalStats?.total_preu ?? '' },
+          { label: 'Nit més cara', value: '127€' },
+          { label: 'Estalvis possibles', value: '~420€' }
+        ]
+      },
+      {
+        display: true,
+        background: 'linear-gradient(135deg, #e94560 0%, #533483 100%)',
+        progressFillColor: '#ff7c7c',
+        iconBg: '#ff7c7c',
+        iconColor: '#0f3460',
+        icon: 'bi bi-calendar-event',
+        title: 'Dies de Sortida',
+        titleColor: '#0f3460',
+        subtitle: 'El teu dia preferit',
+        highlight: maxDayName ?? '',
+        highlightColor: '#0f3460',
+        statValueColor: '#e94560',
+        stats: [
+          { label: 'Vegades que has sortit', value: maxDayData?.dies_sortits ?? '' },
+          { label: 'Begudes preses', value: maxDayData?.begudes_preses ?? '' },
+          { label: 'Total quantitat', value: formatNum(maxDayData?.total_quantitat) + 'L' },
+          { label: 'Total preu', value: formatNum(maxDayData?.total_preu) + '€' },
+          { label: 'Mitjana quantitat', value: formatNum(maxDayData?.mitjana_quantitat) + 'L' },
+          { label: 'Mitjana preu', value: formatNum(maxDayData?.mitjana_preu) + '€' }
+        ]
+      },
+      {
+        display: (this.wrappedData?.userEvents?.length ?? 0) > 0,
+        background: 'linear-gradient(135deg, #ff7c7c 0%, #e94560 100%)',
+        progressFillColor: '#ffb6b6',
+        iconBg: '#ffb6b6',
+        iconColor: '#e94560',
+        icon: 'bi bi-ticket-perforated',
+        title: 'Events Especials',
+        titleColor: '#e94560',
+        subtitle: 'Celebracions inoblidables',
+        highlight: this.wrappedData?.userEvents?.length ?? '0' + ' Events',
+        highlightColor: '#e94560',
+        statValueColor: '#e94560',
+        stats: this.wrappedData?.userEvents.map(d => ({
+          label: d.nom,
+          value: d.user_stats.litres_consumits_event + 'L - ' + d.user_stats.preu_gastat_event + ' €',
+        }))
+      },
+      {
+        display: true,
+        background: 'linear-gradient(135deg, #ffb6b6 0%, #ff7c7c 100%)',
+        progressFillColor: '#ffde7d',
+        iconBg: '#ffde7d',
+        iconColor: '#1a1a2e',
+        icon: 'bi bi-trophy',
+        title: 'El Teu Any',
+        titleColor: '#1a1a2e',
+        subtitle: 'En xifres',
+        statValueColor: '#1a1a2e',
+        stats: [
+          { label: 'N rànquing', value: this.wrappedData?.userDrinkerRank.rank ?? '' },
+          { label: 'Begudes totals', value: this.wrappedData?.generalStats?.begudes_totals ?? '' },
+          {
+            label: 'Mitjana consumició', value: (this.wrappedData?.generalStats?.total_preu != null && this.wrappedData?.generalStats?.begudes_totals
+              ? ((this.wrappedData.generalStats.total_preu / this.wrappedData.generalStats.begudes_totals).toFixed(2) + '€')
+              : '1.2€')
+          }
+        ],
+        footerSubtitle: 'Gràcies per aquest temps increïble!'
+      }
+    ];
+    // Filtra les stories que no s'han de mostrar
+    this.stories = this.stories.filter(story => story.display);
+    // Actualitza el total de stories
+    this.totalStories = this.stories.length;
+  }
 
   @ViewChildren('story') storyElements!: QueryList<ElementRef>;
   @ViewChildren('progressBarFill') progressBarFills!: QueryList<ElementRef>;
-
-  constructor(private renderer: Renderer2, private el: ElementRef) { }
+  constructor(private renderer: Renderer2, private el: ElementRef, private router: Router) { }
 
   ngOnInit(): void {
+    this.wrappedService.wrappedData$
+      .pipe(takeUntil(this.destroy$)) // Evita memory leaks
+      .subscribe(data => {
+        this.wrappedData = data;
+        this.isLoading = false;
+        // Si no hi ha dades i no estem carregant, potser cal redirigir o mostrar un missatge
+        if (!data && !this.isLoading) {
+          // Opcional: Redirigir si no hi ha dades, o mostrar un missatge més informatiu
+          console.warn('Wrapped data is null. The user might have accessed this page directly without selecting options.');
+          // this.router.navigate(['/wrapped/select']);
+        }
+        if (data) {
+          this.buildStories();
+        }
+        console.log('Wrapped data on init:', this.wrappedData);
+      });
+
+    // En cas que l'usuari arribi directament a aquesta ruta sense que les dades s'hagin carregat,
+    // podem optar per mostrar un estat de càrrega o redirigir.
+    // Si el BehaviorSubject ja té dades (perquè es van carregar prèviament), el subscribe ja les rebrà.
+    // Si és null, es mantindrà null fins que es carreguin.
+    if (!this.wrappedData && !this.isLoading) {
+      // Si no hi ha dades i no estem en procés de càrrega (perquè ja hauríem d'haver rebut alguna cosa),
+      // potser és un accés directe i hauríem de redirigir o mostrar un error.
+      // this.router.navigate(['/wrapped/select']); // Descomenta si vols redirigir automàticament
+    }
+
     this.totalStories = this.stories.length;
     this.startTimer();
     this.generateBackgroundElements();
@@ -165,14 +229,6 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
     clearInterval(this.timerInterval);
   }
 
-  // Comentat: Exemple de com carregar dades d'un servei
-  // loadStoriesFromService() {
-  //   this.storyService.getStories().subscribe(data => {
-  //     this.stories = data;
-  //     this.totalStories = this.stories.length;
-  //     this.resetTimer();
-  //   });
-  // }
 
   generateBackgroundElements(): void {
     const backgroundContainer = this.el.nativeElement.querySelector('.background-elements');
@@ -237,6 +293,7 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
         if (this.currentStoryIndex < this.totalStories - 1) {
           this.nextStory();
         } else {
+          // this.router.navigate(['/la_gran_aventura-stats']);
           this.currentStoryIndex = 0; // Torna a la primera story
           this.resetTimer(); // Reinicia el temporitzador per a la primera història
         }
@@ -255,12 +312,15 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   changeStory(newIndex: number): void {
-    if (newIndex >= 0 && newIndex < this.totalStories) {
+    if (newIndex >= 0 && newIndex < this.stories.length) {
       this.currentStoryIndex = newIndex;
       this.updateBackgroundElements();
       this.resetTimer();
+    } else {
+      this.router.navigate(['/la_gran_aventura-stats']);
     }
   }
+
 
   previousStory(): void {
     this.changeStory(this.currentStoryIndex - 1);
