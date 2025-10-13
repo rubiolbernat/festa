@@ -35,23 +35,31 @@ export class HeatmapComponent implements AfterViewInit {
       return;
     }
 
-    this.map = L.map(container, {
-      center: [41.3851, 2.1734],
-      zoom: 13
-    });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(this.map);
-
-
-    // Dades de prova amb intensitat
-
+    //DADES
     const locationData = this.wrappedService.getlocationData() ?? [];
     const maxlocationDataLiters = this.wrappedService.getMaxLocationLitres();
     const points: HeatPoint[] = locationData.map(l => ({
       lat: l.latitude, lng: l.longitude, intensity: l.total_litres / (maxlocationDataLiters || 1),
     }));
+
+    // Centrar mapa a primera dada o a Barcelona si no hi ha dades
+    if (points.length) {
+      const firstPoint = points[0];
+      this.map = L.map(container, {
+        center: [firstPoint.lat, firstPoint.lng],
+        zoom: 13
+      });
+    } else {
+      this.map = L.map(container, {
+        center: [41.3851, 2.1734],
+        zoom: 13
+      });
+    }
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(this.map);
+
 
     // Afegir heatmap
     const heatCoords: [number, number, number][] = points.map(p => [p.lat, p.lng, p.intensity]);
