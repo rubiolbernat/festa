@@ -39,8 +39,11 @@ export class HeatmapComponent implements AfterViewInit {
     const locationData = this.wrappedService.getlocationData() ?? [];
     const maxlocationDataLiters = this.wrappedService.getMaxLocationLitres();
     const points: HeatPoint[] = locationData.map(l => ({
-      lat: l.latitude, lng: l.longitude, intensity: l.total_litres / (maxlocationDataLiters || 1),
+      lat: +l.latitude,
+      lng: +l.longitude,
+      intensity: l.total_litres / (maxlocationDataLiters || 1),
     }));
+
 
     // Centrar mapa a primera dada o a Barcelona si no hi ha dades
     if (points.length) {

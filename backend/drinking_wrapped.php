@@ -411,7 +411,7 @@ function getUserLocationData($conn, $userId, $startDate, $endDate)
                 longitude,
                 SUM(quantity) AS total_litres
             FROM drink_data
-            WHERE user_id = :userId";
+            WHERE user_id = :userId AND latitude IS NOT NULL AND latitude != 0.000000 AND longitude IS NOT NULL AND longitude != 0.000000";
   addDateRangeToSql($sql, $startDate, $endDate, false);
   $sql .= " GROUP BY location, latitude, longitude
               ORDER BY total_litres DESC";
