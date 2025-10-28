@@ -58,23 +58,6 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
         footerSubtitle: 'Tindràs un problema amb el fetge?'
       },
       {
-        display: true,
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-        progressFillColor: '#0f3460',
-        iconBg: '#0f3460',
-        iconColor: '#ffde7d',
-        icon: 'bi bi-cup-straw',
-        title: 'El Teu Any de Festa',
-        titleColor: '#ffde7d',
-        subtitle: 'Resum de les teves nits amb amics',
-        statValueColor: '#ffde7d',
-        stats: [
-          { label: 'Nits totals', value: '78' },
-          { label: 'Amics diferents', value: '24' },
-          { label: 'Locals visitats', value: '15' }
-        ]
-      },
-      {
         display: !!this.wrappedData?.mostConsumedDrinks?.length, // només si hi ha dades
         background: 'linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%)',
         progressFillColor: '#533483',
@@ -121,9 +104,21 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
         highlightColor: '#533483',
         statValueColor: '#533483',
         stats: [
-          { label: 'Nit més cara', value: this.wrappedData?.topSpendingDay?.sum_preu ?? '' + '€', detail: 'Això va ser el: ' + this.wrappedData?.topSpendingDay?.date + ' i vas beure' + this.wrappedData?.topSpendingDay?.sum_quantitat + ' L' },
-          { label: 'Lloc més car', value: this.wrappedData?.topLocationBySpending?.sum_preu ?? '' + '€', detail: 'Això ha estat a: ' + this.wrappedData?.topLocationBySpending?.location + ' i vas beure' + this.wrappedData?.topLocationBySpending?.sum_quantitat + ' L' },
-          /*{ label: 'La beguda més cara (avg)', value: this.wrappedData?.topDrinkByAveragePrice?.average_price != null ? `${this.wrappedData.topDrinkByAveragePrice.average_price.toFixed(2)}€` : '', detail: `Ha estat: ${this.wrappedData?.topDrinkByAveragePrice?.drink ?? ''}` },*/
+          {
+            label: 'Nit més cara',
+            value: this.wrappedData?.topSpendingDay?.sum_preu ?? '' + '€',
+            detail: 'Això va ser el: ' + this.wrappedData?.topSpendingDay?.date + ' i vas beure' + this.wrappedData?.topSpendingDay?.sum_quantitat + ' L'
+          },
+          {
+            label: 'Lloc més car',
+            value: this.wrappedData?.topLocationBySpending?.location ?? '' + '€',
+            detail: 'Thas gastat: ' + this.wrappedData?.topLocationBySpending?.sum_preu + ' i vas beure' + this.wrappedData?.topLocationBySpending?.sum_quantitat + ' L'
+          },
+          {
+            label: 'La beguda més cara (avg)',
+            value: `${Number(this.wrappedData?.topDrinkByAveragePrice?.average_price ?? 0).toFixed(2)}€`,
+            detail: `Ha estat: ${this.wrappedData?.topDrinkByAveragePrice?.drink ?? ''}`
+          }
         ]
       },
       {
