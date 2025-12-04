@@ -1,19 +1,55 @@
-/* heatmap.component.css */
 :host {
   display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.map-wrapper {
+  position: relative;
   width: 100%;
   height: 100%;
 }
 
 #map {
-  width: 900px;
-  height: 900px; /* o qualsevol alçada que necessitis */
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 
-
-.btn {
+/* Estil del botó petit */
+.btn-map-control {
   position: absolute;
   top: 10px;
-  left: 10px;
+  right: 10px; /* A dalt a la dreta */
   z-index: 1000;
+
+  /* Mides petites i quadrades com els controls de Leaflet */
+  width: 34px;
+  height: 34px;
+
+  /* Estètica visual */
+  background-color: #fff;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-radius: 4px;
+  cursor: pointer;
+
+  /* Centrar la icona */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+
+  /* Transició suau */
+  transition: background-color 0.2s;
+}
+
+.btn-map-control:hover {
+  background-color: #f4f4f4;
+}
+
+.btn-map-control i {
+  font-size: 16px; /* Mida de la icona */
+  color: #333;
+  line-height: 1;
 }

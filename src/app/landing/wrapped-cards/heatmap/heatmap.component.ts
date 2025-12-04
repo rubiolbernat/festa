@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild, inject, output } from '@angular/core';
 import * as L from 'leaflet';
 import { WrappedService } from '../../../core/services/wrapped/wrapped.service';
 
@@ -15,16 +15,36 @@ interface HeatPoint {
   styleUrls: ['./heatmap.component.css']
 })
 export class HeatmapComponent implements AfterViewInit {
-  @ViewChild('mapContainer') mapContainerRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('mapContainer') mapContainerRef!:
+  ElementRef<HTMLDivElement>;
+  @ViewChild('mapWrapper') mapWrapperRef!: ElementRef<HTMLDivElement>;
+
+  fullscreenStatusChange = output<boolean>();
 
   private wrappedService = inject(WrappedService);
 
   map!: L.Map;
   heatCanvas!: HTMLCanvasElement;
   points: HeatPoint[] = [];
+  isFullScreen = false;
+
+  private fullscreenListener = () => this.handleFullscreenChange();
 
   ngAfterViewInit(): void {
+    // Escoltem l'event natiu del navegador per detectar canvis (incloent la tecla ESC)
+    document.addEventListener('fullscreenchange', this.fullscreenListener);
+
     setTimeout(() => this.initMap(), 200);
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('fullscreenchange', this.fullscreenListener);
+
+    // Si el component es destrueix (l'usuari canvia de story mentre està en fullscreen),
+    // ens assegurem que el pare torni a fer play.
+    if (this.isFullScreen) {
+       this.wrappedService.setFullscreenState(false);
+    }
   }
 
   initMap(): void {
@@ -260,10 +280,34 @@ export class HeatmapComponent implements AfterViewInit {
   }
 
   toggleFullScreen(): void {
+    const elem = this.mapWrapperRef.nativeElement;
+
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
+      elem.requestFullscreen().catch(err => {
+        console.error(`Error fullscreen: ${err.message}`);
+      });
     } else {
       document.exitFullscreen();
     }
+    // No cal emetre res aquí, l'event 'fullscreenchange' dispararà handleFullscreenChange
+  }
+
+  updateMapSize(): void {
+    // Petit retard per donar temps al navegador a fer el canvi de mida
+    setTimeout(() => {
+      if (this.map) {
+        this.map.invalidateSize();
+        this.map.fire('resize'); // Força el redibuixat del canvas del heatmap
+      }
+    }, 100);
+  }
+
+  private handleFullscreenChange(): void {
+    this.isFullScreen = !!document.fullscreenElement;
+
+    // EN LLOC D'EMETRE, AVISEM AL SERVEI
+    this.wrappedService.setFullscreenState(this.isFullScreen);
+
+    this.updateMapSize();
   }
 }

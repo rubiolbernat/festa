@@ -1,2 +1,10 @@
-<div #mapContainer id="map"></div>
-<button (click)="toggleFullScreen()" style="margin-top:10px;">Fullscreen</button>
+<div class="map-wrapper" #mapWrapper>
+  <div #mapContainer id="map"></div>
+
+  <button class="btn-map-control" (click)="toggleFullScreen()" title="Pantalla completa">
+    <i class="bi"
+       [class.bi-arrows-fullscreen]="!isFullScreen"
+       [class.bi-fullscreen-exit]="isFullScreen">
+    </i>
+  </button>
+</div>

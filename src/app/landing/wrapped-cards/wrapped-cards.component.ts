@@ -195,37 +195,48 @@ export class WrappedCardsComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(private renderer: Renderer2, private el: ElementRef, private router: Router) { }
 
   ngOnInit(): void {
+    // 1. Subscripció a les DADES (Wrapped Data)
     this.wrappedService.wrappedData$
-      .pipe(takeUntil(this.destroy$)) // Evita memory leaks
+      .pipe(takeUntil(this.destroy$))
       .subscribe(data => {
         this.wrappedData = data;
         this.isLoading = false;
-        // Si no hi ha dades i no estem carregant, potser cal redirigir o mostrar un missatge
-        if (!data && !this.isLoading) {
-          // Opcional: Redirigir si no hi ha dades, o mostrar un missatge més informatiu
-          console.warn('Wrapped data is null. The user might have accessed this page directly without selecting options.');
-          // this.router.navigate(['/wrapped/select']);
+
+        if (!data) {
+          console.warn('No hi ha dades disponibles.');
+          // Opcional: this.router.navigate(['/wrapped/select']);
         }
+
         if (data) {
+          // Construïm les històries només quan tenim dades
           this.buildStories();
+
+          // Actualitzem el comptador total
+          this.totalStories = this.stories.length;
+
+          // Iniciem el temporitzador només si tenim històries
+          if (this.totalStories > 0) {
+            this.startTimer();
+          }
         }
+
         console.log('Wrapped data on init:', this.wrappedData);
       });
 
-    // En cas que l'usuari arribi directament a aquesta ruta sense que les dades s'hagin carregat,
-    // podem optar per mostrar un estat de càrrega o redirigir.
-    // Si el BehaviorSubject ja té dades (perquè es van carregar prèviament), el subscribe ja les rebrà.
-    // Si és null, es mantindrà null fins que es carreguin.
-    if (!this.wrappedData && !this.isLoading) {
-      // Si no hi ha dades i no estem en procés de càrrega (perquè ja hauríem d'haver rebut alguna cosa),
-      // potser és un accés directe i hauríem de redirigir o mostrar un error.
-      // this.router.navigate(['/wrapped/select']); // Descomenta si vols redirigir automàticament
-    }
+    // 2. NOVA SUBSCRIPCIÓ: Control de Pantalla Completa (via Servei)
+    // Aquesta és la clau perquè funcioni la pausa des del Heatmap
+    this.wrappedService.fullscreenStatus$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isFullScreen) => {
+        console.log('Estat Fullscreen rebut del servei:', isFullScreen);
 
-    this.totalStories = this.stories.length;
-    this.startTimer();
+        // Si isFullScreen és true -> pauseStory = true (Pausa el timer)
+        // Si isFullScreen és false -> pauseStory = false (Repren el timer)
+        this.pauseStory.set(isFullScreen);
+      });
+
+    // 3. Generació d'elements visuals de fons (això no depèn de les dades)
     this.generateBackgroundElements();
-    // this.loadStoriesFromService(); // Comentat: Descomentar per carregar dades reals
   }
 
   ngAfterViewInit(): void {

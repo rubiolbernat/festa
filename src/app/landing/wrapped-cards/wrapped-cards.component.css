@@ -7,6 +7,7 @@
   width: 100%;
   height: calc(100vh - 56px); /* Ocupa tota l'alçada del viewport */
   overflow: hidden;
+  z-index: 99000;
 }
 
 * {
@@ -253,7 +254,7 @@ body {
   background: rgba(0, 0, 0, 0.3); /* Translúcid per defecte */
   backdrop-filter: blur(8px); /* Efecte blur */
   border-radius: 15px;
-  padding: 20px;
+  /*padding: 20px;*/
   margin-top: 25px;
   height: 50vh; /* Alçada per defecte, es pot ajustar */
   display: flex;

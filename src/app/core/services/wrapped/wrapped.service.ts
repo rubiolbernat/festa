@@ -54,6 +54,8 @@ export class WrappedService {
   // Observable públic per a que els components puguin subscriure's
   public wrappedData$ = this._wrappedData.asObservable();
 
+  private fullscreenSource = new BehaviorSubject<boolean>(false);
+  fullscreenStatus$ = this.fullscreenSource.asObservable();
   // Opcions seleccionades i dates per a la càrrega de dades
   // Les fem públiques per si algun component necessita saber quina configuració es va utilitzar
   public currentSelectedOption: 'this-year' | 'all-time' | 'custom' = 'this-year';
@@ -215,6 +217,8 @@ export class WrappedService {
     return result ? result.dayName : null;
   }
 
-
+  setFullscreenState(isFullScreen: boolean) {
+    this.fullscreenSource.next(isFullScreen);
+  }
 
 }
